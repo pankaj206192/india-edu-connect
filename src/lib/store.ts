@@ -74,8 +74,8 @@ function getSeedTests(): Test[] {
     {
       id: "test-1",
       name: "Mathematics Final Exam",
-      creatorId: "staff-1",
-      creatorName: "Dr. Priya Sharma",
+      creatorId: "admin-1",
+      creatorName: "Admin User",
       timeLimitMinutes: 60,
       passPercentage: 50,
       assignedStudentIds: ["student-1", "student-2", "student-3"],
