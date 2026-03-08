@@ -160,6 +160,19 @@ function EditUserDialog({ student, onUpdated }: { student: User; onUpdated: () =
   const [password, setPassword] = useState(student.password);
   const [gender, setGender] = useState<string>(student.gender || "");
   const [mobile, setMobile] = useState(student.mobile || "");
+  const [photo, setPhoto] = useState<string>(student.photo || "");
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: "Error", description: "Photo must be less than 2MB.", variant: "destructive" });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setPhoto(reader.result as string);
+    reader.readAsDataURL(file);
+  };
 
   const handleSave = () => {
     if (!name || !email || !password || !gender || !mobile) {
