@@ -197,18 +197,24 @@ export const AdminTests = () => {
 };
 
 export const AdminResults = () => {
-  const results = [
-    { id: 1, student: "Amit Singh", test: "Mathematics Final", score: 85, total: 100, status: "Passed" },
-    { id: 2, student: "Sneha Gupta", test: "Mathematics Final", score: 92, total: 100, status: "Passed" },
-    { id: 3, student: "Ravi Patel", test: "Physics Quiz", score: 38, total: 100, status: "Failed" },
-    { id: 4, student: "Pooja Reddy", test: "English Grammar", score: 76, total: 100, status: "Passed" },
-    { id: 5, student: "Karan Mehta", test: "Chemistry Lab", score: 45, total: 100, status: "Failed" },
-  ];
+  const [attempts, setAttempts] = useState(() => getAttempts());
+  const tests = getTests();
+  const [search, setSearch] = useState("");
+
+  const enriched = attempts.map(a => {
+    const test = tests.find(t => t.id === a.testId);
+    return { ...a, testName: test?.name || "Unknown Test" };
+  });
+
+  const filtered = enriched.filter(r =>
+    r.studentName.toLowerCase().includes(search.toLowerCase()) ||
+    r.testName.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <DashboardLayout role="admin" navItems={navItems} title="Results">
       <div className="space-y-6">
-        <Input placeholder="Search by student or test..." className="max-w-xs" />
+        <Input placeholder="Search by student or test..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
         <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
           <table className="w-full text-sm">
             <thead>
@@ -216,18 +222,23 @@ export const AdminResults = () => {
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Student</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">Test</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Score</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">Percentage</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
               </tr>
             </thead>
             <tbody>
-              {results.map((r) => (
+              {filtered.length === 0 && (
+                <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No results yet. Students need to attempt tests first.</td></tr>
+              )}
+              {filtered.map((r) => (
                 <tr key={r.id} className="border-b border-border last:border-0">
-                  <td className="px-4 py-3 font-medium text-foreground">{r.student}</td>
-                  <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{r.test}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{r.score}/{r.total}</td>
+                  <td className="px-4 py-3 font-medium text-foreground">{r.studentName}</td>
+                  <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{r.testName}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{r.score}/{r.totalMarks}</td>
+                  <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{r.percentage}%</td>
                   <td className="px-4 py-3">
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${r.status === "Passed" ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
-                      {r.status}
+                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${r.passed ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
+                      {r.passed ? "Passed" : "Failed"}
                     </span>
                   </td>
                 </tr>
