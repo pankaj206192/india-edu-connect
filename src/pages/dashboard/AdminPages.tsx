@@ -965,7 +965,6 @@ export const CreateTest = () => {
                 </div>
               </div>
             </div>
-            </div>
             <div>
               <Label>Pass Percentage</Label>
               <Input type="number" value={passPercentage} onChange={e => setPassPercentage(Number(e.target.value))} className="mt-1" min={0} max={100} />
