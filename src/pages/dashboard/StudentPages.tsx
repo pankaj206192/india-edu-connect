@@ -1,10 +1,10 @@
 import DashboardLayout from "@/components/DashboardLayout";
-import { LayoutDashboard, FileText, History, Award, BookOpen, Download, Clock, CheckCircle, RotateCcw, User } from "lucide-react";
+import { LayoutDashboard, FileText, History, Award, BookOpen, Download, Clock, CheckCircle, RotateCcw, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth, getUsers } from "@/lib/auth";
+import { useAuth, getUsers, type User } from "@/lib/auth";
 import { useNavigate } from "react-router-dom";
 import {
   getTestsForStudent, hasAttempted, getAttemptsForStudent,
@@ -17,7 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 
 const navItems = [
   { label: "Dashboard", path: "/dashboard/student", icon: <LayoutDashboard className="h-4 w-4" /> },
-  { label: "My Profile", path: "/dashboard/student/profile", icon: <User className="h-4 w-4" /> },
+  { label: "My Profile", path: "/dashboard/student/profile", icon: <UserIcon className="h-4 w-4" /> },
   { label: "My Tests", path: "/dashboard/student/tests", icon: <FileText className="h-4 w-4" /> },
   { label: "Test History", path: "/dashboard/student/history", icon: <History className="h-4 w-4" /> },
   { label: "Certificates", path: "/dashboard/student/certificates", icon: <Award className="h-4 w-4" /> },
@@ -501,7 +501,7 @@ export const StudentProfile = () => {
               {latestUser.photo ? (
                 <img src={latestUser.photo} alt={latestUser.name} className="h-full w-full object-cover" />
               ) : (
-                <User className="h-8 w-8 text-muted-foreground" />
+                <UserIcon className="h-8 w-8 text-muted-foreground" />
               )}
             </div>
             <div>
