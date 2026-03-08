@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth, getUsers, type User } from "@/lib/auth";
+import { useAuth, getUsers, updateUser, type User } from "@/lib/auth";
 import { useNavigate } from "react-router-dom";
 import {
   getTestsForStudent, hasAttempted, getAttemptsForStudent,
