@@ -49,8 +49,17 @@ function AddUserDialog({ onAdded }: { onAdded: () => void }) {
       toast({ title: "Error", description: "Mobile number must be 10 digits.", variant: "destructive" });
       return;
     }
-    if (getUsers().some(u => u.email === email)) {
+    const users = getUsers();
+    if (users.some(u => u.email === email)) {
       toast({ title: "Error", description: "Email already exists.", variant: "destructive" });
+      return;
+    }
+    if (users.some(u => u.name.toLowerCase() === name.trim().toLowerCase())) {
+      toast({ title: "Error", description: "A student with this name already exists.", variant: "destructive" });
+      return;
+    }
+    if (users.some(u => u.mobile === mobile)) {
+      toast({ title: "Error", description: "Mobile number already in use.", variant: "destructive" });
       return;
     }
     const id = `student-${Date.now()}`;
