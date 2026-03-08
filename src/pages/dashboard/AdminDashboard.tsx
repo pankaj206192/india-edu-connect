@@ -1,26 +1,27 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import StatCard from "@/components/StatCard";
-import { Users, GraduationCap, FileText, Award, LayoutDashboard, UserPlus, BookOpen, Settings, BarChart3 } from "lucide-react";
+import { GraduationCap, FileText, Award, LayoutDashboard, UserPlus, BookOpen, Settings, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const navItems = [
   { label: "Dashboard", path: "/dashboard/admin", icon: <LayoutDashboard className="h-4 w-4" /> },
-  { label: "Manage Staff", path: "/dashboard/admin/staff", icon: <Users className="h-4 w-4" /> },
   { label: "Manage Students", path: "/dashboard/admin/students", icon: <GraduationCap className="h-4 w-4" /> },
   { label: "Tests", path: "/dashboard/admin/tests", icon: <FileText className="h-4 w-4" /> },
+  { label: "Create Test", path: "/dashboard/admin/create-test", icon: <BookOpen className="h-4 w-4" /> },
   { label: "Results", path: "/dashboard/admin/results", icon: <BarChart3 className="h-4 w-4" /> },
   { label: "Certificates", path: "/dashboard/admin/certificates", icon: <Award className="h-4 w-4" /> },
   { label: "Settings", path: "/dashboard/admin/settings", icon: <Settings className="h-4 w-4" /> },
 ];
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
   return (
     <DashboardLayout role="admin" navItems={navItems} title="Admin Dashboard">
       <div className="space-y-6">
         {/* Stats */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard title="Total Students" value={248} icon={<GraduationCap className="h-5 w-5" />} trend="+12 this month" />
-          <StatCard title="Total Staff" value={18} icon={<Users className="h-5 w-5" />} trend="+2 this month" />
           <StatCard title="Tests Created" value={45} icon={<FileText className="h-5 w-5" />} trend="+5 this week" />
           <StatCard title="Certificates Issued" value={186} icon={<Award className="h-5 w-5" />} trend="+28 this month" />
         </div>
@@ -29,21 +30,17 @@ const AdminDashboard = () => {
         <div className="rounded-xl border border-border bg-card p-6 shadow-card">
           <h2 className="mb-4 font-display text-lg font-bold text-foreground">Quick Actions</h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <Button variant="outline" className="h-auto flex-col gap-2 py-4">
+            <Button variant="outline" className="h-auto flex-col gap-2 py-4" onClick={() => navigate("/dashboard/admin/students")}>
               <UserPlus className="h-5 w-5 text-secondary" />
               <span>Add Student</span>
             </Button>
-            <Button variant="outline" className="h-auto flex-col gap-2 py-4">
-              <Users className="h-5 w-5 text-secondary" />
-              <span>Add Staff</span>
-            </Button>
-            <Button variant="outline" className="h-auto flex-col gap-2 py-4">
+            <Button variant="outline" className="h-auto flex-col gap-2 py-4" onClick={() => navigate("/dashboard/admin/create-test")}>
               <BookOpen className="h-5 w-5 text-secondary" />
               <span>Create Test</span>
             </Button>
-            <Button variant="outline" className="h-auto flex-col gap-2 py-4">
+            <Button variant="outline" className="h-auto flex-col gap-2 py-4" onClick={() => navigate("/dashboard/admin/certificates")}>
               <Award className="h-5 w-5 text-secondary" />
-              <span>Issue Certificate</span>
+              <span>View Certificates</span>
             </Button>
           </div>
         </div>

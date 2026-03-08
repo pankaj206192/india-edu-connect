@@ -74,8 +74,8 @@ function getSeedTests(): Test[] {
     {
       id: "test-1",
       name: "Mathematics Final Exam",
-      creatorId: "staff-1",
-      creatorName: "Dr. Priya Sharma",
+      creatorId: "admin-1",
+      creatorName: "Admin User",
       timeLimitMinutes: 60,
       passPercentage: 50,
       assignedStudentIds: ["student-1", "student-2", "student-3"],
@@ -93,8 +93,8 @@ function getSeedTests(): Test[] {
     {
       id: "test-2",
       name: "Science Quiz",
-      creatorId: "staff-2",
-      creatorName: "Mr. Rahul Verma",
+      creatorId: "admin-1",
+      creatorName: "Admin User",
       timeLimitMinutes: 30,
       passPercentage: 50,
       assignedStudentIds: ["student-1", "student-2"],
@@ -110,8 +110,8 @@ function getSeedTests(): Test[] {
     {
       id: "test-3",
       name: "English Grammar",
-      creatorId: "staff-1",
-      creatorName: "Dr. Priya Sharma",
+      creatorId: "admin-1",
+      creatorName: "Admin User",
       timeLimitMinutes: 45,
       passPercentage: 50,
       assignedStudentIds: ["student-1", "student-3"],
@@ -148,9 +148,6 @@ export function getTestsForStudent(studentId: string): Test[] {
   return getTests().filter(t => t.status === "active" && t.assignedStudentIds.includes(studentId));
 }
 
-export function getTestsForStaff(staffId: string): Test[] {
-  return getTests().filter(t => t.creatorId === staffId);
-}
 
 // ---- Attempts ----
 export function getAttempts(): Attempt[] {

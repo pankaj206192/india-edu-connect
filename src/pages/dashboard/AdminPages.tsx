@@ -1,5 +1,6 @@
 import DashboardLayout from "@/components/DashboardLayout";
-import { LayoutDashboard, Users, GraduationCap, FileText, BarChart3, Award, Settings, Plus, Trash2 } from "lucide-react";
+import { LayoutDashboard, GraduationCap, FileText, BarChart3, Award, Settings, Plus, Trash2, BookOpen, PlusCircle } from "lucide-react";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
@@ -10,9 +11,9 @@ import { getUsersByRole, addUser, getUsers, type User } from "@/lib/auth";
 
 const navItems = [
   { label: "Dashboard", path: "/dashboard/admin", icon: <LayoutDashboard className="h-4 w-4" /> },
-  { label: "Manage Staff", path: "/dashboard/admin/staff", icon: <Users className="h-4 w-4" /> },
   { label: "Manage Students", path: "/dashboard/admin/students", icon: <GraduationCap className="h-4 w-4" /> },
   { label: "Tests", path: "/dashboard/admin/tests", icon: <FileText className="h-4 w-4" /> },
+  { label: "Create Test", path: "/dashboard/admin/create-test", icon: <FileText className="h-4 w-4" /> },
   { label: "Results", path: "/dashboard/admin/results", icon: <BarChart3 className="h-4 w-4" /> },
   { label: "Certificates", path: "/dashboard/admin/certificates", icon: <Award className="h-4 w-4" /> },
   { label: "Settings", path: "/dashboard/admin/settings", icon: <Settings className="h-4 w-4" /> },
@@ -25,7 +26,7 @@ function deleteUser(userId: string) {
   localStorage.setItem("ei_users", JSON.stringify(users));
 }
 
-function AddUserDialog({ role, onAdded }: { role: "staff" | "student"; onAdded: () => void }) {
+function AddUserDialog({ onAdded }: { onAdded: () => void }) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
@@ -42,9 +43,9 @@ function AddUserDialog({ role, onAdded }: { role: "staff" | "student"; onAdded: 
       toast({ title: "Error", description: "Email already exists.", variant: "destructive" });
       return;
     }
-    const id = `${role}-${Date.now()}`;
-    addUser({ id, name, email, password, role });
-    toast({ title: "Success", description: `${role === "staff" ? "Staff" : "Student"} added successfully.` });
+    const id = `student-${Date.now()}`;
+    addUser({ id, name, email, password, role: "student" });
+    toast({ title: "Success", description: "Student added successfully." });
     setName(""); setEmail(""); setPassword(""); setExtra("");
     setOpen(false);
     onAdded();
@@ -54,77 +55,24 @@ function AddUserDialog({ role, onAdded }: { role: "staff" | "student"; onAdded: 
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
-          <Plus className="mr-2 h-4 w-4" /> Add {role === "staff" ? "Staff" : "Student"}
+          <Plus className="mr-2 h-4 w-4" /> Add Student
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add New {role === "staff" ? "Staff Member" : "Student"}</DialogTitle>
+          <DialogTitle>Add New Student</DialogTitle>
         </DialogHeader>
         <div className="space-y-3 pt-2">
           <Input placeholder="Full Name" value={name} onChange={e => setName(e.target.value)} />
           <Input placeholder="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} />
           <Input placeholder="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
-          <Input placeholder={role === "staff" ? "Subject (optional)" : "Class (optional)"} value={extra} onChange={e => setExtra(e.target.value)} />
-          <Button className="w-full" onClick={handleSubmit}>Add {role === "staff" ? "Staff" : "Student"}</Button>
+          <Input placeholder="Class (optional)" value={extra} onChange={e => setExtra(e.target.value)} />
+          <Button className="w-full" onClick={handleSubmit}>Add Student</Button>
         </div>
       </DialogContent>
     </Dialog>
   );
 }
-
-export const ManageStaff = () => {
-  const { toast } = useToast();
-  const [staff, setStaff] = useState(() => getUsersByRole("staff"));
-  const [search, setSearch] = useState("");
-
-  const refresh = () => setStaff(getUsersByRole("staff"));
-  const filtered = staff.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.email.toLowerCase().includes(search.toLowerCase()));
-
-  const handleDelete = (u: User) => {
-    deleteUser(u.id);
-    refresh();
-    toast({ title: "Deleted", description: `${u.name} has been removed.` });
-  };
-
-  return (
-    <DashboardLayout role="admin" navItems={navItems} title="Manage Staff">
-      <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <Input placeholder="Search staff..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
-          <AddUserDialog role="staff" onAdded={refresh} />
-        </div>
-        <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border bg-muted">
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Name</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">Email</th>
-                <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 && (
-                <tr><td colSpan={3} className="px-4 py-8 text-center text-muted-foreground">No staff found.</td></tr>
-              )}
-              {filtered.map((s) => (
-                <tr key={s.id} className="border-b border-border last:border-0">
-                  <td className="px-4 py-3 font-medium text-foreground">{s.name}</td>
-                  <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{s.email}</td>
-                  <td className="px-4 py-3 text-right">
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(s)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </DashboardLayout>
-  );
-};
 
 export const ManageStudents = () => {
   const { toast } = useToast();
@@ -145,7 +93,7 @@ export const ManageStudents = () => {
       <div className="space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <Input placeholder="Search students..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
-          <AddUserDialog role="student" onAdded={refresh} />
+          <AddUserDialog onAdded={refresh} />
         </div>
         <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
           <table className="w-full text-sm">
@@ -331,6 +279,128 @@ export const AdminSettings = () => {
             <Button onClick={() => toast({ title: "Saved", description: "Settings updated." })}>Save Changes</Button>
           </div>
         </div>
+      </div>
+    </DashboardLayout>
+  );
+};
+
+interface Question {
+  id: number;
+  type: "mcq" | "short" | "long";
+  text: string;
+  marks: number;
+  options: string[];
+  correctAnswer: string;
+}
+
+export const CreateTest = () => {
+  const { toast } = useToast();
+  const [testName, setTestName] = useState("");
+  const [timeLimit, setTimeLimit] = useState(60);
+  const [questions, setQuestions] = useState<Question[]>([
+    { id: 1, type: "mcq", text: "", marks: 1, options: ["", "", "", ""], correctAnswer: "" },
+  ]);
+
+  const addQuestion = (type: "mcq" | "short" | "long") => {
+    setQuestions([...questions, {
+      id: questions.length + 1,
+      type,
+      text: "",
+      marks: 1,
+      options: type === "mcq" ? ["", "", "", ""] : [],
+      correctAnswer: "",
+    }]);
+  };
+
+  const removeQuestion = (id: number) => {
+    if (questions.length > 1) setQuestions(questions.filter(q => q.id !== id));
+  };
+
+  const updateQuestion = (id: number, field: string, value: string | number) => {
+    setQuestions(questions.map(q => q.id === id ? { ...q, [field]: value } : q));
+  };
+
+  const updateOption = (qId: number, optIndex: number, value: string) => {
+    setQuestions(questions.map(q => {
+      if (q.id !== qId) return q;
+      const newOptions = [...q.options];
+      newOptions[optIndex] = value;
+      return { ...q, options: newOptions };
+    }));
+  };
+
+  return (
+    <DashboardLayout role="admin" navItems={navItems} title="Create Test">
+      <div className="mx-auto max-w-3xl space-y-6">
+        <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+          <h2 className="mb-4 font-display text-lg font-bold text-foreground">Test Details</h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <Label>Test Name</Label>
+              <Input value={testName} onChange={e => setTestName(e.target.value)} placeholder="e.g. Mathematics Final Exam" className="mt-1" />
+            </div>
+            <div>
+              <Label>Time Limit (minutes)</Label>
+              <Input type="number" value={timeLimit} onChange={e => setTimeLimit(Number(e.target.value))} className="mt-1" min={1} />
+            </div>
+          </div>
+        </div>
+
+        {questions.map((q, idx) => (
+          <div key={q.id} className="rounded-xl border border-border bg-card p-6 shadow-card">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="font-medium text-foreground">Question {idx + 1} <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs capitalize text-muted-foreground">{q.type}</span></h3>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
+                  <Label className="text-xs">Marks:</Label>
+                  <Input type="number" value={q.marks} onChange={e => updateQuestion(q.id, "marks", Number(e.target.value))} className="h-8 w-16" min={1} />
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => removeQuestion(q.id)}>
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <Label>Question Text</Label>
+                <Input value={q.text} onChange={e => updateQuestion(q.id, "text", e.target.value)} placeholder="Enter your question..." className="mt-1" />
+              </div>
+              {q.type === "mcq" && (
+                <div className="space-y-2">
+                  <Label>Options</Label>
+                  {q.options.map((opt, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground">
+                        {String.fromCharCode(65 + i)}
+                      </span>
+                      <Input value={opt} onChange={e => updateOption(q.id, i, e.target.value)} placeholder={`Option ${String.fromCharCode(65 + i)}`} />
+                    </div>
+                  ))}
+                  <div>
+                    <Label className="text-xs">Correct Answer (A, B, C, or D)</Label>
+                    <Input value={q.correctAnswer} onChange={e => updateQuestion(q.id, "correctAnswer", e.target.value)} placeholder="e.g. A" className="mt-1 w-24" />
+                  </div>
+                </div>
+              )}
+              {(q.type === "short" || q.type === "long") && (
+                <div>
+                  <Label>Expected Answer / Keywords</Label>
+                  <Input value={q.correctAnswer} onChange={e => updateQuestion(q.id, "correctAnswer", e.target.value)} placeholder="Enter expected answer..." className="mt-1" />
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={() => addQuestion("mcq")}>+ MCQ</Button>
+          <Button variant="outline" onClick={() => addQuestion("short")}>+ Short Answer</Button>
+          <Button variant="outline" onClick={() => addQuestion("long")}>+ Long Answer</Button>
+        </div>
+
+        <Button variant="hero" size="lg" className="w-full" onClick={() => toast({ title: "Test Created!", description: "Your test has been saved." })}>
+          Save & Publish Test
+        </Button>
       </div>
     </DashboardLayout>
   );

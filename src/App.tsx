@@ -7,10 +7,8 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import AdminDashboard from "./pages/dashboard/AdminDashboard";
-import StaffDashboard from "./pages/dashboard/StaffDashboard";
 import StudentDashboard from "./pages/dashboard/StudentDashboard";
-import { ManageStaff, ManageStudents, AdminTests, AdminResults, AdminCertificates, AdminSettings } from "./pages/dashboard/AdminPages";
-import { StaffTests, CreateTest, StaffStudents, StaffResults } from "./pages/dashboard/StaffPages";
+import { ManageStudents, AdminTests, AdminResults, AdminCertificates, AdminSettings, CreateTest } from "./pages/dashboard/AdminPages";
 import { StudentTests, TestHistory, StudentCertificates, TestAttempt } from "./pages/dashboard/StudentPages";
 import NotFound from "./pages/NotFound";
 
@@ -28,19 +26,12 @@ const App = () => (
 
           {/* Admin Routes */}
           <Route path="/dashboard/admin" element={<ProtectedRoute allowedRoles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
-          <Route path="/dashboard/admin/staff" element={<ProtectedRoute allowedRoles={["admin"]}><ManageStaff /></ProtectedRoute>} />
           <Route path="/dashboard/admin/students" element={<ProtectedRoute allowedRoles={["admin"]}><ManageStudents /></ProtectedRoute>} />
           <Route path="/dashboard/admin/tests" element={<ProtectedRoute allowedRoles={["admin"]}><AdminTests /></ProtectedRoute>} />
+          <Route path="/dashboard/admin/create-test" element={<ProtectedRoute allowedRoles={["admin"]}><CreateTest /></ProtectedRoute>} />
           <Route path="/dashboard/admin/results" element={<ProtectedRoute allowedRoles={["admin"]}><AdminResults /></ProtectedRoute>} />
           <Route path="/dashboard/admin/certificates" element={<ProtectedRoute allowedRoles={["admin"]}><AdminCertificates /></ProtectedRoute>} />
           <Route path="/dashboard/admin/settings" element={<ProtectedRoute allowedRoles={["admin"]}><AdminSettings /></ProtectedRoute>} />
-
-          {/* Staff Routes */}
-          <Route path="/dashboard/staff" element={<ProtectedRoute allowedRoles={["staff"]}><StaffDashboard /></ProtectedRoute>} />
-          <Route path="/dashboard/staff/tests" element={<ProtectedRoute allowedRoles={["staff"]}><StaffTests /></ProtectedRoute>} />
-          <Route path="/dashboard/staff/create-test" element={<ProtectedRoute allowedRoles={["staff"]}><CreateTest /></ProtectedRoute>} />
-          <Route path="/dashboard/staff/students" element={<ProtectedRoute allowedRoles={["staff"]}><StaffStudents /></ProtectedRoute>} />
-          <Route path="/dashboard/staff/results" element={<ProtectedRoute allowedRoles={["staff"]}><StaffResults /></ProtectedRoute>} />
 
           {/* Student Routes */}
           <Route path="/dashboard/student" element={<ProtectedRoute allowedRoles={["student"]}><StudentDashboard /></ProtectedRoute>} />

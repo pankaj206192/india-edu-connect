@@ -18,7 +18,6 @@ const Login = () => {
 
   const demoCredentials: Record<Role, { email: string; password: string }> = {
     admin: { email: "admin@ethicalindia.edu", password: "admin123" },
-    staff: { email: "priya@institute.edu", password: "staff123" },
     student: { email: "amit@student.edu", password: "student123" },
   };
 
@@ -54,7 +53,6 @@ const Login = () => {
           <div className="mt-8 rounded-xl bg-primary-foreground/10 p-4 text-left text-sm text-primary-foreground/80">
             <p className="mb-2 font-semibold text-primary-foreground">Demo Credentials:</p>
             <p>Admin: admin@ethicalindia.edu / admin123</p>
-            <p>Staff: priya@institute.edu / staff123</p>
             <p>Student: amit@student.edu / student123</p>
           </div>
         </div>
@@ -73,8 +71,8 @@ const Login = () => {
           </div>
 
           {/* Role Quick-Fill */}
-          <div className="mb-6 grid grid-cols-3 gap-2 rounded-xl border border-border bg-muted p-1">
-            {(["admin", "staff", "student"] as Role[]).map((role) => (
+          <div className="mb-6 grid grid-cols-2 gap-2 rounded-xl border border-border bg-muted p-1">
+            {(["admin", "student"] as Role[]).map((role) => (
               <button
                 key={role}
                 onClick={() => fillDemo(role)}
@@ -130,7 +128,6 @@ const Login = () => {
           <div className="mt-6 rounded-lg border border-border bg-muted p-3 text-xs text-muted-foreground lg:hidden">
             <p className="mb-1 font-semibold text-foreground">Demo Credentials:</p>
             <p>Admin: admin@ethicalindia.edu / admin123</p>
-            <p>Staff: priya@institute.edu / staff123</p>
             <p>Student: amit@student.edu / student123</p>
           </div>
 
