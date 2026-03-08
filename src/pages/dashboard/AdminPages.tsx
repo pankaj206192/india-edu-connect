@@ -60,6 +60,19 @@ function AddUserDialog({ onAdded }: { onAdded: () => void }) {
   const [password, setPassword] = useState("");
   const [gender, setGender] = useState<"male" | "female" | "other" | "">("");
   const [mobile, setMobile] = useState("");
+  const [photo, setPhoto] = useState<string>("");
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: "Error", description: "Photo must be less than 2MB.", variant: "destructive" });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setPhoto(reader.result as string);
+    reader.readAsDataURL(file);
+  };
 
   const handleSubmit = () => {
     if (!name || !email || !password || !gender || !mobile) {
@@ -84,9 +97,9 @@ function AddUserDialog({ onAdded }: { onAdded: () => void }) {
       return;
     }
     const id = `student-${Date.now()}`;
-    addUser({ id, name, email, password, role: "student", gender: gender as "male" | "female" | "other", mobile });
+    addUser({ id, name, email, password, role: "student", gender: gender as "male" | "female" | "other", mobile, photo: photo || undefined });
     toast({ title: "Success", description: "Student added successfully." });
-    setName(""); setEmail(""); setPassword(""); setGender(""); setMobile("");
+    setName(""); setEmail(""); setPassword(""); setGender(""); setMobile(""); setPhoto("");
     setOpen(false);
     onAdded();
   };
