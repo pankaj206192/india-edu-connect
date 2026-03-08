@@ -238,16 +238,46 @@ function EditUserDialog({ student, onUpdated }: { student: User; onUpdated: () =
           </div>
           <Input placeholder="Full Name *" value={name} onChange={e => setName(e.target.value)} />
           <Input placeholder="Email *" type="email" value={email} onChange={e => setEmail(e.target.value)} />
-          <div className="relative">
-            <Input placeholder="Password *" type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-            >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1 block">Password</Label>
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Input readOnly value={password} type={showPassword ? "text" : "password"} className="pr-10 bg-muted" />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              <Button type="button" variant="outline" size="sm" onClick={() => { setResettingPassword(!resettingPassword); setNewPassword(""); setConfirmPassword(""); }}>
+                Reset
+              </Button>
+            </div>
           </div>
+          {resettingPassword && (
+            <div className="space-y-2 rounded-lg border border-border bg-muted/50 p-3">
+              <Label className="text-xs font-medium">New Password</Label>
+              <Input placeholder="Enter new password" type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} />
+              <Label className="text-xs font-medium">Confirm Password</Label>
+              <Input placeholder="Confirm new password" type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} />
+              <Button
+                size="sm"
+                className="w-full"
+                disabled={!newPassword || newPassword !== confirmPassword}
+                onClick={() => {
+                  setPassword(newPassword);
+                  setResettingPassword(false);
+                  setNewPassword("");
+                  setConfirmPassword("");
+                  toast({ title: "Password Updated", description: "Click 'Save Changes' to apply." });
+                }}
+              >
+                {!newPassword ? "Enter new password" : newPassword !== confirmPassword ? "Passwords don't match" : "Confirm Reset"}
+              </Button>
+            </div>
+          )}
           <Select value={gender} onValueChange={setGender}>
             <SelectTrigger>
               <SelectValue placeholder="Select Gender *" />
