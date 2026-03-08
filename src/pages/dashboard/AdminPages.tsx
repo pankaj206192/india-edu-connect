@@ -283,3 +283,125 @@ export const AdminSettings = () => {
     </DashboardLayout>
   );
 };
+
+interface Question {
+  id: number;
+  type: "mcq" | "short" | "long";
+  text: string;
+  marks: number;
+  options: string[];
+  correctAnswer: string;
+}
+
+export const CreateTest = () => {
+  const { toast } = useToast();
+  const [testName, setTestName] = useState("");
+  const [timeLimit, setTimeLimit] = useState(60);
+  const [questions, setQuestions] = useState<Question[]>([
+    { id: 1, type: "mcq", text: "", marks: 1, options: ["", "", "", ""], correctAnswer: "" },
+  ]);
+
+  const addQuestion = (type: "mcq" | "short" | "long") => {
+    setQuestions([...questions, {
+      id: questions.length + 1,
+      type,
+      text: "",
+      marks: 1,
+      options: type === "mcq" ? ["", "", "", ""] : [],
+      correctAnswer: "",
+    }]);
+  };
+
+  const removeQuestion = (id: number) => {
+    if (questions.length > 1) setQuestions(questions.filter(q => q.id !== id));
+  };
+
+  const updateQuestion = (id: number, field: string, value: string | number) => {
+    setQuestions(questions.map(q => q.id === id ? { ...q, [field]: value } : q));
+  };
+
+  const updateOption = (qId: number, optIndex: number, value: string) => {
+    setQuestions(questions.map(q => {
+      if (q.id !== qId) return q;
+      const newOptions = [...q.options];
+      newOptions[optIndex] = value;
+      return { ...q, options: newOptions };
+    }));
+  };
+
+  return (
+    <DashboardLayout role="admin" navItems={navItems} title="Create Test">
+      <div className="mx-auto max-w-3xl space-y-6">
+        <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+          <h2 className="mb-4 font-display text-lg font-bold text-foreground">Test Details</h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <Label>Test Name</Label>
+              <Input value={testName} onChange={e => setTestName(e.target.value)} placeholder="e.g. Mathematics Final Exam" className="mt-1" />
+            </div>
+            <div>
+              <Label>Time Limit (minutes)</Label>
+              <Input type="number" value={timeLimit} onChange={e => setTimeLimit(Number(e.target.value))} className="mt-1" min={1} />
+            </div>
+          </div>
+        </div>
+
+        {questions.map((q, idx) => (
+          <div key={q.id} className="rounded-xl border border-border bg-card p-6 shadow-card">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="font-medium text-foreground">Question {idx + 1} <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs capitalize text-muted-foreground">{q.type}</span></h3>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
+                  <Label className="text-xs">Marks:</Label>
+                  <Input type="number" value={q.marks} onChange={e => updateQuestion(q.id, "marks", Number(e.target.value))} className="h-8 w-16" min={1} />
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => removeQuestion(q.id)}>
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <Label>Question Text</Label>
+                <Input value={q.text} onChange={e => updateQuestion(q.id, "text", e.target.value)} placeholder="Enter your question..." className="mt-1" />
+              </div>
+              {q.type === "mcq" && (
+                <div className="space-y-2">
+                  <Label>Options</Label>
+                  {q.options.map((opt, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground">
+                        {String.fromCharCode(65 + i)}
+                      </span>
+                      <Input value={opt} onChange={e => updateOption(q.id, i, e.target.value)} placeholder={`Option ${String.fromCharCode(65 + i)}`} />
+                    </div>
+                  ))}
+                  <div>
+                    <Label className="text-xs">Correct Answer (A, B, C, or D)</Label>
+                    <Input value={q.correctAnswer} onChange={e => updateQuestion(q.id, "correctAnswer", e.target.value)} placeholder="e.g. A" className="mt-1 w-24" />
+                  </div>
+                </div>
+              )}
+              {(q.type === "short" || q.type === "long") && (
+                <div>
+                  <Label>Expected Answer / Keywords</Label>
+                  <Input value={q.correctAnswer} onChange={e => updateQuestion(q.id, "correctAnswer", e.target.value)} placeholder="Enter expected answer..." className="mt-1" />
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={() => addQuestion("mcq")}>+ MCQ</Button>
+          <Button variant="outline" onClick={() => addQuestion("short")}>+ Short Answer</Button>
+          <Button variant="outline" onClick={() => addQuestion("long")}>+ Long Answer</Button>
+        </div>
+
+        <Button variant="hero" size="lg" className="w-full" onClick={() => toast({ title: "Test Created!", description: "Your test has been saved." })}>
+          Save & Publish Test
+        </Button>
+      </div>
+    </DashboardLayout>
+  );
+};
