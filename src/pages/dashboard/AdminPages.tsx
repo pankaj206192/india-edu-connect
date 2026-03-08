@@ -7,7 +7,10 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getUsersByRole, addUser, getUsers, type User } from "@/lib/auth";
+import { getUsersByRole, addUser, getUsers, useAuth, type User } from "@/lib/auth";
+import { getTests, saveTest, type Test, type Question as StoreQuestion } from "@/lib/store";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useNavigate } from "react-router-dom";
 
 const navItems = [
   { label: "Dashboard", path: "/dashboard/admin", icon: <LayoutDashboard className="h-4 w-4" /> },
