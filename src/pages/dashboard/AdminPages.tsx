@@ -1,5 +1,6 @@
 import DashboardLayout from "@/components/DashboardLayout";
-import { LayoutDashboard, Users, GraduationCap, FileText, BarChart3, Award, Settings, Plus, Trash2 } from "lucide-react";
+import { LayoutDashboard, GraduationCap, FileText, BarChart3, Award, Settings, Plus, Trash2, BookOpen, PlusCircle } from "lucide-react";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
