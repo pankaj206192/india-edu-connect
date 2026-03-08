@@ -11,7 +11,7 @@ import { getUsersByRole, addUser, getUsers, useAuth, type User } from "@/lib/aut
 import { getTests, saveTest, getAttempts, getCertificates, type Test, type Question as StoreQuestion } from "@/lib/store";
 import { generateCertificatePDF } from "@/lib/pdf";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const navItems = [
   { label: "Dashboard", path: "/dashboard/admin", icon: <LayoutDashboard className="h-4 w-4" /> },
