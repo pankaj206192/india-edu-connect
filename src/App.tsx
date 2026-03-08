@@ -2,7 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import AdminDashboard from "./pages/dashboard/AdminDashboard";
@@ -26,27 +27,27 @@ const App = () => (
           <Route path="/login" element={<Login />} />
 
           {/* Admin Routes */}
-          <Route path="/dashboard/admin" element={<AdminDashboard />} />
-          <Route path="/dashboard/admin/staff" element={<ManageStaff />} />
-          <Route path="/dashboard/admin/students" element={<ManageStudents />} />
-          <Route path="/dashboard/admin/tests" element={<AdminTests />} />
-          <Route path="/dashboard/admin/results" element={<AdminResults />} />
-          <Route path="/dashboard/admin/certificates" element={<AdminCertificates />} />
-          <Route path="/dashboard/admin/settings" element={<AdminSettings />} />
+          <Route path="/dashboard/admin" element={<ProtectedRoute allowedRoles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/dashboard/admin/staff" element={<ProtectedRoute allowedRoles={["admin"]}><ManageStaff /></ProtectedRoute>} />
+          <Route path="/dashboard/admin/students" element={<ProtectedRoute allowedRoles={["admin"]}><ManageStudents /></ProtectedRoute>} />
+          <Route path="/dashboard/admin/tests" element={<ProtectedRoute allowedRoles={["admin"]}><AdminTests /></ProtectedRoute>} />
+          <Route path="/dashboard/admin/results" element={<ProtectedRoute allowedRoles={["admin"]}><AdminResults /></ProtectedRoute>} />
+          <Route path="/dashboard/admin/certificates" element={<ProtectedRoute allowedRoles={["admin"]}><AdminCertificates /></ProtectedRoute>} />
+          <Route path="/dashboard/admin/settings" element={<ProtectedRoute allowedRoles={["admin"]}><AdminSettings /></ProtectedRoute>} />
 
           {/* Staff Routes */}
-          <Route path="/dashboard/staff" element={<StaffDashboard />} />
-          <Route path="/dashboard/staff/tests" element={<StaffTests />} />
-          <Route path="/dashboard/staff/create-test" element={<CreateTest />} />
-          <Route path="/dashboard/staff/students" element={<StaffStudents />} />
-          <Route path="/dashboard/staff/results" element={<StaffResults />} />
+          <Route path="/dashboard/staff" element={<ProtectedRoute allowedRoles={["staff"]}><StaffDashboard /></ProtectedRoute>} />
+          <Route path="/dashboard/staff/tests" element={<ProtectedRoute allowedRoles={["staff"]}><StaffTests /></ProtectedRoute>} />
+          <Route path="/dashboard/staff/create-test" element={<ProtectedRoute allowedRoles={["staff"]}><CreateTest /></ProtectedRoute>} />
+          <Route path="/dashboard/staff/students" element={<ProtectedRoute allowedRoles={["staff"]}><StaffStudents /></ProtectedRoute>} />
+          <Route path="/dashboard/staff/results" element={<ProtectedRoute allowedRoles={["staff"]}><StaffResults /></ProtectedRoute>} />
 
           {/* Student Routes */}
-          <Route path="/dashboard/student" element={<StudentDashboard />} />
-          <Route path="/dashboard/student/tests" element={<StudentTests />} />
-          <Route path="/dashboard/student/history" element={<TestHistory />} />
-          <Route path="/dashboard/student/certificates" element={<StudentCertificates />} />
-          <Route path="/dashboard/student/test-attempt" element={<TestAttempt />} />
+          <Route path="/dashboard/student" element={<ProtectedRoute allowedRoles={["student"]}><StudentDashboard /></ProtectedRoute>} />
+          <Route path="/dashboard/student/tests" element={<ProtectedRoute allowedRoles={["student"]}><StudentTests /></ProtectedRoute>} />
+          <Route path="/dashboard/student/history" element={<ProtectedRoute allowedRoles={["student"]}><TestHistory /></ProtectedRoute>} />
+          <Route path="/dashboard/student/certificates" element={<ProtectedRoute allowedRoles={["student"]}><StudentCertificates /></ProtectedRoute>} />
+          <Route path="/dashboard/student/test-attempt" element={<ProtectedRoute allowedRoles={["student"]}><TestAttempt /></ProtectedRoute>} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>

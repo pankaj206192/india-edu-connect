@@ -1,7 +1,7 @@
 import { ReactNode, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { BookOpen, Menu, X, LogOut, Home } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { BookOpen, Menu, X, LogOut } from "lucide-react";
+import { useAuth } from "@/lib/auth";
 
 interface NavItem {
   label: string;
@@ -19,24 +19,22 @@ interface DashboardLayoutProps {
 const DashboardLayout = ({ children, role, navItems, title }: DashboardLayoutProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const roleColors: Record<string, string> = {
-    admin: "bg-gradient-hero",
-    staff: "bg-gradient-hero",
-    student: "bg-gradient-hero",
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
   };
 
   return (
     <div className="flex h-screen bg-background">
-      {/* Mobile overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 bg-foreground/30 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 ${roleColors[role]} text-primary-foreground transition-transform duration-300 lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-gradient-hero text-primary-foreground transition-transform duration-300 lg:static lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -77,8 +75,14 @@ const DashboardLayout = ({ children, role, navItems, title }: DashboardLayoutPro
         </nav>
 
         <div className="border-t border-primary-foreground/10 p-3">
+          {user && (
+            <div className="mb-2 px-3">
+              <p className="text-sm font-medium text-primary-foreground/90 truncate">{user.name}</p>
+              <p className="text-xs text-primary-foreground/50 truncate">{user.email}</p>
+            </div>
+          )}
           <button
-            onClick={() => navigate("/login")}
+            onClick={handleLogout}
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-primary-foreground/60 hover:bg-primary-foreground/10 hover:text-primary-foreground transition-colors"
           >
             <LogOut className="h-4 w-4" />
@@ -87,7 +91,6 @@ const DashboardLayout = ({ children, role, navItems, title }: DashboardLayoutPro
         </div>
       </aside>
 
-      {/* Main */}
       <div className="flex flex-1 flex-col overflow-hidden">
         <header className="flex h-16 items-center gap-4 border-b border-border bg-card px-4 lg:px-6">
           <button className="lg:hidden text-foreground" onClick={() => setSidebarOpen(true)}>
