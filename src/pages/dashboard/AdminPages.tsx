@@ -1,5 +1,5 @@
 import DashboardLayout from "@/components/DashboardLayout";
-import { LayoutDashboard, GraduationCap, FileText, BarChart3, Award, Settings, Plus, Trash2, BookOpen, PlusCircle } from "lucide-react";
+import { LayoutDashboard, GraduationCap, FileText, BarChart3, Award, Settings, Plus, Trash2, BookOpen, PlusCircle, Pencil } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,7 @@ import { getUsersByRole, addUser, getUsers, useAuth, type User } from "@/lib/aut
 import { getTests, saveTest, getAttempts, getCertificates, type Test, type Question as StoreQuestion } from "@/lib/store";
 import { generateCertificatePDF } from "@/lib/pdf";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const navItems = [
   { label: "Dashboard", path: "/dashboard/admin", icon: <LayoutDashboard className="h-4 w-4" /> },
@@ -133,6 +133,7 @@ export const ManageStudents = () => {
 
 export const AdminTests = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [tests, setTests] = useState(() => getTests());
   const [search, setSearch] = useState("");
   const [assignTest, setAssignTest] = useState<Test | null>(null);
@@ -194,6 +195,9 @@ export const AdminTests = () => {
                     }`}>{t.status}</span>
                   </td>
                   <td className="px-4 py-3 text-right flex items-center justify-end gap-1">
+                    <Button variant="ghost" size="sm" onClick={() => navigate(`/dashboard/admin/edit-test?id=${t.id}`)} title="Edit Test">
+                      <Pencil className="h-4 w-4 text-foreground" />
+                    </Button>
                     <Button variant="ghost" size="sm" onClick={() => setAssignTest(t)} title="Assign Students">
                       <GraduationCap className="h-4 w-4 text-primary" />
                     </Button>
@@ -407,14 +411,34 @@ export const CreateTest = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [testName, setTestName] = useState("");
-  const [timeLimit, setTimeLimit] = useState(60);
-  const [passPercentage, setPassPercentage] = useState(50);
-  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get("id");
+  const existingTest = editId ? getTests().find(t => t.id === editId) : null;
+  const isEditing = !!existingTest;
+
+  const loadQuestions = (): Question[] => {
+    if (!existingTest) return [{ id: 1, type: "mcq", text: "", marks: 1, options: ["", "", "", ""], correctAnswer: "" }];
+    return existingTest.questions.map((q, idx) => {
+      const correctLetter = q.type === "mcq" && q.options.includes(q.correctAnswer)
+        ? String.fromCharCode(65 + q.options.indexOf(q.correctAnswer))
+        : q.correctAnswer;
+      return {
+        id: idx + 1,
+        type: q.type,
+        text: q.text,
+        marks: q.marks,
+        options: q.type === "mcq" ? (q.options.length >= 4 ? q.options : [...q.options, ...Array(4 - q.options.length).fill("")]) : q.options,
+        correctAnswer: correctLetter,
+      };
+    });
+  };
+
+  const [testName, setTestName] = useState(existingTest?.name || "");
+  const [timeLimit, setTimeLimit] = useState(existingTest?.timeLimitMinutes || 60);
+  const [passPercentage, setPassPercentage] = useState(existingTest?.passPercentage || 50);
+  const [selectedStudents, setSelectedStudents] = useState<string[]>(existingTest?.assignedStudentIds || []);
   const students = getUsersByRole("student");
-  const [questions, setQuestions] = useState<Question[]>([
-    { id: 1, type: "mcq", text: "", marks: 1, options: ["", "", "", ""], correctAnswer: "" },
-  ]);
+  const [questions, setQuestions] = useState<Question[]>(loadQuestions);
 
   const addQuestion = (type: "mcq" | "short" | "long") => {
     setQuestions([...questions, {
@@ -473,7 +497,7 @@ export const CreateTest = () => {
     }
 
     const storeQuestions: StoreQuestion[] = questions.map((q, idx) => ({
-      id: `q-${Date.now()}-${idx}`,
+      id: existingTest ? (existingTest.questions[idx]?.id || `q-${Date.now()}-${idx}`) : `q-${Date.now()}-${idx}`,
       type: q.type,
       text: q.text,
       marks: q.marks,
@@ -482,25 +506,25 @@ export const CreateTest = () => {
     }));
 
     const test: Test = {
-      id: `test-${Date.now()}`,
+      id: existingTest?.id || `test-${Date.now()}`,
       name: testName,
-      creatorId: user?.id || "admin-1",
-      creatorName: user?.name || "Admin",
+      creatorId: existingTest?.creatorId || user?.id || "admin-1",
+      creatorName: existingTest?.creatorName || user?.name || "Admin",
       timeLimitMinutes: timeLimit,
       questions: storeQuestions,
       assignedStudentIds: selectedStudents,
-      status: "active",
-      createdAt: new Date().toISOString().split("T")[0],
+      status: existingTest?.status || "active",
+      createdAt: existingTest?.createdAt || new Date().toISOString().split("T")[0],
       passPercentage,
     };
 
     saveTest(test);
-    toast({ title: "Test Created!", description: "Your test has been saved and assigned." });
+    toast({ title: isEditing ? "Test Updated!" : "Test Created!", description: isEditing ? "Your changes have been saved." : "Your test has been saved and assigned." });
     navigate("/dashboard/admin/tests");
   };
 
   return (
-    <DashboardLayout role="admin" navItems={navItems} title="Create Test">
+    <DashboardLayout role="admin" navItems={navItems} title={isEditing ? "Edit Test" : "Create Test"}>
       <div className="mx-auto max-w-3xl space-y-6">
         <div className="rounded-xl border border-border bg-card p-6 shadow-card">
           <h2 className="mb-4 font-display text-lg font-bold text-foreground">Test Details</h2>
@@ -595,7 +619,7 @@ export const CreateTest = () => {
         </div>
 
         <Button variant="hero" size="lg" className="w-full" onClick={handleSave}>
-          Save & Publish Test
+          {isEditing ? "Save Changes" : "Save & Publish Test"}
         </Button>
       </div>
     </DashboardLayout>
