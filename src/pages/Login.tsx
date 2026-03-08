@@ -72,8 +72,8 @@ const Login = () => {
           </div>
 
           {/* Role Quick-Fill */}
-          <div className="mb-6 grid grid-cols-3 gap-2 rounded-xl border border-border bg-muted p-1">
-            {(["admin", "staff", "student"] as Role[]).map((role) => (
+          <div className="mb-6 grid grid-cols-2 gap-2 rounded-xl border border-border bg-muted p-1">
+            {(["admin", "student"] as Role[]).map((role) => (
               <button
                 key={role}
                 onClick={() => fillDemo(role)}
