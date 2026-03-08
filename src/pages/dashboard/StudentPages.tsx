@@ -305,13 +305,14 @@ export const TestAttempt = () => {
         score,
         percentage,
         issuedAt: new Date().toISOString(),
+        status: "pending",
       };
       saveCertificate(cert);
     }
 
     toast({
-      title: passed ? "🎉 Congratulations!" : "Test Submitted",
-      description: `You scored ${score}/${totalMarks} (${percentage}%). ${passed ? "Certificate generated!" : "Better luck next time."}`,
+      title: passed ? "🎉 Test Passed!" : "Test Submitted",
+      description: `You scored ${score}/${totalMarks} (${percentage}%). ${passed ? "Certificate pending admin approval." : "Better luck next time."}`,
     });
 
     navigate("/dashboard/student/history");
