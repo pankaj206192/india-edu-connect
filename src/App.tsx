@@ -8,7 +8,7 @@ import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import AdminDashboard from "./pages/dashboard/AdminDashboard";
 import StudentDashboard from "./pages/dashboard/StudentDashboard";
-import { ManageStudents, AdminTests, AdminResults, AdminCertificates, AdminSettings, CreateTest } from "./pages/dashboard/AdminPages";
+import { ManageStudents, AdminTests, AdminResults, AdminCertificates, AdminSettings, CreateTest, AdminRetakeRequests } from "./pages/dashboard/AdminPages";
 import { StudentTests, TestHistory, StudentCertificates, TestAttempt } from "./pages/dashboard/StudentPages";
 import NotFound from "./pages/NotFound";
 
