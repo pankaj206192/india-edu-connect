@@ -235,7 +235,16 @@ function EditUserDialog({ student, onUpdated }: { student: User; onUpdated: () =
           </div>
           <Input placeholder="Full Name *" value={name} onChange={e => setName(e.target.value)} />
           <Input placeholder="Email *" type="email" value={email} onChange={e => setEmail(e.target.value)} />
-          <Input placeholder="Password *" type="password" value={password} onChange={e => setPassword(e.target.value)} />
+          <div className="relative">
+            <Input placeholder="Password *" type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
           <Select value={gender} onValueChange={setGender}>
             <SelectTrigger>
               <SelectValue placeholder="Select Gender *" />
