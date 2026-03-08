@@ -629,6 +629,29 @@ export const AdminSettings = () => {
   const { user } = useAuth();
   const [settings, setSettings] = useState(() => getSettings());
   const [logo, setLogo] = useState<string>(settings.logo || "");
+  const [adminName, setAdminName] = useState(user?.name || "");
+  const [adminEmail, setAdminEmail] = useState(user?.email || "");
+  const [adminMobile, setAdminMobile] = useState(user?.mobile || "");
+  const [editingProfile, setEditingProfile] = useState(false);
+
+  const handleSaveProfile = () => {
+    if (!adminName || !adminEmail || !adminMobile) {
+      toast({ title: "Error", description: "Please fill all fields.", variant: "destructive" });
+      return;
+    }
+    if (!/^\d{10}$/.test(adminMobile)) {
+      toast({ title: "Error", description: "Mobile number must be 10 digits.", variant: "destructive" });
+      return;
+    }
+    if (user) {
+      updateUser(user.id, { name: adminName, email: adminEmail, mobile: adminMobile });
+      // Update session
+      const updated = getUsers().find(u => u.id === user.id);
+      if (updated) localStorage.setItem("ei_session", JSON.stringify(updated));
+    }
+    setEditingProfile(false);
+    toast({ title: "Saved", description: "Admin profile updated. Refresh to see changes everywhere." });
+  };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
