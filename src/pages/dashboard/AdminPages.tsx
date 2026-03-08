@@ -42,9 +42,9 @@ function AddUserDialog({ onAdded }: { onAdded: () => void }) {
       toast({ title: "Error", description: "Email already exists.", variant: "destructive" });
       return;
     }
-    const id = `${role}-${Date.now()}`;
-    addUser({ id, name, email, password, role });
-    toast({ title: "Success", description: `${role === "staff" ? "Staff" : "Student"} added successfully.` });
+    const id = `student-${Date.now()}`;
+    addUser({ id, name, email, password, role: "student" });
+    toast({ title: "Success", description: "Student added successfully." });
     setName(""); setEmail(""); setPassword(""); setExtra("");
     setOpen(false);
     onAdded();
