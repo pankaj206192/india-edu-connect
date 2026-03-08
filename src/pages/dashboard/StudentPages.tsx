@@ -295,7 +295,7 @@ export const TestAttempt = () => {
     saveAttempt(attempt);
 
     if (passed) {
-      const cert = {
+      const cert: import("@/lib/store").Certificate = {
         id: generateCertificateId(),
         attemptId: attempt.id,
         testId: test.id,
@@ -305,7 +305,7 @@ export const TestAttempt = () => {
         score,
         percentage,
         issuedAt: new Date().toISOString(),
-        status: "pending",
+        status: "pending" as const,
       };
       saveCertificate(cert);
     }
