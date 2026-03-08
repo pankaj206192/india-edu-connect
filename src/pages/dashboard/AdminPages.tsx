@@ -49,8 +49,17 @@ function AddUserDialog({ onAdded }: { onAdded: () => void }) {
       toast({ title: "Error", description: "Mobile number must be 10 digits.", variant: "destructive" });
       return;
     }
-    if (getUsers().some(u => u.email === email)) {
+    const users = getUsers();
+    if (users.some(u => u.email === email)) {
       toast({ title: "Error", description: "Email already exists.", variant: "destructive" });
+      return;
+    }
+    if (users.some(u => u.name.toLowerCase() === name.trim().toLowerCase())) {
+      toast({ title: "Error", description: "A student with this name already exists.", variant: "destructive" });
+      return;
+    }
+    if (users.some(u => u.mobile === mobile)) {
+      toast({ title: "Error", description: "Mobile number already in use.", variant: "destructive" });
       return;
     }
     const id = `student-${Date.now()}`;
@@ -112,9 +121,17 @@ function EditUserDialog({ student, onUpdated }: { student: User; onUpdated: () =
       toast({ title: "Error", description: "Mobile number must be 10 digits.", variant: "destructive" });
       return;
     }
-    const existing = getUsers().find(u => u.email === email && u.id !== student.id);
-    if (existing) {
+    const users = getUsers();
+    if (users.find(u => u.email === email && u.id !== student.id)) {
       toast({ title: "Error", description: "Email already in use by another user.", variant: "destructive" });
+      return;
+    }
+    if (users.find(u => u.name.toLowerCase() === name.trim().toLowerCase() && u.id !== student.id)) {
+      toast({ title: "Error", description: "A student with this name already exists.", variant: "destructive" });
+      return;
+    }
+    if (users.find(u => u.mobile === mobile && u.id !== student.id)) {
+      toast({ title: "Error", description: "Mobile number already in use.", variant: "destructive" });
       return;
     }
     updateUser(student.id, { name, email, password, gender: gender as "male" | "female" | "other", mobile });
