@@ -93,8 +93,8 @@ function getSeedTests(): Test[] {
     {
       id: "test-2",
       name: "Science Quiz",
-      creatorId: "staff-2",
-      creatorName: "Mr. Rahul Verma",
+      creatorId: "admin-1",
+      creatorName: "Admin User",
       timeLimitMinutes: 30,
       passPercentage: 50,
       assignedStudentIds: ["student-1", "student-2"],
