@@ -157,12 +157,19 @@ function getValidStudentIds(): Set<string> {
   return new Set(JSON.parse(raw).map((u: any) => u.id));
 }
 
+function getValidTestIds(): Set<string> {
+  const raw = localStorage.getItem(TESTS_KEY);
+  if (!raw) return new Set();
+  return new Set(JSON.parse(raw).map((t: any) => t.id));
+}
+
 // ---- Attempts ----
 export function getAttempts(): Attempt[] {
   const raw = localStorage.getItem(ATTEMPTS_KEY);
   if (!raw) return [];
-  const validIds = getValidStudentIds();
-  return (JSON.parse(raw) as Attempt[]).filter(a => validIds.has(a.studentId));
+  const validStudents = getValidStudentIds();
+  const validTests = getValidTestIds();
+  return (JSON.parse(raw) as Attempt[]).filter(a => validStudents.has(a.studentId) && validTests.has(a.testId));
 }
 
 export function saveAttempt(attempt: Attempt) {
