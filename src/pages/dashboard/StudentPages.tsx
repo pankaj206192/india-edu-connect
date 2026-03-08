@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 
 const navItems = [
   { label: "Dashboard", path: "/dashboard/student", icon: <LayoutDashboard className="h-4 w-4" /> },
+  { label: "My Profile", path: "/dashboard/student/profile", icon: <User className="h-4 w-4" /> },
   { label: "My Tests", path: "/dashboard/student/tests", icon: <FileText className="h-4 w-4" /> },
   { label: "Test History", path: "/dashboard/student/history", icon: <History className="h-4 w-4" /> },
   { label: "Certificates", path: "/dashboard/student/certificates", icon: <Award className="h-4 w-4" /> },
