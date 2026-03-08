@@ -158,6 +158,7 @@ function EditUserDialog({ student, onUpdated }: { student: User; onUpdated: () =
   const [name, setName] = useState(student.name);
   const [email, setEmail] = useState(student.email);
   const [password, setPassword] = useState(student.password);
+  const [showPassword, setShowPassword] = useState(false);
   const [gender, setGender] = useState<string>(student.gender || "");
   const [mobile, setMobile] = useState(student.mobile || "");
   const [photo, setPhoto] = useState<string>(student.photo || "");
