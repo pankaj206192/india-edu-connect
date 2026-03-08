@@ -257,14 +257,19 @@ export const ManageStudents = () => {
   const { toast } = useToast();
   const [students, setStudents] = useState(() => getUsersByRole("student"));
   const [search, setSearch] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
   const refresh = () => setStudents(getUsersByRole("student"));
   const filtered = students.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.email.toLowerCase().includes(search.toLowerCase()));
 
-  const handleDelete = (u: User) => {
-    deleteUser(u.id);
+  const handleDelete = () => {
+    if (!deleteTarget || deleteConfirmText !== "delete") return;
+    deleteUser(deleteTarget.id);
     refresh();
-    toast({ title: "Deleted", description: `${u.name} has been removed.` });
+    toast({ title: "Deleted", description: `${deleteTarget.name} has been removed.` });
+    setDeleteTarget(null);
+    setDeleteConfirmText("");
   };
 
   return (
@@ -307,7 +312,7 @@ export const ManageStudents = () => {
                   <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{s.mobile || "—"}</td>
                   <td className="px-4 py-3 text-right flex items-center justify-end gap-1">
                     <EditUserDialog student={s} onUpdated={refresh} />
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(s)}>
+                    <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(s)}>
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   </td>
@@ -317,6 +322,42 @@ export const ManageStudents = () => {
           </table>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) { setDeleteTarget(null); setDeleteConfirmText(""); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Delete</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <p className="text-sm text-muted-foreground">
+              Are you sure you want to delete <span className="font-medium text-foreground">{deleteTarget?.name}</span>? This will permanently remove all their data including test attempts, certificates, and retake requests.
+            </p>
+            <div>
+              <label className="text-sm font-medium text-foreground">Type <span className="font-mono text-destructive">delete</span> to confirm</label>
+              <Input
+                className="mt-1"
+                placeholder="Type delete"
+                value={deleteConfirmText}
+                onChange={e => setDeleteConfirmText(e.target.value.toLowerCase())}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="destructive"
+                className="flex-1"
+                disabled={deleteConfirmText !== "delete"}
+                onClick={handleDelete}
+              >
+                Delete Student
+              </Button>
+              <Button variant="outline" className="flex-1" onClick={() => { setDeleteTarget(null); setDeleteConfirmText(""); }}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };
