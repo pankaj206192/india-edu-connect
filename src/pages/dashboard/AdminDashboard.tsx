@@ -1,7 +1,8 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import StatCard from "@/components/StatCard";
-import { Users, GraduationCap, FileText, Award, LayoutDashboard, UserPlus, BookOpen, Settings, BarChart3 } from "lucide-react";
+import { GraduationCap, FileText, Award, LayoutDashboard, UserPlus, BookOpen, Settings, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const navItems = [
   { label: "Dashboard", path: "/dashboard/admin", icon: <LayoutDashboard className="h-4 w-4" /> },
