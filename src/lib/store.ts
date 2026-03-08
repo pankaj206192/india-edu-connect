@@ -150,11 +150,19 @@ export function getTestsForStudent(studentId: string): Test[] {
 }
 
 
+// ---- Orphan Cleanup ----
+function getValidStudentIds(): Set<string> {
+  const raw = localStorage.getItem("ei_users");
+  if (!raw) return new Set();
+  return new Set(JSON.parse(raw).map((u: any) => u.id));
+}
+
 // ---- Attempts ----
 export function getAttempts(): Attempt[] {
   const raw = localStorage.getItem(ATTEMPTS_KEY);
   if (!raw) return [];
-  return JSON.parse(raw);
+  const validIds = getValidStudentIds();
+  return (JSON.parse(raw) as Attempt[]).filter(a => validIds.has(a.studentId));
 }
 
 export function saveAttempt(attempt: Attempt) {
