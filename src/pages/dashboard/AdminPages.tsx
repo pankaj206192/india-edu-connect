@@ -629,6 +629,29 @@ export const AdminSettings = () => {
   const { user } = useAuth();
   const [settings, setSettings] = useState(() => getSettings());
   const [logo, setLogo] = useState<string>(settings.logo || "");
+  const [adminName, setAdminName] = useState(user?.name || "");
+  const [adminEmail, setAdminEmail] = useState(user?.email || "");
+  const [adminMobile, setAdminMobile] = useState(user?.mobile || "");
+  const [editingProfile, setEditingProfile] = useState(false);
+
+  const handleSaveProfile = () => {
+    if (!adminName || !adminEmail || !adminMobile) {
+      toast({ title: "Error", description: "Please fill all fields.", variant: "destructive" });
+      return;
+    }
+    if (!/^\d{10}$/.test(adminMobile)) {
+      toast({ title: "Error", description: "Mobile number must be 10 digits.", variant: "destructive" });
+      return;
+    }
+    if (user) {
+      updateUser(user.id, { name: adminName, email: adminEmail, mobile: adminMobile });
+      // Update session
+      const updated = getUsers().find(u => u.id === user.id);
+      if (updated) localStorage.setItem("ei_session", JSON.stringify(updated));
+    }
+    setEditingProfile(false);
+    toast({ title: "Saved", description: "Admin profile updated. Refresh to see changes everywhere." });
+  };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -660,17 +683,36 @@ export const AdminSettings = () => {
       <div className="max-w-2xl space-y-6">
         {/* Admin Profile */}
         <div className="rounded-xl border border-border bg-card p-6 shadow-card">
-          <h2 className="mb-4 font-display text-lg font-bold text-foreground">Admin Profile</h2>
-          <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-lg">
-              {user?.name?.charAt(0) || "A"}
-            </div>
-            <div>
-              <p className="font-medium text-foreground">{user?.name}</p>
-              <p className="text-sm text-muted-foreground">{user?.email}</p>
-              <p className="text-sm text-muted-foreground">{user?.mobile || "No mobile added"}</p>
-            </div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-display text-lg font-bold text-foreground">Admin Profile</h2>
+            {!editingProfile && (
+              <Button variant="outline" size="sm" onClick={() => setEditingProfile(true)}>
+                <Pencil className="mr-1 h-3 w-3" /> Edit
+              </Button>
+            )}
           </div>
+          {editingProfile ? (
+            <div className="space-y-3">
+              <Input placeholder="Name" value={adminName} onChange={e => setAdminName(e.target.value)} />
+              <Input placeholder="Email" type="email" value={adminEmail} onChange={e => setAdminEmail(e.target.value)} />
+              <Input placeholder="Mobile (10 digits)" value={adminMobile} onChange={e => setAdminMobile(e.target.value.replace(/\D/g, "").slice(0, 10))} />
+              <div className="flex gap-2">
+                <Button onClick={handleSaveProfile}>Save</Button>
+                <Button variant="outline" onClick={() => setEditingProfile(false)}>Cancel</Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-lg">
+                {adminName?.charAt(0) || "A"}
+              </div>
+              <div>
+                <p className="font-medium text-foreground">{adminName}</p>
+                <p className="text-sm text-muted-foreground">{adminEmail}</p>
+                <p className="text-sm text-muted-foreground">{adminMobile || "No mobile added"}</p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Logo Section */}
