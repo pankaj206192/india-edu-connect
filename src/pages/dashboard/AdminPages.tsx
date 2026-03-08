@@ -312,7 +312,7 @@ export const ManageStudents = () => {
                   <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{s.mobile || "—"}</td>
                   <td className="px-4 py-3 text-right flex items-center justify-end gap-1">
                     <EditUserDialog student={s} onUpdated={refresh} />
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(s)}>
+                    <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(s)}>
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   </td>
