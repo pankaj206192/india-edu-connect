@@ -131,43 +131,60 @@ export const ManageStudents = () => {
 };
 
 export const AdminTests = () => {
-  const tests = [
-    { id: 1, name: "Mathematics Final Exam", creator: "Dr. Priya Sharma", students: 45, date: "Mar 10, 2026", status: "Scheduled" },
-    { id: 2, name: "Physics Chapter 5 Quiz", creator: "Mr. Rahul Verma", students: 32, date: "Mar 7, 2026", status: "Completed" },
-    { id: 3, name: "English Grammar Test", creator: "Ms. Anjali Patel", students: 45, date: "Mar 5, 2026", status: "Completed" },
-    { id: 4, name: "Chemistry Lab Practical", creator: "Dr. Suresh Kumar", students: 28, date: "Mar 12, 2026", status: "Draft" },
-  ];
+  const { toast } = useToast();
+  const [tests, setTests] = useState(() => getTests());
+  const [search, setSearch] = useState("");
+
+  const refresh = () => setTests(getTests());
+
+  const handleDelete = (testId: string) => {
+    const allTests = getTests().filter(t => t.id !== testId);
+    localStorage.setItem("ei_tests", JSON.stringify(allTests));
+    refresh();
+    toast({ title: "Deleted", description: "Test has been removed." });
+  };
+
+  const filtered = tests.filter(t => t.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <DashboardLayout role="admin" navItems={navItems} title="All Tests">
       <div className="space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <Input placeholder="Search tests..." className="max-w-xs" />
+          <Input placeholder="Search tests..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
         </div>
         <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted">
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Test Name</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">Created By</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">Questions</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden md:table-cell">Students</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden md:table-cell">Date</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden md:table-cell">Time</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
+                <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {tests.map((t) => (
+              {filtered.length === 0 && (
+                <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">No tests found.</td></tr>
+              )}
+              {filtered.map((t) => (
                 <tr key={t.id} className="border-b border-border last:border-0">
                   <td className="px-4 py-3 font-medium text-foreground">{t.name}</td>
-                  <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{t.creator}</td>
-                  <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{t.students}</td>
-                  <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{t.date}</td>
+                  <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{t.questions.length}</td>
+                  <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{t.assignedStudentIds.length}</td>
+                  <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{t.timeLimitMinutes} min</td>
                   <td className="px-4 py-3">
                     <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                      t.status === "Completed" ? "bg-success/10 text-success" :
-                      t.status === "Scheduled" ? "bg-info/10 text-info" :
+                      t.status === "completed" ? "bg-success/10 text-success" :
+                      t.status === "active" ? "bg-info/10 text-info" :
                       "bg-warning/10 text-warning"
                     }`}>{t.status}</span>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <Button variant="ghost" size="sm" onClick={() => handleDelete(t.id)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
                   </td>
                 </tr>
               ))}
