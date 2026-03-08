@@ -18,7 +18,6 @@ const Login = () => {
 
   const demoCredentials: Record<Role, { email: string; password: string }> = {
     admin: { email: "admin@ethicalindia.edu", password: "admin123" },
-    staff: { email: "priya@institute.edu", password: "staff123" },
     student: { email: "amit@student.edu", password: "student123" },
   };
 
