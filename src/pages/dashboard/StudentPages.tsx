@@ -1,10 +1,10 @@
 import DashboardLayout from "@/components/DashboardLayout";
-import { LayoutDashboard, FileText, History, Award, BookOpen, Download, Clock, CheckCircle, RotateCcw, User as UserIcon } from "lucide-react";
+import { LayoutDashboard, FileText, History, Award, BookOpen, Download, Clock, CheckCircle, RotateCcw, User as UserIcon, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth, getUsers, type User } from "@/lib/auth";
+import { useAuth, getUsers, updateUser, type User } from "@/lib/auth";
 import { useNavigate } from "react-router-dom";
 import {
   getTestsForStudent, hasAttempted, getAttemptsForStudent,
@@ -480,9 +480,13 @@ export const TestAttempt = () => {
 
 export const StudentProfile = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const [resettingPassword, setResettingPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
   if (!user) return null;
 
-  // Fetch latest user data from storage (in case admin updated photo)
   const latestUser = getUsers().find(u => u.id === user.id) || user;
 
   const fields = [
@@ -491,6 +495,22 @@ export const StudentProfile = () => {
     { label: "Gender", value: latestUser.gender ? latestUser.gender.charAt(0).toUpperCase() + latestUser.gender.slice(1) : "—" },
     { label: "Mobile Number", value: latestUser.mobile || "—" },
   ];
+
+  const handleResetPassword = () => {
+    if (!newPassword || newPassword.length < 6) {
+      toast({ title: "Error", description: "Password must be at least 6 characters.", variant: "destructive" });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast({ title: "Error", description: "Passwords do not match.", variant: "destructive" });
+      return;
+    }
+    updateUser(user.id, { password: newPassword });
+    toast({ title: "Success", description: "Your password has been updated." });
+    setResettingPassword(false);
+    setNewPassword("");
+    setConfirmPassword("");
+  };
 
   return (
     <DashboardLayout role="student" navItems={navItems} title="My Profile">
@@ -519,7 +539,33 @@ export const StudentProfile = () => {
               </div>
             ))}
           </div>
-          <p className="text-xs text-muted-foreground italic">Profile details are managed by the admin and cannot be edited.</p>
+
+          {/* Reset Password */}
+          {!resettingPassword ? (
+            <Button variant="outline" className="w-full" onClick={() => setResettingPassword(true)}>
+              <KeyRound className="mr-2 h-4 w-4" /> Reset Password
+            </Button>
+          ) : (
+            <div className="space-y-3 rounded-lg border border-border bg-muted/50 p-4">
+              <h3 className="text-sm font-semibold text-foreground">Reset Password</h3>
+              <Input placeholder="New Password" type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} />
+              <Input placeholder="Confirm Password" type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} />
+              <div className="flex gap-2">
+                <Button
+                  className="flex-1"
+                  disabled={!newPassword || newPassword !== confirmPassword}
+                  onClick={handleResetPassword}
+                >
+                  {!newPassword ? "Enter password" : newPassword !== confirmPassword ? "Passwords don't match" : "Update Password"}
+                </Button>
+                <Button variant="outline" onClick={() => { setResettingPassword(false); setNewPassword(""); setConfirmPassword(""); }}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+
+          <p className="text-xs text-muted-foreground italic">Other profile details are managed by the admin.</p>
         </div>
       </div>
     </DashboardLayout>
