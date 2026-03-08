@@ -848,7 +848,11 @@ export const CreateTest = () => {
   };
 
   const [testName, setTestName] = useState(existingTest?.name || "");
-  const [timeLimit, setTimeLimit] = useState(existingTest?.timeLimitMinutes || 60);
+  const initHours = Math.floor((existingTest?.timeLimitMinutes || 60) / 60);
+  const initMinutes = (existingTest?.timeLimitMinutes || 60) % 60;
+  const [timeLimitHours, setTimeLimitHours] = useState(initHours);
+  const [timeLimitMinutes, setTimeLimitMinutes] = useState(initMinutes);
+  const timeLimit = timeLimitHours * 60 + timeLimitMinutes;
   const [passPercentage, setPassPercentage] = useState(existingTest?.passPercentage || 50);
   const [selectedStudents, setSelectedStudents] = useState<string[]>(existingTest?.assignedStudentIds || []);
   const students = getUsersByRole("student");
@@ -948,8 +952,18 @@ export const CreateTest = () => {
               <Input value={testName} onChange={e => setTestName(e.target.value)} placeholder="e.g. Mathematics Final Exam" className="mt-1" />
             </div>
             <div>
-              <Label>Time Limit (minutes)</Label>
-              <Input type="number" value={timeLimit} onChange={e => setTimeLimit(Number(e.target.value))} className="mt-1" min={1} />
+              <Label>Time Limit</Label>
+              <div className="mt-1 flex items-center gap-2">
+                <div className="flex-1">
+                  <Input type="number" value={timeLimitHours} onChange={e => setTimeLimitHours(Math.max(0, Number(e.target.value)))} min={0} placeholder="0" />
+                  <span className="mt-0.5 block text-xs text-muted-foreground">Hours</span>
+                </div>
+                <span className="text-muted-foreground font-medium">:</span>
+                <div className="flex-1">
+                  <Input type="number" value={timeLimitMinutes} onChange={e => setTimeLimitMinutes(Math.max(0, Math.min(59, Number(e.target.value))))} min={0} max={59} placeholder="0" />
+                  <span className="mt-0.5 block text-xs text-muted-foreground">Minutes</span>
+                </div>
+              </div>
             </div>
             <div>
               <Label>Pass Percentage</Label>
