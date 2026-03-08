@@ -459,3 +459,44 @@ export const TestAttempt = () => {
     </DashboardLayout>
   );
 };
+
+export const StudentProfile = () => {
+  const { user } = useAuth();
+  if (!user) return null;
+
+  const fields = [
+    { label: "Full Name", value: user.name },
+    { label: "Email Address", value: user.email },
+    { label: "Gender", value: user.gender ? user.gender.charAt(0).toUpperCase() + user.gender.slice(1) : "—" },
+    { label: "Mobile Number", value: user.mobile || "—" },
+  ];
+
+  return (
+    <DashboardLayout role="student" navItems={navItems} title="My Profile">
+      <div className="mx-auto max-w-lg">
+        <div className="rounded-xl border border-border bg-card p-6 shadow-card space-y-6">
+          <div className="flex items-center gap-4">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+              <User className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-foreground">{user.name}</h2>
+              <p className="text-sm text-muted-foreground">Student</p>
+            </div>
+          </div>
+          <div className="space-y-4">
+            {fields.map(f => (
+              <div key={f.label} className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{f.label}</span>
+                <div className="rounded-lg border border-border bg-muted px-4 py-2.5 text-sm text-foreground">
+                  {f.value}
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground italic">Profile details are managed by the admin and cannot be edited.</p>
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+};
