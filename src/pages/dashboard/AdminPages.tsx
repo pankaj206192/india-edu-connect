@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getUsersByRole, addUser, getUsers, useAuth, type User } from "@/lib/auth";
-import { getTests, saveTest, getAttempts, getCertificates, getRetakeRequests, approveRetake, rejectRetake, type Test, type Question as StoreQuestion } from "@/lib/store";
+import { getTests, saveTest, getAttempts, getCertificates, saveCertificate, getRetakeRequests, approveRetake, rejectRetake, type Test, type Question as StoreQuestion, type Certificate } from "@/lib/store";
 import { generateCertificatePDF } from "@/lib/pdf";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -330,33 +330,84 @@ export const AdminResults = () => {
 };
 
 export const AdminCertificates = () => {
+  const { toast } = useToast();
   const [certs, setCerts] = useState(() => getCertificates());
   const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
 
-  const filtered = certs.filter(c =>
-    c.studentName.toLowerCase().includes(search.toLowerCase()) ||
-    c.testName.toLowerCase().includes(search.toLowerCase()) ||
-    c.id.toLowerCase().includes(search.toLowerCase())
-  );
+  const refresh = () => setCerts(getCertificates());
+
+  const filtered = certs
+    .filter(c => filter === "all" || c.status === filter)
+    .filter(c =>
+      c.studentName.toLowerCase().includes(search.toLowerCase()) ||
+      c.testName.toLowerCase().includes(search.toLowerCase()) ||
+      c.id.toLowerCase().includes(search.toLowerCase())
+    );
+
+  const handleApprove = (cert: Certificate) => {
+    saveCertificate({ ...cert, status: "approved" });
+    refresh();
+    toast({ title: "Approved", description: `Certificate for ${cert.studentName} has been approved.` });
+  };
+
+  const handleReject = (cert: Certificate) => {
+    saveCertificate({ ...cert, status: "rejected" });
+    refresh();
+    toast({ title: "Rejected", description: `Certificate for ${cert.studentName} has been rejected.` });
+  };
 
   return (
     <DashboardLayout role="admin" navItems={navItems} title="Certificates">
       <div className="space-y-6">
-        <Input placeholder="Search certificates..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <Input placeholder="Search certificates..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
+          <div className="flex gap-2 flex-wrap">
+            {(["all", "pending", "approved", "rejected"] as const).map(f => (
+              <Button
+                key={f}
+                variant={filter === f ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFilter(f)}
+                className="capitalize"
+              >
+                {f} ({certs.filter(c => f === "all" || c.status === f).length})
+              </Button>
+            ))}
+          </div>
+        </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.length === 0 && (
-            <p className="col-span-full text-center text-muted-foreground py-8">No certificates issued yet. Students who pass tests will receive certificates.</p>
+            <p className="col-span-full text-center text-muted-foreground py-8">No {filter !== "all" ? filter : ""} certificates found.</p>
           )}
           {filtered.map((c) => (
             <div key={c.id} className="rounded-xl border border-border bg-card p-5 shadow-card">
               <div className="mb-3 flex items-center justify-between">
                 <span className="text-xs font-mono text-muted-foreground">{c.id}</span>
-                <Award className="h-5 w-5 text-secondary" />
+                <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                  c.status === "pending" ? "bg-warning/10 text-warning" :
+                  c.status === "approved" ? "bg-success/10 text-success" :
+                  "bg-destructive/10 text-destructive"
+                }`}>
+                  {c.status}
+                </span>
               </div>
               <h3 className="font-medium text-foreground">{c.studentName}</h3>
               <p className="text-sm text-muted-foreground">{c.testName} · Score: {c.percentage}%</p>
               <p className="mt-1 text-xs text-muted-foreground">{new Date(c.issuedAt).toLocaleDateString("en-IN", { year: "numeric", month: "short", day: "numeric" })}</p>
-              <Button variant="outline" size="sm" className="mt-3 w-full" onClick={() => generateCertificatePDF(c)}>Download PDF</Button>
+              {c.status === "pending" && (
+                <div className="mt-3 flex gap-2">
+                  <Button size="sm" variant="outline" className="flex-1 text-success border-success/30 hover:bg-success/10" onClick={() => handleApprove(c)}>
+                    <Check className="mr-1 h-3 w-3" /> Approve
+                  </Button>
+                  <Button size="sm" variant="outline" className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/10" onClick={() => handleReject(c)}>
+                    <X className="mr-1 h-3 w-3" /> Reject
+                  </Button>
+                </div>
+              )}
+              {c.status === "approved" && (
+                <Button variant="outline" size="sm" className="mt-3 w-full" onClick={() => generateCertificatePDF(c)}>Download PDF</Button>
+              )}
             </div>
           ))}
         </div>

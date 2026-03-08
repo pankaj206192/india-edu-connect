@@ -46,6 +46,7 @@ export interface Certificate {
   score: number;
   percentage: number;
   issuedAt: string;
+  status: "pending" | "approved" | "rejected";
 }
 
 const TESTS_KEY = "ei_tests";
@@ -210,7 +211,9 @@ export function getCertificatesForStudent(studentId: string): Certificate[] {
 
 export function saveCertificate(cert: Certificate) {
   const certs = getCertificates();
-  certs.push(cert);
+  const idx = certs.findIndex(c => c.id === cert.id);
+  if (idx >= 0) certs[idx] = cert;
+  else certs.push(cert);
   localStorage.setItem(CERTIFICATES_KEY, JSON.stringify(certs));
 }
 
