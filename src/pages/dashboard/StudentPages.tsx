@@ -261,6 +261,7 @@ export const StudentCertificates = () => {
             ))}
           </div>
         )}
+      </div>
     </DashboardLayout>
   );
 };
