@@ -7,10 +7,8 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import AdminDashboard from "./pages/dashboard/AdminDashboard";
-import StaffDashboard from "./pages/dashboard/StaffDashboard";
 import StudentDashboard from "./pages/dashboard/StudentDashboard";
-import { ManageStaff, ManageStudents, AdminTests, AdminResults, AdminCertificates, AdminSettings } from "./pages/dashboard/AdminPages";
-import { StaffTests, CreateTest, StaffStudents, StaffResults } from "./pages/dashboard/StaffPages";
+import { ManageStudents, AdminTests, AdminResults, AdminCertificates, AdminSettings, CreateTest } from "./pages/dashboard/AdminPages";
 import { StudentTests, TestHistory, StudentCertificates, TestAttempt } from "./pages/dashboard/StudentPages";
 import NotFound from "./pages/NotFound";
 
