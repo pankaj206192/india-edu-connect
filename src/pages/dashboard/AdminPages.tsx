@@ -94,6 +94,68 @@ function AddUserDialog({ onAdded }: { onAdded: () => void }) {
   );
 }
 
+function EditUserDialog({ student, onUpdated }: { student: User; onUpdated: () => void }) {
+  const { toast } = useToast();
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState(student.name);
+  const [email, setEmail] = useState(student.email);
+  const [password, setPassword] = useState(student.password);
+  const [gender, setGender] = useState<string>(student.gender || "");
+  const [mobile, setMobile] = useState(student.mobile || "");
+
+  const handleSave = () => {
+    if (!name || !email || !password || !gender || !mobile) {
+      toast({ title: "Error", description: "Please fill all required fields.", variant: "destructive" });
+      return;
+    }
+    if (!/^\d{10}$/.test(mobile)) {
+      toast({ title: "Error", description: "Mobile number must be 10 digits.", variant: "destructive" });
+      return;
+    }
+    const existing = getUsers().find(u => u.email === email && u.id !== student.id);
+    if (existing) {
+      toast({ title: "Error", description: "Email already in use by another user.", variant: "destructive" });
+      return;
+    }
+    updateUser(student.id, { name, email, password, gender: gender as "male" | "female" | "other", mobile });
+    toast({ title: "Updated", description: `${name}'s details have been updated.` });
+    setOpen(false);
+    onUpdated();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="sm" title="Edit Student">
+          <Pencil className="h-4 w-4 text-foreground" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit Student Details</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3 pt-2">
+          <Input placeholder="Full Name *" value={name} onChange={e => setName(e.target.value)} />
+          <Input placeholder="Email *" type="email" value={email} onChange={e => setEmail(e.target.value)} />
+          <Input placeholder="Password *" type="password" value={password} onChange={e => setPassword(e.target.value)} />
+          <Select value={gender} onValueChange={setGender}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select Gender *" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="male">Male</SelectItem>
+              <SelectItem value="female">Female</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+          <Input placeholder="Mobile Number (10 digits) *" value={mobile} onChange={e => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))} />
+          <Button className="w-full" onClick={handleSave}>Save Changes</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export const ManageStudents = () => {
   const { toast } = useToast();
   const [students, setStudents] = useState(() => getUsersByRole("student"));
@@ -136,7 +198,8 @@ export const ManageStudents = () => {
                   <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{s.email}</td>
                   <td className="px-4 py-3 text-muted-foreground hidden md:table-cell capitalize">{s.gender || "—"}</td>
                   <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{s.mobile || "—"}</td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-4 py-3 text-right flex items-center justify-end gap-1">
+                    <EditUserDialog student={s} onUpdated={refresh} />
                     <Button variant="ghost" size="sm" onClick={() => handleDelete(s)}>
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>

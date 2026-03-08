@@ -46,6 +46,15 @@ export function addUser(user: User) {
   localStorage.setItem(USERS_KEY, JSON.stringify(users));
 }
 
+export function updateUser(userId: string, updates: Partial<Omit<User, "id" | "role">>) {
+  const users = getUsers();
+  const idx = users.findIndex(u => u.id === userId);
+  if (idx >= 0) {
+    users[idx] = { ...users[idx], ...updates };
+    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+  }
+}
+
 export function getUsersByRole(role: Role): User[] {
   return getUsers().filter(u => u.role === role);
 }
