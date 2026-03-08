@@ -8,6 +8,8 @@ export interface User {
   email: string;
   password: string;
   role: Role;
+  gender: "male" | "female" | "other";
+  mobile: string;
 }
 
 interface AuthContextType {
@@ -20,10 +22,10 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 const SEED_USERS: User[] = [
-  { id: "admin-1", name: "Admin User", email: "admin@ethicalindia.edu", password: "admin123", role: "admin" },
-  { id: "student-1", name: "Amit Singh", email: "amit@student.edu", password: "student123", role: "student" },
-  { id: "student-2", name: "Sneha Gupta", email: "sneha@student.edu", password: "student123", role: "student" },
-  { id: "student-3", name: "Ravi Patel", email: "ravi@student.edu", password: "student123", role: "student" },
+  { id: "admin-1", name: "Admin User", email: "admin@ethicalindia.edu", password: "admin123", role: "admin", gender: "male", mobile: "9876543210" },
+  { id: "student-1", name: "Amit Singh", email: "amit@student.edu", password: "student123", role: "student", gender: "male", mobile: "9876543211" },
+  { id: "student-2", name: "Sneha Gupta", email: "sneha@student.edu", password: "student123", role: "student", gender: "female", mobile: "9876543212" },
+  { id: "student-3", name: "Ravi Patel", email: "ravi@student.edu", password: "student123", role: "student", gender: "male", mobile: "9876543213" },
 ];
 
 const USERS_KEY = "ei_users";

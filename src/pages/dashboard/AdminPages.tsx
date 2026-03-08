@@ -37,11 +37,16 @@ function AddUserDialog({ onAdded }: { onAdded: () => void }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [extra, setExtra] = useState(""); // subject for staff, class for student
+  const [gender, setGender] = useState<"male" | "female" | "other" | "">("");
+  const [mobile, setMobile] = useState("");
 
   const handleSubmit = () => {
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !gender || !mobile) {
       toast({ title: "Error", description: "Please fill all required fields.", variant: "destructive" });
+      return;
+    }
+    if (!/^\d{10}$/.test(mobile)) {
+      toast({ title: "Error", description: "Mobile number must be 10 digits.", variant: "destructive" });
       return;
     }
     if (getUsers().some(u => u.email === email)) {
@@ -49,9 +54,9 @@ function AddUserDialog({ onAdded }: { onAdded: () => void }) {
       return;
     }
     const id = `student-${Date.now()}`;
-    addUser({ id, name, email, password, role: "student" });
+    addUser({ id, name, email, password, role: "student", gender: gender as "male" | "female" | "other", mobile });
     toast({ title: "Success", description: "Student added successfully." });
-    setName(""); setEmail(""); setPassword(""); setExtra("");
+    setName(""); setEmail(""); setPassword(""); setGender(""); setMobile("");
     setOpen(false);
     onAdded();
   };
@@ -68,10 +73,20 @@ function AddUserDialog({ onAdded }: { onAdded: () => void }) {
           <DialogTitle>Add New Student</DialogTitle>
         </DialogHeader>
         <div className="space-y-3 pt-2">
-          <Input placeholder="Full Name" value={name} onChange={e => setName(e.target.value)} />
-          <Input placeholder="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} />
-          <Input placeholder="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
-          <Input placeholder="Class (optional)" value={extra} onChange={e => setExtra(e.target.value)} />
+          <Input placeholder="Full Name *" value={name} onChange={e => setName(e.target.value)} />
+          <Input placeholder="Email *" type="email" value={email} onChange={e => setEmail(e.target.value)} />
+          <Input placeholder="Password *" type="password" value={password} onChange={e => setPassword(e.target.value)} />
+          <Select value={gender} onValueChange={(v) => setGender(v as "male" | "female" | "other")}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select Gender *" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="male">Male</SelectItem>
+              <SelectItem value="female">Female</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+          <Input placeholder="Mobile Number (10 digits) *" value={mobile} onChange={e => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))} />
           <Button className="w-full" onClick={handleSubmit}>Add Student</Button>
         </div>
       </DialogContent>
@@ -106,17 +121,21 @@ export const ManageStudents = () => {
               <tr className="border-b border-border bg-muted">
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Name</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">Email</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden md:table-cell">Gender</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden md:table-cell">Mobile</th>
                 <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 && (
-                <tr><td colSpan={3} className="px-4 py-8 text-center text-muted-foreground">No students found.</td></tr>
+                <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No students found.</td></tr>
               )}
               {filtered.map((s) => (
                 <tr key={s.id} className="border-b border-border last:border-0">
                   <td className="px-4 py-3 font-medium text-foreground">{s.name}</td>
                   <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{s.email}</td>
+                  <td className="px-4 py-3 text-muted-foreground hidden md:table-cell capitalize">{s.gender || "—"}</td>
+                  <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{s.mobile || "—"}</td>
                   <td className="px-4 py-3 text-right">
                     <Button variant="ghost" size="sm" onClick={() => handleDelete(s)}>
                       <Trash2 className="h-4 w-4 text-destructive" />
