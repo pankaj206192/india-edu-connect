@@ -54,19 +54,19 @@ function AddUserDialog({ onAdded }: { onAdded: () => void }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
-          <Plus className="mr-2 h-4 w-4" /> Add {role === "staff" ? "Staff" : "Student"}
+          <Plus className="mr-2 h-4 w-4" /> Add Student
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add New {role === "staff" ? "Staff Member" : "Student"}</DialogTitle>
+          <DialogTitle>Add New Student</DialogTitle>
         </DialogHeader>
         <div className="space-y-3 pt-2">
           <Input placeholder="Full Name" value={name} onChange={e => setName(e.target.value)} />
           <Input placeholder="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} />
           <Input placeholder="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
-          <Input placeholder={role === "staff" ? "Subject (optional)" : "Class (optional)"} value={extra} onChange={e => setExtra(e.target.value)} />
-          <Button className="w-full" onClick={handleSubmit}>Add {role === "staff" ? "Staff" : "Student"}</Button>
+          <Input placeholder="Class (optional)" value={extra} onChange={e => setExtra(e.target.value)} />
+          <Button className="w-full" onClick={handleSubmit}>Add Student</Button>
         </div>
       </DialogContent>
     </Dialog>
