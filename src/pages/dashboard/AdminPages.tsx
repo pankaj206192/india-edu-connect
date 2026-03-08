@@ -533,7 +533,12 @@ export const AdminCertificates = () => {
                 </div>
               )}
               {c.status === "approved" && (
-                <Button variant="outline" size="sm" className="mt-3 w-full" onClick={() => generateCertificatePDF(c)}>Download PDF</Button>
+                <div className="mt-3 flex gap-2">
+                  <Button variant="outline" size="sm" className="flex-1" onClick={() => generateCertificatePDF(c)}>Download PDF</Button>
+                  <Button size="sm" variant="outline" className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/10" onClick={() => handleReject(c)}>
+                    <X className="mr-1 h-3 w-3" /> Revoke
+                  </Button>
+                </div>
               )}
             </div>
           ))}
