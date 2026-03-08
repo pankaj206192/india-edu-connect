@@ -210,7 +210,8 @@ export function gradeTest(test: Test, answers: Record<string, string>): { score:
 export function getCertificates(): Certificate[] {
   const raw = localStorage.getItem(CERTIFICATES_KEY);
   if (!raw) return [];
-  return JSON.parse(raw);
+  const validIds = getValidStudentIds();
+  return (JSON.parse(raw) as Certificate[]).filter(c => validIds.has(c.studentId));
 }
 
 export function getCertificatesForStudent(studentId: string): Certificate[] {
