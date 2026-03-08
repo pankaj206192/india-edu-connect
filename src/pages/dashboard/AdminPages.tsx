@@ -626,6 +626,7 @@ export const AdminCertificates = () => {
 
 export const AdminSettings = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [settings, setSettings] = useState(() => getSettings());
   const [logo, setLogo] = useState<string>(settings.logo || "");
 
