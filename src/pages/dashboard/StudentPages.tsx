@@ -1,5 +1,5 @@
 import DashboardLayout from "@/components/DashboardLayout";
-import { LayoutDashboard, FileText, History, Award, BookOpen, Download, Clock, CheckCircle } from "lucide-react";
+import { LayoutDashboard, FileText, History, Award, BookOpen, Download, Clock, CheckCircle, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect, useCallback } from "react";
@@ -10,8 +10,10 @@ import {
   getTestsForStudent, hasAttempted, getAttemptsForStudent,
   getCertificatesForStudent, gradeTest, saveAttempt, saveCertificate,
   generateCertificateId, getTests, type Test,
+  hasRetakeRequest, saveRetakeRequest, getRetakeRequestsForStudent,
 } from "@/lib/store";
 import { generateCertificatePDF } from "@/lib/pdf";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const navItems = [
   { label: "Dashboard", path: "/dashboard/student", icon: <LayoutDashboard className="h-4 w-4" /> },
