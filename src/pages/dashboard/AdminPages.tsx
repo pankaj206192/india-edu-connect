@@ -1,9 +1,12 @@
 import DashboardLayout from "@/components/DashboardLayout";
-import { LayoutDashboard, Users, GraduationCap, FileText, BarChart3, Award, Settings } from "lucide-react";
+import { LayoutDashboard, Users, GraduationCap, FileText, BarChart3, Award, Settings, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { getUsersByRole, addUser, getUsers, type User } from "@/lib/auth";
 
 const navItems = [
   { label: "Dashboard", path: "/dashboard/admin", icon: <LayoutDashboard className="h-4 w-4" /> },
@@ -17,23 +20,79 @@ const navItems = [
 
 export { navItems };
 
+function deleteUser(userId: string) {
+  const users = getUsers().filter(u => u.id !== userId);
+  localStorage.setItem("ei_users", JSON.stringify(users));
+}
+
+function AddUserDialog({ role, onAdded }: { role: "staff" | "student"; onAdded: () => void }) {
+  const { toast } = useToast();
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [extra, setExtra] = useState(""); // subject for staff, class for student
+
+  const handleSubmit = () => {
+    if (!name || !email || !password) {
+      toast({ title: "Error", description: "Please fill all required fields.", variant: "destructive" });
+      return;
+    }
+    if (getUsers().some(u => u.email === email)) {
+      toast({ title: "Error", description: "Email already exists.", variant: "destructive" });
+      return;
+    }
+    const id = `${role}-${Date.now()}`;
+    addUser({ id, name, email, password, role });
+    toast({ title: "Success", description: `${role === "staff" ? "Staff" : "Student"} added successfully.` });
+    setName(""); setEmail(""); setPassword(""); setExtra("");
+    setOpen(false);
+    onAdded();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>
+          <Plus className="mr-2 h-4 w-4" /> Add {role === "staff" ? "Staff" : "Student"}
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add New {role === "staff" ? "Staff Member" : "Student"}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3 pt-2">
+          <Input placeholder="Full Name" value={name} onChange={e => setName(e.target.value)} />
+          <Input placeholder="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} />
+          <Input placeholder="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
+          <Input placeholder={role === "staff" ? "Subject (optional)" : "Class (optional)"} value={extra} onChange={e => setExtra(e.target.value)} />
+          <Button className="w-full" onClick={handleSubmit}>Add {role === "staff" ? "Staff" : "Student"}</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export const ManageStaff = () => {
   const { toast } = useToast();
-  const [staff] = useState([
-    { id: 1, name: "Dr. Priya Sharma", email: "priya@institute.edu", subject: "Mathematics", status: "Active" },
-    { id: 2, name: "Mr. Rahul Verma", email: "rahul@institute.edu", subject: "Physics", status: "Active" },
-    { id: 3, name: "Ms. Anjali Patel", email: "anjali@institute.edu", subject: "English", status: "Inactive" },
-    { id: 4, name: "Dr. Suresh Kumar", email: "suresh@institute.edu", subject: "Chemistry", status: "Active" },
-  ]);
+  const [staff, setStaff] = useState(() => getUsersByRole("staff"));
+  const [search, setSearch] = useState("");
+
+  const refresh = () => setStaff(getUsersByRole("staff"));
+  const filtered = staff.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.email.toLowerCase().includes(search.toLowerCase()));
+
+  const handleDelete = (u: User) => {
+    deleteUser(u.id);
+    refresh();
+    toast({ title: "Deleted", description: `${u.name} has been removed.` });
+  };
 
   return (
     <DashboardLayout role="admin" navItems={navItems} title="Manage Staff">
       <div className="space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <Input placeholder="Search staff..." className="max-w-xs" />
-          <Button onClick={() => toast({ title: "Coming soon", description: "Staff registration will be available after enabling Cloud." })}>
-            <Users className="mr-2 h-4 w-4" /> Add Staff
-          </Button>
+          <Input placeholder="Search staff..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
+          <AddUserDialog role="staff" onAdded={refresh} />
         </div>
         <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
           <table className="w-full text-sm">
@@ -41,24 +100,21 @@ export const ManageStaff = () => {
               <tr className="border-b border-border bg-muted">
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Name</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">Email</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden md:table-cell">Subject</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
                 <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {staff.map((s) => (
+              {filtered.length === 0 && (
+                <tr><td colSpan={3} className="px-4 py-8 text-center text-muted-foreground">No staff found.</td></tr>
+              )}
+              {filtered.map((s) => (
                 <tr key={s.id} className="border-b border-border last:border-0">
                   <td className="px-4 py-3 font-medium text-foreground">{s.name}</td>
                   <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{s.email}</td>
-                  <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{s.subject}</td>
-                  <td className="px-4 py-3">
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${s.status === "Active" ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}`}>
-                      {s.status}
-                    </span>
-                  </td>
                   <td className="px-4 py-3 text-right">
-                    <Button variant="ghost" size="sm">Edit</Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleDelete(s)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
                   </td>
                 </tr>
               ))}
@@ -72,22 +128,24 @@ export const ManageStaff = () => {
 
 export const ManageStudents = () => {
   const { toast } = useToast();
-  const [students] = useState([
-    { id: 1, name: "Amit Singh", email: "amit@student.edu", class: "10th", status: "Active" },
-    { id: 2, name: "Sneha Gupta", email: "sneha@student.edu", class: "12th", status: "Active" },
-    { id: 3, name: "Ravi Patel", email: "ravi@student.edu", class: "10th", status: "Active" },
-    { id: 4, name: "Pooja Reddy", email: "pooja@student.edu", class: "11th", status: "Inactive" },
-    { id: 5, name: "Karan Mehta", email: "karan@student.edu", class: "12th", status: "Active" },
-  ]);
+  const [students, setStudents] = useState(() => getUsersByRole("student"));
+  const [search, setSearch] = useState("");
+
+  const refresh = () => setStudents(getUsersByRole("student"));
+  const filtered = students.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.email.toLowerCase().includes(search.toLowerCase()));
+
+  const handleDelete = (u: User) => {
+    deleteUser(u.id);
+    refresh();
+    toast({ title: "Deleted", description: `${u.name} has been removed.` });
+  };
 
   return (
     <DashboardLayout role="admin" navItems={navItems} title="Manage Students">
       <div className="space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <Input placeholder="Search students..." className="max-w-xs" />
-          <Button onClick={() => toast({ title: "Coming soon", description: "Student registration will be available after enabling Cloud." })}>
-            <GraduationCap className="mr-2 h-4 w-4" /> Add Student
-          </Button>
+          <Input placeholder="Search students..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
+          <AddUserDialog role="student" onAdded={refresh} />
         </div>
         <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
           <table className="w-full text-sm">
@@ -95,24 +153,21 @@ export const ManageStudents = () => {
               <tr className="border-b border-border bg-muted">
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Name</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">Email</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden md:table-cell">Class</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
                 <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {students.map((s) => (
+              {filtered.length === 0 && (
+                <tr><td colSpan={3} className="px-4 py-8 text-center text-muted-foreground">No students found.</td></tr>
+              )}
+              {filtered.map((s) => (
                 <tr key={s.id} className="border-b border-border last:border-0">
                   <td className="px-4 py-3 font-medium text-foreground">{s.name}</td>
                   <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{s.email}</td>
-                  <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{s.class}</td>
-                  <td className="px-4 py-3">
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${s.status === "Active" ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}`}>
-                      {s.status}
-                    </span>
-                  </td>
                   <td className="px-4 py-3 text-right">
-                    <Button variant="ghost" size="sm">Edit</Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleDelete(s)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
                   </td>
                 </tr>
               ))}
