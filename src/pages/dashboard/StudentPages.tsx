@@ -196,6 +196,7 @@ export const StudentCertificates = () => {
   const certs = getCertificatesForStudent(user.id);
   const approvedCerts = certs.filter(c => c.status === "approved");
   const pendingCerts = certs.filter(c => c.status === "pending");
+  const rejectedCerts = certs.filter(c => c.status === "rejected");
 
   return (
     <DashboardLayout role="student" navItems={navItems} title="My Certificates">
