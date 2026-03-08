@@ -157,12 +157,19 @@ function getValidStudentIds(): Set<string> {
   return new Set(JSON.parse(raw).map((u: any) => u.id));
 }
 
+function getValidTestIds(): Set<string> {
+  const raw = localStorage.getItem(TESTS_KEY);
+  if (!raw) return new Set();
+  return new Set(JSON.parse(raw).map((t: any) => t.id));
+}
+
 // ---- Attempts ----
 export function getAttempts(): Attempt[] {
   const raw = localStorage.getItem(ATTEMPTS_KEY);
   if (!raw) return [];
-  const validIds = getValidStudentIds();
-  return (JSON.parse(raw) as Attempt[]).filter(a => validIds.has(a.studentId));
+  const validStudents = getValidStudentIds();
+  const validTests = getValidTestIds();
+  return (JSON.parse(raw) as Attempt[]).filter(a => validStudents.has(a.studentId) && validTests.has(a.testId));
 }
 
 export function saveAttempt(attempt: Attempt) {
@@ -210,8 +217,9 @@ export function gradeTest(test: Test, answers: Record<string, string>): { score:
 export function getCertificates(): Certificate[] {
   const raw = localStorage.getItem(CERTIFICATES_KEY);
   if (!raw) return [];
-  const validIds = getValidStudentIds();
-  return (JSON.parse(raw) as Certificate[]).filter(c => validIds.has(c.studentId));
+  const validStudents = getValidStudentIds();
+  const validTests = getValidTestIds();
+  return (JSON.parse(raw) as Certificate[]).filter(c => validStudents.has(c.studentId) && validTests.has(c.testId));
 }
 
 export function getCertificatesForStudent(studentId: string): Certificate[] {
@@ -250,8 +258,9 @@ const RETAKE_REQUESTS_KEY = "ei_retake_requests";
 export function getRetakeRequests(): RetakeRequest[] {
   const raw = localStorage.getItem(RETAKE_REQUESTS_KEY);
   if (!raw) return [];
-  const validIds = getValidStudentIds();
-  return (JSON.parse(raw) as RetakeRequest[]).filter(r => validIds.has(r.studentId));
+  const validStudents = getValidStudentIds();
+  const validTests = getValidTestIds();
+  return (JSON.parse(raw) as RetakeRequest[]).filter(r => validStudents.has(r.studentId) && validTests.has(r.testId));
 }
 
 export function saveRetakeRequest(req: RetakeRequest) {
