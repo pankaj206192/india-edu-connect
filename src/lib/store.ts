@@ -148,9 +148,6 @@ export function getTestsForStudent(studentId: string): Test[] {
   return getTests().filter(t => t.status === "active" && t.assignedStudentIds.includes(studentId));
 }
 
-export function getTestsForStaff(staffId: string): Test[] {
-  return getTests().filter(t => t.creatorId === staffId);
-}
 
 // ---- Attempts ----
 export function getAttempts(): Attempt[] {
