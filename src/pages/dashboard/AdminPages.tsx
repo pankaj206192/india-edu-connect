@@ -135,6 +135,8 @@ export const AdminTests = () => {
   const { toast } = useToast();
   const [tests, setTests] = useState(() => getTests());
   const [search, setSearch] = useState("");
+  const [assignTest, setAssignTest] = useState<Test | null>(null);
+  const allStudents = getUsersByRole("student");
 
   const refresh = () => setTests(getTests());
 
@@ -143,6 +145,15 @@ export const AdminTests = () => {
     localStorage.setItem("ei_tests", JSON.stringify(allTests));
     refresh();
     toast({ title: "Deleted", description: "Test has been removed." });
+  };
+
+  const handleAssignSave = (studentIds: string[]) => {
+    if (!assignTest) return;
+    const updated = { ...assignTest, assignedStudentIds: studentIds };
+    saveTest(updated);
+    refresh();
+    setAssignTest(null);
+    toast({ title: "Updated", description: "Student assignments updated." });
   };
 
   const filtered = tests.filter(t => t.name.toLowerCase().includes(search.toLowerCase()));
@@ -182,7 +193,10 @@ export const AdminTests = () => {
                       "bg-warning/10 text-warning"
                     }`}>{t.status}</span>
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-4 py-3 text-right flex items-center justify-end gap-1">
+                    <Button variant="ghost" size="sm" onClick={() => setAssignTest(t)} title="Assign Students">
+                      <GraduationCap className="h-4 w-4 text-primary" />
+                    </Button>
                     <Button variant="ghost" size="sm" onClick={() => handleDelete(t.id)}>
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
@@ -193,9 +207,67 @@ export const AdminTests = () => {
           </table>
         </div>
       </div>
+
+      <Dialog open={!!assignTest} onOpenChange={(open) => { if (!open) setAssignTest(null); }}>
+        <DialogContent className="max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Assign Students to "{assignTest?.name}"</DialogTitle>
+          </DialogHeader>
+          {assignTest && (
+            <AssignStudentsContent
+              key={assignTest.id}
+              initialSelected={assignTest.assignedStudentIds}
+              allStudents={allStudents}
+              onSave={handleAssignSave}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };
+
+function AssignStudentsContent({ initialSelected, allStudents, onSave }: {
+  initialSelected: string[];
+  allStudents: User[];
+  onSave: (studentIds: string[]) => void;
+}) {
+  const [selected, setSelected] = useState<string[]>(initialSelected);
+
+  const toggle = (id: string) => {
+    setSelected(prev => prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]);
+  };
+
+  const selectAll = () => {
+    setSelected(selected.length === allStudents.length ? [] : allStudents.map(s => s.id));
+  };
+
+  return (
+    <div className="space-y-4 pt-2">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">{selected.length} of {allStudents.length} selected</p>
+        <Button variant="outline" size="sm" onClick={selectAll}>
+          {selected.length === allStudents.length ? "Deselect All" : "Select All"}
+        </Button>
+      </div>
+      <div className="space-y-2 max-h-60 overflow-y-auto">
+        {allStudents.length === 0 && (
+          <p className="text-sm text-muted-foreground text-center py-4">No students found. Add students first.</p>
+        )}
+        {allStudents.map(s => (
+          <label key={s.id} className="flex items-center gap-3 rounded-lg border border-border p-3 cursor-pointer hover:bg-muted/50 transition-colors">
+            <Checkbox checked={selected.includes(s.id)} onCheckedChange={() => toggle(s.id)} />
+            <div>
+              <p className="text-sm font-medium text-foreground">{s.name}</p>
+              <p className="text-xs text-muted-foreground">{s.email}</p>
+            </div>
+          </label>
+        ))}
+      </div>
+      <Button className="w-full" onClick={() => onSave(selected)}>Save Assignments</Button>
+    </div>
+  );
+}
 
 export const AdminResults = () => {
   const [attempts, setAttempts] = useState(() => getAttempts());
