@@ -27,8 +27,29 @@ const navItems = [
 export { navItems };
 
 function deleteUser(userId: string) {
+  // Remove user
   const users = getUsers().filter(u => u.id !== userId);
   localStorage.setItem("ei_users", JSON.stringify(users));
+
+  // Remove attempts
+  const attempts = JSON.parse(localStorage.getItem("ei_attempts") || "[]");
+  localStorage.setItem("ei_attempts", JSON.stringify(attempts.filter((a: any) => a.studentId !== userId)));
+
+  // Remove certificates
+  const certs = JSON.parse(localStorage.getItem("ei_certificates") || "[]");
+  localStorage.setItem("ei_certificates", JSON.stringify(certs.filter((c: any) => c.studentId !== userId)));
+
+  // Remove retake requests
+  const retakes = JSON.parse(localStorage.getItem("ei_retake_requests") || "[]");
+  localStorage.setItem("ei_retake_requests", JSON.stringify(retakes.filter((r: any) => r.studentId !== userId)));
+
+  // Remove from test assignments
+  const tests = JSON.parse(localStorage.getItem("ei_tests") || "[]");
+  const updatedTests = tests.map((t: any) => ({
+    ...t,
+    assignedStudentIds: (t.assignedStudentIds || []).filter((id: string) => id !== userId),
+  }));
+  localStorage.setItem("ei_tests", JSON.stringify(updatedTests));
 }
 
 function AddUserDialog({ onAdded }: { onAdded: () => void }) {
