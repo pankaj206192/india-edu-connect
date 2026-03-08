@@ -315,15 +315,20 @@ interface Question {
 
 export const CreateTest = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [testName, setTestName] = useState("");
   const [timeLimit, setTimeLimit] = useState(60);
+  const [passPercentage, setPassPercentage] = useState(50);
+  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
+  const students = getUsersByRole("student");
   const [questions, setQuestions] = useState<Question[]>([
     { id: 1, type: "mcq", text: "", marks: 1, options: ["", "", "", ""], correctAnswer: "" },
   ]);
 
   const addQuestion = (type: "mcq" | "short" | "long") => {
     setQuestions([...questions, {
-      id: questions.length + 1,
+      id: Date.now(),
       type,
       text: "",
       marks: 1,
@@ -349,6 +354,61 @@ export const CreateTest = () => {
     }));
   };
 
+  const toggleStudent = (studentId: string) => {
+    setSelectedStudents(prev =>
+      prev.includes(studentId) ? prev.filter(id => id !== studentId) : [...prev, studentId]
+    );
+  };
+
+  const handleSave = () => {
+    if (!testName.trim()) {
+      toast({ title: "Error", description: "Please enter a test name.", variant: "destructive" });
+      return;
+    }
+    if (questions.some(q => !q.text.trim())) {
+      toast({ title: "Error", description: "All questions must have text.", variant: "destructive" });
+      return;
+    }
+    if (questions.some(q => q.type === "mcq" && q.options.some(o => !o.trim()))) {
+      toast({ title: "Error", description: "All MCQ options must be filled.", variant: "destructive" });
+      return;
+    }
+    if (questions.some(q => q.type === "mcq" && (!q.correctAnswer.trim() || !"ABCD".includes(q.correctAnswer)))) {
+      toast({ title: "Error", description: "All MCQ questions must have a correct answer (A, B, C, or D).", variant: "destructive" });
+      return;
+    }
+    if (selectedStudents.length === 0) {
+      toast({ title: "Error", description: "Please assign at least one student.", variant: "destructive" });
+      return;
+    }
+
+    const storeQuestions: StoreQuestion[] = questions.map((q, idx) => ({
+      id: `q-${Date.now()}-${idx}`,
+      type: q.type,
+      text: q.text,
+      marks: q.marks,
+      options: q.options,
+      correctAnswer: q.type === "mcq" ? q.options[q.correctAnswer.charCodeAt(0) - 65] || q.correctAnswer : q.correctAnswer,
+    }));
+
+    const test: Test = {
+      id: `test-${Date.now()}`,
+      name: testName,
+      creatorId: user?.id || "admin-1",
+      creatorName: user?.name || "Admin",
+      timeLimitMinutes: timeLimit,
+      questions: storeQuestions,
+      assignedStudentIds: selectedStudents,
+      status: "active",
+      createdAt: new Date().toISOString().split("T")[0],
+      passPercentage,
+    };
+
+    saveTest(test);
+    toast({ title: "Test Created!", description: "Your test has been saved and assigned." });
+    navigate("/dashboard/admin/tests");
+  };
+
   return (
     <DashboardLayout role="admin" navItems={navItems} title="Create Test">
       <div className="mx-auto max-w-3xl space-y-6">
@@ -363,7 +423,33 @@ export const CreateTest = () => {
               <Label>Time Limit (minutes)</Label>
               <Input type="number" value={timeLimit} onChange={e => setTimeLimit(Number(e.target.value))} className="mt-1" min={1} />
             </div>
+            <div>
+              <Label>Pass Percentage</Label>
+              <Input type="number" value={passPercentage} onChange={e => setPassPercentage(Number(e.target.value))} className="mt-1" min={0} max={100} />
+            </div>
           </div>
+        </div>
+
+        <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+          <h2 className="mb-4 font-display text-lg font-bold text-foreground">Assign Students</h2>
+          {students.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No students found. Add students first.</p>
+          ) : (
+            <div className="grid gap-2 sm:grid-cols-2">
+              {students.map(s => (
+                <label key={s.id} className="flex items-center gap-2 rounded-lg border border-border p-3 cursor-pointer hover:bg-muted/50">
+                  <Checkbox
+                    checked={selectedStudents.includes(s.id)}
+                    onCheckedChange={() => toggleStudent(s.id)}
+                  />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{s.name}</p>
+                    <p className="text-xs text-muted-foreground">{s.email}</p>
+                  </div>
+                </label>
+              ))}
+            </div>
+          )}
         </div>
 
         {questions.map((q, idx) => (
@@ -398,7 +484,7 @@ export const CreateTest = () => {
                   ))}
                   <div>
                     <Label className="text-xs">Correct Answer (A, B, C, or D)</Label>
-                    <Input value={q.correctAnswer} onChange={e => updateQuestion(q.id, "correctAnswer", e.target.value)} placeholder="e.g. A" className="mt-1 w-24" />
+                    <Input value={q.correctAnswer} onChange={e => updateQuestion(q.id, "correctAnswer", e.target.value.toUpperCase())} placeholder="e.g. A" className="mt-1 w-24" maxLength={1} />
                   </div>
                 </div>
               )}
@@ -418,7 +504,7 @@ export const CreateTest = () => {
           <Button variant="outline" onClick={() => addQuestion("long")}>+ Long Answer</Button>
         </div>
 
-        <Button variant="hero" size="lg" className="w-full" onClick={() => toast({ title: "Test Created!", description: "Your test has been saved." })}>
+        <Button variant="hero" size="lg" className="w-full" onClick={handleSave}>
           Save & Publish Test
         </Button>
       </div>
