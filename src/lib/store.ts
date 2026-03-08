@@ -250,7 +250,8 @@ const RETAKE_REQUESTS_KEY = "ei_retake_requests";
 export function getRetakeRequests(): RetakeRequest[] {
   const raw = localStorage.getItem(RETAKE_REQUESTS_KEY);
   if (!raw) return [];
-  return JSON.parse(raw);
+  const validIds = getValidStudentIds();
+  return (JSON.parse(raw) as RetakeRequest[]).filter(r => validIds.has(r.studentId));
 }
 
 export function saveRetakeRequest(req: RetakeRequest) {
