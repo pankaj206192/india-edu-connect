@@ -195,6 +195,9 @@ export const AdminTests = () => {
                     }`}>{t.status}</span>
                   </td>
                   <td className="px-4 py-3 text-right flex items-center justify-end gap-1">
+                    <Button variant="ghost" size="sm" onClick={() => navigate(`/dashboard/admin/edit-test?id=${t.id}`)} title="Edit Test">
+                      <Pencil className="h-4 w-4 text-foreground" />
+                    </Button>
                     <Button variant="ghost" size="sm" onClick={() => setAssignTest(t)} title="Assign Students">
                       <GraduationCap className="h-4 w-4 text-primary" />
                     </Button>
