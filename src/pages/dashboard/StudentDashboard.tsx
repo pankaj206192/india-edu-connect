@@ -1,6 +1,6 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import StatCard from "@/components/StatCard";
-import { FileText, Award, Clock, LayoutDashboard, BookOpen, History, Download } from "lucide-react";
+import { FileText, Award, Clock, LayoutDashboard, BookOpen, History, Download, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const navItems = [
