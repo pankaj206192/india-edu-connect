@@ -322,6 +322,42 @@ export const ManageStudents = () => {
           </table>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) { setDeleteTarget(null); setDeleteConfirmText(""); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Delete</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <p className="text-sm text-muted-foreground">
+              Are you sure you want to delete <span className="font-medium text-foreground">{deleteTarget?.name}</span>? This will permanently remove all their data including test attempts, certificates, and retake requests.
+            </p>
+            <div>
+              <label className="text-sm font-medium text-foreground">Type <span className="font-mono text-destructive">delete</span> to confirm</label>
+              <Input
+                className="mt-1"
+                placeholder="Type delete"
+                value={deleteConfirmText}
+                onChange={e => setDeleteConfirmText(e.target.value.toLowerCase())}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="destructive"
+                className="flex-1"
+                disabled={deleteConfirmText !== "delete"}
+                onClick={handleDelete}
+              >
+                Delete Student
+              </Button>
+              <Button variant="outline" className="flex-1" onClick={() => { setDeleteTarget(null); setDeleteConfirmText(""); }}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };
