@@ -457,13 +457,20 @@ export const AdminCertificates = () => {
 
   const refresh = () => setCerts(getCertificates());
 
+  const allStudents = getUsers();
   const filtered = certs
     .filter(c => filter === "all" || c.status === filter)
-    .filter(c =>
-      c.studentName.toLowerCase().includes(search.toLowerCase()) ||
-      c.testName.toLowerCase().includes(search.toLowerCase()) ||
-      c.id.toLowerCase().includes(search.toLowerCase())
-    );
+    .filter(c => {
+      const q = search.toLowerCase();
+      const student = allStudents.find(u => u.id === c.studentId);
+      return (
+        c.studentName.toLowerCase().includes(q) ||
+        c.testName.toLowerCase().includes(q) ||
+        c.id.toLowerCase().includes(q) ||
+        (student?.email?.toLowerCase().includes(q) ?? false) ||
+        (student?.mobile?.includes(q) ?? false)
+      );
+    });
 
   const handleApprove = (cert: Certificate) => {
     saveCertificate({ ...cert, status: "approved" });
