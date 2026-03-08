@@ -20,7 +20,6 @@ const AdminDashboard = () => {
         {/* Stats */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard title="Total Students" value={248} icon={<GraduationCap className="h-5 w-5" />} trend="+12 this month" />
-          <StatCard title="Total Staff" value={18} icon={<Users className="h-5 w-5" />} trend="+2 this month" />
           <StatCard title="Tests Created" value={45} icon={<FileText className="h-5 w-5" />} trend="+5 this week" />
           <StatCard title="Certificates Issued" value={186} icon={<Award className="h-5 w-5" />} trend="+28 this month" />
         </div>
