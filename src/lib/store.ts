@@ -110,8 +110,8 @@ function getSeedTests(): Test[] {
     {
       id: "test-3",
       name: "English Grammar",
-      creatorId: "staff-1",
-      creatorName: "Dr. Priya Sharma",
+      creatorId: "admin-1",
+      creatorName: "Admin User",
       timeLimitMinutes: 45,
       passPercentage: 50,
       assignedStudentIds: ["student-1", "student-3"],

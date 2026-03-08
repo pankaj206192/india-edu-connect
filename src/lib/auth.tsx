@@ -21,8 +21,6 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 const SEED_USERS: User[] = [
   { id: "admin-1", name: "Admin User", email: "admin@ethicalindia.edu", password: "admin123", role: "admin" },
-  { id: "staff-1", name: "Dr. Priya Sharma", email: "priya@institute.edu", password: "staff123", role: "staff" },
-  { id: "staff-2", name: "Mr. Rahul Verma", email: "rahul@institute.edu", password: "staff123", role: "staff" },
   { id: "student-1", name: "Amit Singh", email: "amit@student.edu", password: "student123", role: "student" },
   { id: "student-2", name: "Sneha Gupta", email: "sneha@student.edu", password: "student123", role: "student" },
   { id: "student-3", name: "Ravi Patel", email: "ravi@student.edu", password: "student123", role: "student" },

@@ -136,7 +136,7 @@ const features = [
 ];
 
 const steps = [
-  { title: "Create Tests", description: "Staff creates exams with various question types and assigns them to students." },
+  { title: "Create Tests", description: "Admin creates exams with various question types and assigns them to students." },
   { title: "Students Attempt", description: "Students take timed exams securely from any device with auto-save." },
   { title: "Results & Certificates", description: "Instant grading, analytics, and downloadable certificates for passing students." },
 ];

@@ -15,6 +15,7 @@ const navItems = [
 ];
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
   return (
     <DashboardLayout role="admin" navItems={navItems} title="Admin Dashboard">
       <div className="space-y-6">

@@ -128,7 +128,6 @@ const Login = () => {
           <div className="mt-6 rounded-lg border border-border bg-muted p-3 text-xs text-muted-foreground lg:hidden">
             <p className="mb-1 font-semibold text-foreground">Demo Credentials:</p>
             <p>Admin: admin@ethicalindia.edu / admin123</p>
-            <p>Staff: priya@institute.edu / staff123</p>
             <p>Student: amit@student.edu / student123</p>
           </div>
 
