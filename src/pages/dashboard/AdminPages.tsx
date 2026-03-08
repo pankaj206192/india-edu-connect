@@ -257,14 +257,19 @@ export const ManageStudents = () => {
   const { toast } = useToast();
   const [students, setStudents] = useState(() => getUsersByRole("student"));
   const [search, setSearch] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
   const refresh = () => setStudents(getUsersByRole("student"));
   const filtered = students.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.email.toLowerCase().includes(search.toLowerCase()));
 
-  const handleDelete = (u: User) => {
-    deleteUser(u.id);
+  const handleDelete = () => {
+    if (!deleteTarget || deleteConfirmText !== "delete") return;
+    deleteUser(deleteTarget.id);
     refresh();
-    toast({ title: "Deleted", description: `${u.name} has been removed.` });
+    toast({ title: "Deleted", description: `${deleteTarget.name} has been removed.` });
+    setDeleteTarget(null);
+    setDeleteConfirmText("");
   };
 
   return (
