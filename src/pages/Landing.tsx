@@ -128,7 +128,7 @@ const Landing = () => {
 
 const features = [
   { icon: <BookOpen className="h-6 w-6" />, title: "Smart Test Creation", description: "Create MCQ, short answer, and long answer tests with custom marks, time limits, and randomization." },
-  { icon: <Users className="h-6 w-6" />, title: "Role-Based Access", description: "Admin, Staff, and Student roles with secure, permission-based access to all features." },
+  { icon: <Users className="h-6 w-6" />, title: "Role-Based Access", description: "Admin and Student roles with secure, permission-based access to all features." },
   { icon: <Award className="h-6 w-6" />, title: "Auto Certificates", description: "Generate professional PDF certificates automatically for students who pass their exams." },
   { icon: <Shield className="h-6 w-6" />, title: "Secure Exams", description: "Timer countdown, auto-save, anti-cheating measures, and prevention of multiple submissions." },
   { icon: <CheckCircle className="h-6 w-6" />, title: "Instant Results", description: "Automatic grading for MCQs with detailed analytics and performance tracking." },
