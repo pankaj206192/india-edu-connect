@@ -19,6 +19,7 @@ const navItems = [
   { label: "Tests", path: "/dashboard/admin/tests", icon: <FileText className="h-4 w-4" /> },
   { label: "Create Test", path: "/dashboard/admin/create-test", icon: <FileText className="h-4 w-4" /> },
   { label: "Results", path: "/dashboard/admin/results", icon: <BarChart3 className="h-4 w-4" /> },
+  { label: "Retake Requests", path: "/dashboard/admin/retake-requests", icon: <RotateCcw className="h-4 w-4" /> },
   { label: "Certificates", path: "/dashboard/admin/certificates", icon: <Award className="h-4 w-4" /> },
   { label: "Settings", path: "/dashboard/admin/settings", icon: <Settings className="h-4 w-4" /> },
 ];
