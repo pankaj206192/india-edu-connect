@@ -10,6 +10,7 @@ export interface User {
   role: Role;
   gender: "male" | "female" | "other";
   mobile: string;
+  photo?: string; // base64 data URL
 }
 
 interface AuthContextType {

@@ -214,6 +214,24 @@ function EditUserDialog({ student, onUpdated }: { student: User; onUpdated: () =
           <DialogTitle>Edit Student Details</DialogTitle>
         </DialogHeader>
         <div className="space-y-3 pt-2">
+          <div className="flex items-center gap-4">
+            <div className="relative h-16 w-16 shrink-0 rounded-full bg-muted flex items-center justify-center overflow-hidden border border-border">
+              {photo ? (
+                <img src={photo} alt="Preview" className="h-full w-full object-cover" />
+              ) : (
+                <ImageIcon className="h-6 w-6 text-muted-foreground" />
+              )}
+            </div>
+            <label className="cursor-pointer">
+              <Button variant="outline" size="sm" asChild>
+                <span><Upload className="mr-1 h-3 w-3" /> {photo ? "Change Photo" : "Upload Photo"}</span>
+              </Button>
+              <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+            </label>
+            {photo && (
+              <Button variant="ghost" size="sm" onClick={() => setPhoto("")} className="text-destructive">Remove</Button>
+            )}
+          </div>
           <Input placeholder="Full Name *" value={name} onChange={e => setName(e.target.value)} />
           <Input placeholder="Email *" type="email" value={email} onChange={e => setEmail(e.target.value)} />
           <Input placeholder="Password *" type="password" value={password} onChange={e => setPassword(e.target.value)} />
