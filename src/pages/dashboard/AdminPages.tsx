@@ -278,6 +278,7 @@ export const ManageStudents = () => {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted">
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Photo</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Name</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">Email</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden md:table-cell">Gender</th>
@@ -287,10 +288,19 @@ export const ManageStudents = () => {
             </thead>
             <tbody>
               {filtered.length === 0 && (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No students found.</td></tr>
+                <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">No students found.</td></tr>
               )}
               {filtered.map((s) => (
                 <tr key={s.id} className="border-b border-border last:border-0">
+                  <td className="px-4 py-3">
+                    <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center overflow-hidden border border-border">
+                      {s.photo ? (
+                        <img src={s.photo} alt={s.name} className="h-full w-full object-cover" />
+                      ) : (
+                        <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </div>
+                  </td>
                   <td className="px-4 py-3 font-medium text-foreground">{s.name}</td>
                   <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{s.email}</td>
                   <td className="px-4 py-3 text-muted-foreground hidden md:table-cell capitalize">{s.gender || "—"}</td>
