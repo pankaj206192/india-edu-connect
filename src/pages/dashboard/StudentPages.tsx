@@ -196,6 +196,7 @@ export const StudentCertificates = () => {
   const certs = getCertificatesForStudent(user.id);
   const approvedCerts = certs.filter(c => c.status === "approved");
   const pendingCerts = certs.filter(c => c.status === "pending");
+  const rejectedCerts = certs.filter(c => c.status === "rejected");
 
   return (
     <DashboardLayout role="student" navItems={navItems} title="My Certificates">
@@ -239,6 +240,23 @@ export const StudentCertificates = () => {
                 >
                   <Download className="mr-1 h-4 w-4" /> Download PDF
                 </Button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {rejectedCerts.length > 0 && (
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium text-destructive">Rejected</h3>
+            {rejectedCerts.map(c => (
+              <div key={c.id} className="rounded-xl border border-destructive/30 bg-card p-5 shadow-card opacity-75">
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="text-xs font-mono text-muted-foreground">{c.id}</span>
+                  <span className="rounded-full bg-destructive/10 px-2.5 py-0.5 text-xs font-medium text-destructive">Rejected</span>
+                </div>
+                <h3 className="font-medium text-foreground">{c.testName}</h3>
+                <p className="text-sm text-muted-foreground">Score: {c.percentage}% · {new Date(c.issuedAt).toLocaleDateString()}</p>
+                <p className="mt-2 text-xs text-destructive/80 italic">This certificate has been rejected by admin.</p>
               </div>
             ))}
           </div>

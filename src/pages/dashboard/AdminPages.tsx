@@ -525,6 +525,13 @@ export const AdminCertificates = () => {
                   </Button>
                 </div>
               )}
+              {c.status === "rejected" && (
+                <div className="mt-3">
+                  <Button size="sm" variant="outline" className="w-full text-success border-success/30 hover:bg-success/10" onClick={() => handleApprove(c)}>
+                    <Check className="mr-1 h-3 w-3" /> Approve Certificate
+                  </Button>
+                </div>
+              )}
               {c.status === "approved" && (
                 <Button variant="outline" size="sm" className="mt-3 w-full" onClick={() => generateCertificatePDF(c)}>Download PDF</Button>
               )}
