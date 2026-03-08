@@ -196,7 +196,7 @@ function EditUserDialog({ student, onUpdated }: { student: User; onUpdated: () =
       toast({ title: "Error", description: "Mobile number already in use.", variant: "destructive" });
       return;
     }
-    updateUser(student.id, { name, email, password, gender: gender as "male" | "female" | "other", mobile });
+    updateUser(student.id, { name, email, password, gender: gender as "male" | "female" | "other", mobile, photo: photo || undefined });
     toast({ title: "Updated", description: `${name}'s details have been updated.` });
     setOpen(false);
     onUpdated();
