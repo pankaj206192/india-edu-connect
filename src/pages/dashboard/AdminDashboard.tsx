@@ -28,21 +28,17 @@ const AdminDashboard = () => {
         <div className="rounded-xl border border-border bg-card p-6 shadow-card">
           <h2 className="mb-4 font-display text-lg font-bold text-foreground">Quick Actions</h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <Button variant="outline" className="h-auto flex-col gap-2 py-4">
+            <Button variant="outline" className="h-auto flex-col gap-2 py-4" onClick={() => navigate("/dashboard/admin/students")}>
               <UserPlus className="h-5 w-5 text-secondary" />
               <span>Add Student</span>
             </Button>
-            <Button variant="outline" className="h-auto flex-col gap-2 py-4">
-              <Users className="h-5 w-5 text-secondary" />
-              <span>Add Staff</span>
-            </Button>
-            <Button variant="outline" className="h-auto flex-col gap-2 py-4">
+            <Button variant="outline" className="h-auto flex-col gap-2 py-4" onClick={() => navigate("/dashboard/admin/create-test")}>
               <BookOpen className="h-5 w-5 text-secondary" />
               <span>Create Test</span>
             </Button>
-            <Button variant="outline" className="h-auto flex-col gap-2 py-4">
+            <Button variant="outline" className="h-auto flex-col gap-2 py-4" onClick={() => navigate("/dashboard/admin/certificates")}>
               <Award className="h-5 w-5 text-secondary" />
-              <span>Issue Certificate</span>
+              <span>View Certificates</span>
             </Button>
           </div>
         </div>
