@@ -10,9 +10,9 @@ import { getUsersByRole, addUser, getUsers, type User } from "@/lib/auth";
 
 const navItems = [
   { label: "Dashboard", path: "/dashboard/admin", icon: <LayoutDashboard className="h-4 w-4" /> },
-  { label: "Manage Staff", path: "/dashboard/admin/staff", icon: <Users className="h-4 w-4" /> },
   { label: "Manage Students", path: "/dashboard/admin/students", icon: <GraduationCap className="h-4 w-4" /> },
   { label: "Tests", path: "/dashboard/admin/tests", icon: <FileText className="h-4 w-4" /> },
+  { label: "Create Test", path: "/dashboard/admin/create-test", icon: <FileText className="h-4 w-4" /> },
   { label: "Results", path: "/dashboard/admin/results", icon: <BarChart3 className="h-4 w-4" /> },
   { label: "Certificates", path: "/dashboard/admin/certificates", icon: <Award className="h-4 w-4" /> },
   { label: "Settings", path: "/dashboard/admin/settings", icon: <Settings className="h-4 w-4" /> },
