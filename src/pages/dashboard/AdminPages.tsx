@@ -73,59 +73,6 @@ function AddUserDialog({ onAdded }: { onAdded: () => void }) {
   );
 }
 
-export const ManageStaff = () => {
-  const { toast } = useToast();
-  const [staff, setStaff] = useState(() => getUsersByRole("staff"));
-  const [search, setSearch] = useState("");
-
-  const refresh = () => setStaff(getUsersByRole("staff"));
-  const filtered = staff.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.email.toLowerCase().includes(search.toLowerCase()));
-
-  const handleDelete = (u: User) => {
-    deleteUser(u.id);
-    refresh();
-    toast({ title: "Deleted", description: `${u.name} has been removed.` });
-  };
-
-  return (
-    <DashboardLayout role="admin" navItems={navItems} title="Manage Staff">
-      <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <Input placeholder="Search staff..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
-          <AddUserDialog role="staff" onAdded={refresh} />
-        </div>
-        <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border bg-muted">
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Name</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">Email</th>
-                <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 && (
-                <tr><td colSpan={3} className="px-4 py-8 text-center text-muted-foreground">No staff found.</td></tr>
-              )}
-              {filtered.map((s) => (
-                <tr key={s.id} className="border-b border-border last:border-0">
-                  <td className="px-4 py-3 font-medium text-foreground">{s.name}</td>
-                  <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{s.email}</td>
-                  <td className="px-4 py-3 text-right">
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(s)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </DashboardLayout>
-  );
-};
-
 export const ManageStudents = () => {
   const { toast } = useToast();
   const [students, setStudents] = useState(() => getUsersByRole("student"));
