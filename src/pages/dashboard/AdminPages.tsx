@@ -133,6 +133,7 @@ export const ManageStudents = () => {
 
 export const AdminTests = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [tests, setTests] = useState(() => getTests());
   const [search, setSearch] = useState("");
   const [assignTest, setAssignTest] = useState<Test | null>(null);
