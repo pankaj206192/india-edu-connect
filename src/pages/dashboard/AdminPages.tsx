@@ -252,27 +252,33 @@ export const AdminResults = () => {
 };
 
 export const AdminCertificates = () => {
-  const certs = [
-    { id: "EI-2026-001", student: "Amit Singh", test: "Mathematics Final", score: 85, date: "Mar 8, 2026" },
-    { id: "EI-2026-002", student: "Sneha Gupta", test: "Mathematics Final", score: 92, date: "Mar 8, 2026" },
-    { id: "EI-2026-003", student: "Pooja Reddy", test: "English Grammar", score: 76, date: "Mar 6, 2026" },
-  ];
+  const [certs, setCerts] = useState(() => getCertificates());
+  const [search, setSearch] = useState("");
+
+  const filtered = certs.filter(c =>
+    c.studentName.toLowerCase().includes(search.toLowerCase()) ||
+    c.testName.toLowerCase().includes(search.toLowerCase()) ||
+    c.id.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <DashboardLayout role="admin" navItems={navItems} title="Certificates">
       <div className="space-y-6">
-        <Input placeholder="Search certificates..." className="max-w-xs" />
+        <Input placeholder="Search certificates..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {certs.map((c) => (
+          {filtered.length === 0 && (
+            <p className="col-span-full text-center text-muted-foreground py-8">No certificates issued yet. Students who pass tests will receive certificates.</p>
+          )}
+          {filtered.map((c) => (
             <div key={c.id} className="rounded-xl border border-border bg-card p-5 shadow-card">
               <div className="mb-3 flex items-center justify-between">
                 <span className="text-xs font-mono text-muted-foreground">{c.id}</span>
                 <Award className="h-5 w-5 text-secondary" />
               </div>
-              <h3 className="font-medium text-foreground">{c.student}</h3>
-              <p className="text-sm text-muted-foreground">{c.test} · Score: {c.score}%</p>
-              <p className="mt-1 text-xs text-muted-foreground">{c.date}</p>
-              <Button variant="outline" size="sm" className="mt-3 w-full">Download PDF</Button>
+              <h3 className="font-medium text-foreground">{c.studentName}</h3>
+              <p className="text-sm text-muted-foreground">{c.testName} · Score: {c.percentage}%</p>
+              <p className="mt-1 text-xs text-muted-foreground">{new Date(c.issuedAt).toLocaleDateString("en-IN", { year: "numeric", month: "short", day: "numeric" })}</p>
+              <Button variant="outline" size="sm" className="mt-3 w-full" onClick={() => generateCertificatePDF(c)}>Download PDF</Button>
             </div>
           ))}
         </div>
