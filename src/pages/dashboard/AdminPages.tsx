@@ -626,10 +626,65 @@ export const AdminCertificates = () => {
 
 export const AdminSettings = () => {
   const { toast } = useToast();
+  const [settings, setSettings] = useState(() => getSettings());
+  const [logo, setLogo] = useState<string>(settings.logo || "");
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: "Error", description: "Logo must be less than 2MB.", variant: "destructive" });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      setLogo(dataUrl);
+      const updated = { ...getSettings(), logo: dataUrl };
+      saveSettings(updated);
+      toast({ title: "Saved", description: "Logo updated successfully." });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveLogo = () => {
+    setLogo("");
+    const updated = { ...getSettings(), logo: undefined };
+    saveSettings(updated);
+    toast({ title: "Removed", description: "Logo has been removed." });
+  };
 
   return (
     <DashboardLayout role="admin" navItems={navItems} title="Settings">
       <div className="max-w-2xl space-y-6">
+        {/* Logo Section */}
+        <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+          <h2 className="mb-4 font-display text-lg font-bold text-foreground">Institute Logo</h2>
+          <p className="mb-3 text-sm text-muted-foreground">Upload your institute logo. It will appear on certificates and branding.</p>
+          <div className="flex items-center gap-4">
+            <div className="h-20 w-20 shrink-0 rounded-lg bg-muted flex items-center justify-center overflow-hidden border-2 border-dashed border-border">
+              {logo ? (
+                <img src={logo} alt="Logo" className="h-full w-full object-contain" />
+              ) : (
+                <ImageIcon className="h-8 w-8 text-muted-foreground" />
+              )}
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="cursor-pointer">
+                <Button variant="outline" size="sm" asChild>
+                  <span><Upload className="mr-1 h-3 w-3" /> {logo ? "Change Logo" : "Upload Logo"}</span>
+                </Button>
+                <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+              </label>
+              {logo && (
+                <Button variant="ghost" size="sm" onClick={handleRemoveLogo} className="text-destructive justify-start">
+                  <Trash2 className="mr-1 h-3 w-3" /> Remove
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+
         <div className="rounded-xl border border-border bg-card p-6 shadow-card">
           <h2 className="mb-4 font-display text-lg font-bold text-foreground">Pass Percentage</h2>
           <p className="mb-3 text-sm text-muted-foreground">Set the minimum percentage required to pass an exam and receive a certificate.</p>

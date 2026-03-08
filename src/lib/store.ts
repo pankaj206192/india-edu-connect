@@ -55,7 +55,7 @@ const CERTIFICATES_KEY = "ei_certificates";
 const SETTINGS_KEY = "ei_settings";
 
 // ---- Settings ----
-export function getSettings(): { passPercentage: number; instituteName: string; contactEmail: string } {
+export function getSettings(): { passPercentage: number; instituteName: string; contactEmail: string; logo?: string } {
   const raw = localStorage.getItem(SETTINGS_KEY);
   if (!raw) {
     const defaults = { passPercentage: 50, instituteName: "Ethical India Institute", contactEmail: "admin@ethicalindia.edu" };
@@ -65,7 +65,7 @@ export function getSettings(): { passPercentage: number; instituteName: string; 
   return JSON.parse(raw);
 }
 
-export function saveSettings(settings: { passPercentage: number; instituteName: string; contactEmail: string }) {
+export function saveSettings(settings: { passPercentage: number; instituteName: string; contactEmail: string; logo?: string }) {
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
 }
 
