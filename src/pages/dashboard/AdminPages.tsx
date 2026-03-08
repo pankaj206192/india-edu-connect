@@ -626,6 +626,7 @@ export const AdminCertificates = () => {
 
 export const AdminSettings = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [settings, setSettings] = useState(() => getSettings());
   const [logo, setLogo] = useState<string>(settings.logo || "");
 
@@ -657,6 +658,20 @@ export const AdminSettings = () => {
   return (
     <DashboardLayout role="admin" navItems={navItems} title="Settings">
       <div className="max-w-2xl space-y-6">
+        {/* Admin Profile */}
+        <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+          <h2 className="mb-4 font-display text-lg font-bold text-foreground">Admin Profile</h2>
+          <div className="flex items-center gap-4">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-lg">
+              {user?.name?.charAt(0) || "A"}
+            </div>
+            <div>
+              <p className="font-medium text-foreground">{user?.name}</p>
+              <p className="text-sm text-muted-foreground">{user?.email}</p>
+            </div>
+          </div>
+        </div>
+
         {/* Logo Section */}
         <div className="rounded-xl border border-border bg-card p-6 shadow-card">
           <h2 className="mb-4 font-display text-lg font-bold text-foreground">Institute Logo</h2>
