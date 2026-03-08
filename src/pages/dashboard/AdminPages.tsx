@@ -25,7 +25,7 @@ function deleteUser(userId: string) {
   localStorage.setItem("ei_users", JSON.stringify(users));
 }
 
-function AddUserDialog({ role, onAdded }: { role: "staff" | "student"; onAdded: () => void }) {
+function AddUserDialog({ onAdded }: { onAdded: () => void }) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
