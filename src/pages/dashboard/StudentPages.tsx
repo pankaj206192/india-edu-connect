@@ -193,31 +193,55 @@ export const StudentCertificates = () => {
   if (!user) return null;
 
   const certs = getCertificatesForStudent(user.id);
+  const approvedCerts = certs.filter(c => c.status === "approved");
+  const pendingCerts = certs.filter(c => c.status === "pending");
 
   return (
     <DashboardLayout role="student" navItems={navItems} title="My Certificates">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="space-y-6">
         {certs.length === 0 && (
-          <p className="text-muted-foreground col-span-full">No certificates yet. Pass a test to earn one!</p>
+          <p className="text-muted-foreground">No certificates yet. Pass a test to earn one!</p>
         )}
-        {certs.map(c => (
-          <div key={c.id} className="rounded-xl border border-border bg-card p-5 shadow-card">
-            <div className="mb-3 flex items-center justify-between">
-              <span className="text-xs font-mono text-muted-foreground">{c.id}</span>
-              <Award className="h-5 w-5 text-secondary" />
-            </div>
-            <h3 className="font-medium text-foreground">{c.testName}</h3>
-            <p className="text-sm text-muted-foreground">Score: {c.percentage}% · {new Date(c.issuedAt).toLocaleDateString()}</p>
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-3 w-full"
-              onClick={() => generateCertificatePDF(c)}
-            >
-              <Download className="mr-1 h-4 w-4" /> Download PDF
-            </Button>
+
+        {pendingCerts.length > 0 && (
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium text-muted-foreground">Pending Approval</h3>
+            {pendingCerts.map(c => (
+              <div key={c.id} className="rounded-xl border border-border bg-card p-5 shadow-card opacity-75">
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="text-xs font-mono text-muted-foreground">{c.id}</span>
+                  <span className="rounded-full bg-warning/10 px-2.5 py-0.5 text-xs font-medium text-warning">Pending</span>
+                </div>
+                <h3 className="font-medium text-foreground">{c.testName}</h3>
+                <p className="text-sm text-muted-foreground">Score: {c.percentage}% · {new Date(c.issuedAt).toLocaleDateString()}</p>
+                <p className="mt-2 text-xs text-muted-foreground italic">Awaiting admin approval to issue certificate.</p>
+              </div>
+            ))}
           </div>
-        ))}
+        )}
+
+        {approvedCerts.length > 0 && (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {approvedCerts.map(c => (
+              <div key={c.id} className="rounded-xl border border-border bg-card p-5 shadow-card">
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="text-xs font-mono text-muted-foreground">{c.id}</span>
+                  <Award className="h-5 w-5 text-secondary" />
+                </div>
+                <h3 className="font-medium text-foreground">{c.testName}</h3>
+                <p className="text-sm text-muted-foreground">Score: {c.percentage}% · {new Date(c.issuedAt).toLocaleDateString()}</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-3 w-full"
+                  onClick={() => generateCertificatePDF(c)}
+                >
+                  <Download className="mr-1 h-4 w-4" /> Download PDF
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );
