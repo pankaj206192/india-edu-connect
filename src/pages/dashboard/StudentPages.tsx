@@ -1,9 +1,17 @@
 import DashboardLayout from "@/components/DashboardLayout";
-import { LayoutDashboard, FileText, History, Award, BookOpen, Download, Clock } from "lucide-react";
+import { LayoutDashboard, FileText, History, Award, BookOpen, Download, Clock, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/auth";
+import { useNavigate } from "react-router-dom";
+import {
+  getTestsForStudent, hasAttempted, getAttemptsForStudent,
+  getCertificatesForStudent, gradeTest, saveAttempt, saveCertificate,
+  generateCertificateId, getTests, type Test,
+} from "@/lib/store";
+import { generateCertificatePDF } from "@/lib/pdf";
 
 const navItems = [
   { label: "Dashboard", path: "/dashboard/student", icon: <LayoutDashboard className="h-4 w-4" /> },
@@ -13,16 +21,24 @@ const navItems = [
 ];
 
 export const StudentTests = () => {
-  const tests = [
-    { id: 1, name: "Mathematics Final Exam", date: "Mar 10, 2026", time: "60 min", questions: 30, status: "Pending" },
-    { id: 2, name: "Science Quiz", date: "Mar 12, 2026", time: "30 min", questions: 15, status: "Pending" },
-    { id: 3, name: "English Grammar", date: "Mar 15, 2026", time: "45 min", questions: 25, status: "Pending" },
-  ];
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  if (!user) return null;
+
+  const tests = getTestsForStudent(user.id);
+  const pendingTests = tests.filter(t => !hasAttempted(user.id, t.id));
 
   return (
     <DashboardLayout role="student" navItems={navItems} title="My Tests">
       <div className="space-y-4">
-        {tests.map(test => (
+        {pendingTests.length === 0 && (
+          <div className="rounded-xl border border-border bg-card p-8 text-center shadow-card">
+            <CheckCircle className="mx-auto mb-3 h-12 w-12 text-success" />
+            <h3 className="font-display text-lg font-bold text-foreground">All caught up!</h3>
+            <p className="text-sm text-muted-foreground">No pending tests right now.</p>
+          </div>
+        )}
+        {pendingTests.map(test => (
           <div key={test.id} className="flex items-center justify-between rounded-xl border border-border bg-card p-5 shadow-card">
             <div className="flex items-center gap-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted">
@@ -30,13 +46,12 @@ export const StudentTests = () => {
               </div>
               <div>
                 <h3 className="font-medium text-foreground">{test.name}</h3>
-                <p className="text-sm text-muted-foreground">{test.date} · {test.time} · {test.questions} questions</p>
+                <p className="text-sm text-muted-foreground">{test.timeLimitMinutes} min · {test.questions.length} questions</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="hidden sm:inline-flex rounded-full bg-warning/10 px-2.5 py-0.5 text-xs font-medium text-warning">{test.status}</span>
-              <Button variant="hero" onClick={() => window.location.href = "/dashboard/student/test-attempt"}>Start Test</Button>
-            </div>
+            <Button variant="hero" onClick={() => navigate(`/dashboard/student/test-attempt?testId=${test.id}`)}>
+              Start Test
+            </Button>
           </div>
         ))}
       </div>
@@ -45,73 +60,81 @@ export const StudentTests = () => {
 };
 
 export const TestHistory = () => {
-  const history = [
-    { id: 1, name: "History Quiz", date: "Mar 3, 2026", score: 85, total: 100, status: "Passed" },
-    { id: 2, name: "Physics Chapter 5", date: "Mar 1, 2026", score: 42, total: 100, status: "Failed" },
-    { id: 3, name: "Chemistry Lab", date: "Feb 28, 2026", score: 92, total: 100, status: "Passed" },
-    { id: 4, name: "Biology Midterm", date: "Feb 25, 2026", score: 78, total: 100, status: "Passed" },
-    { id: 5, name: "Geography Test", date: "Feb 20, 2026", score: 35, total: 100, status: "Failed" },
-  ];
+  const { user } = useAuth();
+  if (!user) return null;
+
+  const attempts = getAttemptsForStudent(user.id);
 
   return (
     <DashboardLayout role="student" navItems={navItems} title="Test History">
       <div className="space-y-6">
-        <Input placeholder="Search tests..." className="max-w-xs" />
-        <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border bg-muted">
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Test Name</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">Date</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Score</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {history.map(h => (
-                <tr key={h.id} className="border-b border-border last:border-0">
-                  <td className="px-4 py-3 font-medium text-foreground">{h.name}</td>
-                  <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{h.date}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{h.score}/{h.total}</td>
-                  <td className="px-4 py-3">
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${h.status === "Passed" ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
-                      {h.status}
-                    </span>
-                  </td>
+        {attempts.length === 0 ? (
+          <p className="text-muted-foreground">No tests attempted yet.</p>
+        ) : (
+          <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-muted">
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Test Name</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">Date</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Score</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {attempts.map(a => {
+                  const test = getTests().find(t => t.id === a.testId);
+                  return (
+                    <tr key={a.id} className="border-b border-border last:border-0">
+                      <td className="px-4 py-3 font-medium text-foreground">{test?.name || "Unknown"}</td>
+                      <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
+                        {new Date(a.submittedAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">{a.score}/{a.totalMarks} ({a.percentage}%)</td>
+                      <td className="px-4 py-3">
+                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          a.passed ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"
+                        }`}>
+                          {a.passed ? "Passed" : "Failed"}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );
 };
 
 export const StudentCertificates = () => {
-  const { toast } = useToast();
-  const certs = [
-    { id: "EI-2026-001", test: "History Quiz", score: 85, date: "Mar 3, 2026" },
-    { id: "EI-2026-003", test: "Chemistry Lab", score: 92, date: "Feb 28, 2026" },
-    { id: "EI-2026-004", test: "Biology Midterm", score: 78, date: "Feb 25, 2026" },
-  ];
+  const { user } = useAuth();
+  if (!user) return null;
+
+  const certs = getCertificatesForStudent(user.id);
 
   return (
     <DashboardLayout role="student" navItems={navItems} title="My Certificates">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {certs.length === 0 && (
+          <p className="text-muted-foreground col-span-full">No certificates yet. Pass a test to earn one!</p>
+        )}
         {certs.map(c => (
           <div key={c.id} className="rounded-xl border border-border bg-card p-5 shadow-card">
             <div className="mb-3 flex items-center justify-between">
               <span className="text-xs font-mono text-muted-foreground">{c.id}</span>
               <Award className="h-5 w-5 text-secondary" />
             </div>
-            <h3 className="font-medium text-foreground">{c.test}</h3>
-            <p className="text-sm text-muted-foreground">Score: {c.score}% · {c.date}</p>
+            <h3 className="font-medium text-foreground">{c.testName}</h3>
+            <p className="text-sm text-muted-foreground">Score: {c.percentage}% · {new Date(c.issuedAt).toLocaleDateString()}</p>
             <Button
               variant="outline"
               size="sm"
               className="mt-3 w-full"
-              onClick={() => toast({ title: "Coming soon", description: "PDF certificate generation requires Cloud." })}
+              onClick={() => generateCertificatePDF(c)}
             >
               <Download className="mr-1 h-4 w-4" /> Download PDF
             </Button>
@@ -123,32 +146,133 @@ export const StudentCertificates = () => {
 };
 
 export const TestAttempt = () => {
+  const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [currentQ, setCurrentQ] = useState(0);
-  const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [test, setTest] = useState<Test | null>(null);
+  const [submitted, setSubmitted] = useState(false);
 
-  const questions = [
-    { id: 0, type: "mcq", text: "What is the value of π (pi) to two decimal places?", options: ["3.14", "3.16", "3.12", "3.18"], marks: 2 },
-    { id: 1, type: "mcq", text: "Which planet is known as the Red Planet?", options: ["Venus", "Mars", "Jupiter", "Saturn"], marks: 2 },
-    { id: 2, type: "short", text: "Define photosynthesis in one sentence.", options: [], marks: 5 },
-    { id: 3, type: "mcq", text: "What is the capital of India?", options: ["Mumbai", "New Delhi", "Kolkata", "Chennai"], marks: 2 },
-    { id: 4, type: "long", text: "Explain Newton's three laws of motion with examples.", options: [], marks: 10 },
-  ];
+  // Load test from URL param
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const testId = params.get("testId");
+    if (testId) {
+      const found = getTests().find(t => t.id === testId);
+      if (found) {
+        setTest(found);
+        setTimeLeft(found.timeLimitMinutes * 60);
+      }
+    }
+  }, []);
 
-  const q = questions[currentQ];
+  const submitTest = useCallback(() => {
+    if (!test || !user || submitted) return;
+    setSubmitted(true);
+
+    const { score, totalMarks } = gradeTest(test, answers);
+    const percentage = Math.round((score / totalMarks) * 100);
+    const passed = percentage >= test.passPercentage;
+
+    const attempt = {
+      id: `attempt-${Date.now()}`,
+      testId: test.id,
+      studentId: user.id,
+      studentName: user.name,
+      answers,
+      score,
+      totalMarks,
+      percentage,
+      passed,
+      submittedAt: new Date().toISOString(),
+      timeTakenSeconds: (test.timeLimitMinutes * 60) - timeLeft,
+    };
+
+    saveAttempt(attempt);
+
+    if (passed) {
+      const cert = {
+        id: generateCertificateId(),
+        attemptId: attempt.id,
+        testId: test.id,
+        testName: test.name,
+        studentId: user.id,
+        studentName: user.name,
+        score,
+        percentage,
+        issuedAt: new Date().toISOString(),
+      };
+      saveCertificate(cert);
+    }
+
+    toast({
+      title: passed ? "🎉 Congratulations!" : "Test Submitted",
+      description: `You scored ${score}/${totalMarks} (${percentage}%). ${passed ? "Certificate generated!" : "Better luck next time."}`,
+    });
+
+    navigate("/dashboard/student/history");
+  }, [test, user, answers, submitted, timeLeft, toast, navigate]);
+
+  // Countdown timer
+  useEffect(() => {
+    if (!test || submitted || timeLeft <= 0) return;
+    const interval = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          submitTest();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [test, submitted, timeLeft, submitTest]);
+
+  if (!test || !user) {
+    return (
+      <DashboardLayout role="student" navItems={navItems} title="Test">
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">Test not found or already submitted.</p>
+          <Button className="mt-4" onClick={() => navigate("/dashboard/student/tests")}>Back to Tests</Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (hasAttempted(user.id, test.id) && !submitted) {
+    return (
+      <DashboardLayout role="student" navItems={navItems} title="Test">
+        <div className="text-center py-12">
+          <CheckCircle className="mx-auto mb-3 h-12 w-12 text-success" />
+          <p className="text-foreground font-medium">You have already attempted this test.</p>
+          <Button className="mt-4" onClick={() => navigate("/dashboard/student/history")}>View History</Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const q = test.questions[currentQ];
+  const minutes = Math.floor(timeLeft / 60);
+  const seconds = timeLeft % 60;
+  const isLowTime = timeLeft < 120;
 
   return (
-    <DashboardLayout role="student" navItems={navItems} title="Test: Mathematics Final Exam">
+    <DashboardLayout role="student" navItems={navItems} title={`Test: ${test.name}`}>
       <div className="mx-auto max-w-3xl space-y-6">
         {/* Timer */}
         <div className="flex items-center justify-between rounded-xl border border-border bg-card p-4 shadow-card">
           <div className="flex items-center gap-2 text-sm font-medium text-foreground">
             <Clock className="h-4 w-4 text-secondary" />
-            Question {currentQ + 1} of {questions.length}
+            Question {currentQ + 1} of {test.questions.length}
           </div>
-          <div className="flex items-center gap-2 rounded-lg bg-destructive/10 px-3 py-1.5 text-sm font-bold text-destructive">
+          <div className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-bold ${
+            isLowTime ? "bg-destructive/10 text-destructive animate-pulse" : "bg-muted text-foreground"
+          }`}>
             <Clock className="h-4 w-4" />
-            58:42
+            {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
           </div>
         </div>
 
@@ -204,14 +328,14 @@ export const TestAttempt = () => {
           <Button variant="outline" disabled={currentQ === 0} onClick={() => setCurrentQ(currentQ - 1)}>
             Previous
           </Button>
-          <div className="flex gap-1">
-            {questions.map((_, i) => (
+          <div className="flex gap-1 flex-wrap justify-center">
+            {test.questions.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setCurrentQ(i)}
                 className={`h-8 w-8 rounded-lg text-xs font-medium transition-all ${
                   i === currentQ ? "bg-primary text-primary-foreground" :
-                  answers[i] !== undefined ? "bg-success/20 text-success" :
+                  answers[test.questions[i].id] !== undefined ? "bg-success/20 text-success" :
                   "bg-muted text-muted-foreground"
                 }`}
               >
@@ -219,13 +343,10 @@ export const TestAttempt = () => {
               </button>
             ))}
           </div>
-          {currentQ < questions.length - 1 ? (
+          {currentQ < test.questions.length - 1 ? (
             <Button onClick={() => setCurrentQ(currentQ + 1)}>Next</Button>
           ) : (
-            <Button
-              variant="hero"
-              onClick={() => toast({ title: "Test Submitted!", description: "Your answers have been recorded." })}
-            >
+            <Button variant="hero" onClick={submitTest} disabled={submitted}>
               Submit Test
             </Button>
           )}
