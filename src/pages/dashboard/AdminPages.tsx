@@ -668,6 +668,7 @@ export const AdminSettings = () => {
             <div>
               <p className="font-medium text-foreground">{user?.name}</p>
               <p className="text-sm text-muted-foreground">{user?.email}</p>
+              <p className="text-sm text-muted-foreground">{user?.mobile || "No mobile added"}</p>
             </div>
           </div>
         </div>
