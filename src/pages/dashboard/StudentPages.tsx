@@ -501,7 +501,7 @@ export const StudentProfile = () => {
               {latestUser.photo ? (
                 <img src={latestUser.photo} alt={latestUser.name} className="h-full w-full object-cover" />
               ) : (
-                <User className="h-8 w-8 text-muted-foreground" />
+                <UserIcon className="h-8 w-8 text-muted-foreground" />
               )}
             </div>
             <div>
