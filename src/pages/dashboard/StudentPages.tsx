@@ -1,5 +1,5 @@
 import DashboardLayout from "@/components/DashboardLayout";
-import { LayoutDashboard, FileText, History, Award, BookOpen, Download, Clock, CheckCircle } from "lucide-react";
+import { LayoutDashboard, FileText, History, Award, BookOpen, Download, Clock, CheckCircle, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect, useCallback } from "react";
@@ -10,8 +10,10 @@ import {
   getTestsForStudent, hasAttempted, getAttemptsForStudent,
   getCertificatesForStudent, gradeTest, saveAttempt, saveCertificate,
   generateCertificateId, getTests, type Test,
+  hasRetakeRequest, saveRetakeRequest, getRetakeRequestsForStudent,
 } from "@/lib/store";
 import { generateCertificatePDF } from "@/lib/pdf";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const navItems = [
   { label: "Dashboard", path: "/dashboard/student", icon: <LayoutDashboard className="h-4 w-4" /> },
@@ -61,9 +63,44 @@ export const StudentTests = () => {
 
 export const TestHistory = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const [retakeReason, setRetakeReason] = useState("");
+  const [retakeDialogOpen, setRetakeDialogOpen] = useState(false);
+  const [selectedAttempt, setSelectedAttempt] = useState<{ attemptId: string; testId: string; testName: string } | null>(null);
+  const [, setRefresh] = useState(0);
   if (!user) return null;
 
   const attempts = getAttemptsForStudent(user.id);
+  const retakeRequests = getRetakeRequestsForStudent(user.id);
+
+  const handleRetakeRequest = () => {
+    if (!selectedAttempt || !retakeReason.trim()) {
+      toast({ title: "Error", description: "Please provide a reason for retake.", variant: "destructive" });
+      return;
+    }
+    saveRetakeRequest({
+      id: `retake-${Date.now()}`,
+      testId: selectedAttempt.testId,
+      studentId: user.id,
+      studentName: user.name,
+      testName: selectedAttempt.testName,
+      attemptId: selectedAttempt.attemptId,
+      reason: retakeReason.trim(),
+      status: "pending",
+      requestedAt: new Date().toISOString(),
+    });
+    toast({ title: "Request Sent", description: "Your retake request has been submitted for admin approval." });
+    setRetakeDialogOpen(false);
+    setRetakeReason("");
+    setSelectedAttempt(null);
+    setRefresh(r => r + 1);
+  };
+
+  const getRetakeStatus = (testId: string) => {
+    const req = retakeRequests.find(r => r.testId === testId);
+    if (!req) return null;
+    return req.status;
+  };
 
   return (
     <DashboardLayout role="student" navItems={navItems} title="Test History">
@@ -79,11 +116,14 @@ export const TestHistory = () => {
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">Date</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">Score</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {attempts.map(a => {
                   const test = getTests().find(t => t.id === a.testId);
+                  const retakeStatus = getRetakeStatus(a.testId);
+                  const hasPending = hasRetakeRequest(user.id, a.testId);
                   return (
                     <tr key={a.id} className="border-b border-border last:border-0">
                       <td className="px-4 py-3 font-medium text-foreground">{test?.name || "Unknown"}</td>
@@ -98,6 +138,26 @@ export const TestHistory = () => {
                           {a.passed ? "Passed" : "Failed"}
                         </span>
                       </td>
+                      <td className="px-4 py-3">
+                        {!a.passed && !hasPending && retakeStatus !== "rejected" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedAttempt({ attemptId: a.id, testId: a.testId, testName: test?.name || "Unknown" });
+                              setRetakeDialogOpen(true);
+                            }}
+                          >
+                            <RotateCcw className="mr-1 h-3 w-3" /> Request Retake
+                          </Button>
+                        )}
+                        {hasPending && (
+                          <span className="rounded-full bg-warning/10 px-2.5 py-0.5 text-xs font-medium text-warning">Pending</span>
+                        )}
+                        {retakeStatus === "rejected" && !hasPending && (
+                          <span className="rounded-full bg-destructive/10 px-2.5 py-0.5 text-xs font-medium text-destructive">Rejected</span>
+                        )}
+                      </td>
                     </tr>
                   );
                 })}
@@ -105,6 +165,24 @@ export const TestHistory = () => {
             </table>
           </div>
         )}
+
+        <Dialog open={retakeDialogOpen} onOpenChange={setRetakeDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Request Retake — {selectedAttempt?.testName}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3 pt-2">
+              <label className="text-sm font-medium text-foreground">Reason for retake</label>
+              <textarea
+                value={retakeReason}
+                onChange={e => setRetakeReason(e.target.value)}
+                placeholder="Explain why you'd like to retake this test..."
+                className="w-full min-h-[100px] rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+              <Button className="w-full" onClick={handleRetakeRequest}>Submit Request</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );

@@ -1,5 +1,5 @@
 import DashboardLayout from "@/components/DashboardLayout";
-import { LayoutDashboard, GraduationCap, FileText, BarChart3, Award, Settings, Plus, Trash2, BookOpen, PlusCircle, Pencil } from "lucide-react";
+import { LayoutDashboard, GraduationCap, FileText, BarChart3, Award, Settings, Plus, Trash2, BookOpen, PlusCircle, Pencil, RotateCcw, Check, X } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getUsersByRole, addUser, getUsers, useAuth, type User } from "@/lib/auth";
-import { getTests, saveTest, getAttempts, getCertificates, type Test, type Question as StoreQuestion } from "@/lib/store";
+import { getTests, saveTest, getAttempts, getCertificates, getRetakeRequests, approveRetake, rejectRetake, type Test, type Question as StoreQuestion } from "@/lib/store";
 import { generateCertificatePDF } from "@/lib/pdf";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -19,6 +19,7 @@ const navItems = [
   { label: "Tests", path: "/dashboard/admin/tests", icon: <FileText className="h-4 w-4" /> },
   { label: "Create Test", path: "/dashboard/admin/create-test", icon: <FileText className="h-4 w-4" /> },
   { label: "Results", path: "/dashboard/admin/results", icon: <BarChart3 className="h-4 w-4" /> },
+  { label: "Retake Requests", path: "/dashboard/admin/retake-requests", icon: <RotateCcw className="h-4 w-4" /> },
   { label: "Certificates", path: "/dashboard/admin/certificates", icon: <Award className="h-4 w-4" /> },
   { label: "Settings", path: "/dashboard/admin/settings", icon: <Settings className="h-4 w-4" /> },
 ];
@@ -621,6 +622,89 @@ export const CreateTest = () => {
         <Button variant="hero" size="lg" className="w-full" onClick={handleSave}>
           {isEditing ? "Save Changes" : "Save & Publish Test"}
         </Button>
+      </div>
+    </DashboardLayout>
+  );
+};
+
+export const AdminRetakeRequests = () => {
+  const { toast } = useToast();
+  const [requests, setRequests] = useState(() => getRetakeRequests());
+  const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("pending");
+
+  const refresh = () => setRequests(getRetakeRequests());
+
+  const filtered = requests.filter(r => filter === "all" || r.status === filter);
+
+  const handleApprove = (id: string) => {
+    approveRetake(id);
+    refresh();
+    toast({ title: "Approved", description: "Retake approved. Student can now reattempt the test." });
+  };
+
+  const handleReject = (id: string) => {
+    rejectRetake(id);
+    refresh();
+    toast({ title: "Rejected", description: "Retake request has been rejected." });
+  };
+
+  return (
+    <DashboardLayout role="admin" navItems={navItems} title="Retake Requests">
+      <div className="space-y-6">
+        <div className="flex gap-2 flex-wrap">
+          {(["pending", "approved", "rejected", "all"] as const).map(f => (
+            <Button
+              key={f}
+              variant={filter === f ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilter(f)}
+              className="capitalize"
+            >
+              {f} {f !== "all" && `(${requests.filter(r => r.status === f).length})`}
+            </Button>
+          ))}
+        </div>
+
+        {filtered.length === 0 ? (
+          <div className="rounded-xl border border-border bg-card p-8 text-center shadow-card">
+            <RotateCcw className="mx-auto mb-3 h-12 w-12 text-muted-foreground" />
+            <p className="text-muted-foreground">No {filter !== "all" ? filter : ""} retake requests.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {filtered.map(req => (
+              <div key={req.id} className="rounded-xl border border-border bg-card p-5 shadow-card">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-medium text-foreground">{req.studentName}</h3>
+                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                        req.status === "pending" ? "bg-warning/10 text-warning" :
+                        req.status === "approved" ? "bg-success/10 text-success" :
+                        "bg-destructive/10 text-destructive"
+                      }`}>
+                        {req.status}
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-1">Test: <span className="text-foreground">{req.testName}</span></p>
+                    <p className="text-sm text-muted-foreground mb-1">Reason: <span className="text-foreground italic">"{req.reason}"</span></p>
+                    <p className="text-xs text-muted-foreground">Requested: {new Date(req.requestedAt).toLocaleString()}</p>
+                  </div>
+                  {req.status === "pending" && (
+                    <div className="flex gap-2 shrink-0">
+                      <Button size="sm" variant="outline" className="text-success border-success/30 hover:bg-success/10" onClick={() => handleApprove(req.id)}>
+                        <Check className="mr-1 h-3 w-3" /> Approve
+                      </Button>
+                      <Button size="sm" variant="outline" className="text-destructive border-destructive/30 hover:bg-destructive/10" onClick={() => handleReject(req.id)}>
+                        <X className="mr-1 h-3 w-3" /> Reject
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

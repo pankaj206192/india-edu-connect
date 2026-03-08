@@ -218,3 +218,63 @@ export function generateCertificateId(): string {
   const num = getCertificates().length + 1;
   return `EI-2026-${String(num).padStart(3, "0")}`;
 }
+
+// ---- Retake Requests ----
+export interface RetakeRequest {
+  id: string;
+  testId: string;
+  studentId: string;
+  studentName: string;
+  testName: string;
+  attemptId: string;
+  reason: string;
+  status: "pending" | "approved" | "rejected";
+  requestedAt: string;
+  resolvedAt?: string;
+}
+
+const RETAKE_REQUESTS_KEY = "ei_retake_requests";
+
+export function getRetakeRequests(): RetakeRequest[] {
+  const raw = localStorage.getItem(RETAKE_REQUESTS_KEY);
+  if (!raw) return [];
+  return JSON.parse(raw);
+}
+
+export function saveRetakeRequest(req: RetakeRequest) {
+  const requests = getRetakeRequests();
+  const idx = requests.findIndex(r => r.id === req.id);
+  if (idx >= 0) requests[idx] = req;
+  else requests.push(req);
+  localStorage.setItem(RETAKE_REQUESTS_KEY, JSON.stringify(requests));
+}
+
+export function getRetakeRequestsForStudent(studentId: string): RetakeRequest[] {
+  return getRetakeRequests().filter(r => r.studentId === studentId);
+}
+
+export function hasRetakeRequest(studentId: string, testId: string): RetakeRequest | undefined {
+  return getRetakeRequests().find(r => r.studentId === studentId && r.testId === testId && r.status === "pending");
+}
+
+export function approveRetake(requestId: string) {
+  const requests = getRetakeRequests();
+  const req = requests.find(r => r.id === requestId);
+  if (!req) return;
+  req.status = "approved";
+  req.resolvedAt = new Date().toISOString();
+  localStorage.setItem(RETAKE_REQUESTS_KEY, JSON.stringify(requests));
+
+  // Remove the student's previous attempt so they can retake
+  const attempts = getAttempts().filter(a => !(a.studentId === req.studentId && a.testId === req.testId));
+  localStorage.setItem(ATTEMPTS_KEY, JSON.stringify(attempts));
+}
+
+export function rejectRetake(requestId: string) {
+  const requests = getRetakeRequests();
+  const req = requests.find(r => r.id === requestId);
+  if (!req) return;
+  req.status = "rejected";
+  req.resolvedAt = new Date().toISOString();
+  localStorage.setItem(RETAKE_REQUESTS_KEY, JSON.stringify(requests));
+}
