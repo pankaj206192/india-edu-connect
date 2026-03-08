@@ -46,6 +46,7 @@ export interface Certificate {
   score: number;
   percentage: number;
   issuedAt: string;
+  status: "pending" | "approved" | "rejected";
 }
 
 const TESTS_KEY = "ei_tests";
