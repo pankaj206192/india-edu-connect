@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/lib/auth";
+import { useAuth, getUsers } from "@/lib/auth";
 import { useNavigate } from "react-router-dom";
 import {
   getTestsForStudent, hasAttempted, getAttemptsForStudent,
@@ -482,11 +482,14 @@ export const StudentProfile = () => {
   const { user } = useAuth();
   if (!user) return null;
 
+  // Fetch latest user data from storage (in case admin updated photo)
+  const latestUser = getUsers().find(u => u.id === user.id) || user;
+
   const fields = [
-    { label: "Full Name", value: user.name },
-    { label: "Email Address", value: user.email },
-    { label: "Gender", value: user.gender ? user.gender.charAt(0).toUpperCase() + user.gender.slice(1) : "—" },
-    { label: "Mobile Number", value: user.mobile || "—" },
+    { label: "Full Name", value: latestUser.name },
+    { label: "Email Address", value: latestUser.email },
+    { label: "Gender", value: latestUser.gender ? latestUser.gender.charAt(0).toUpperCase() + latestUser.gender.slice(1) : "—" },
+    { label: "Mobile Number", value: latestUser.mobile || "—" },
   ];
 
   return (
@@ -494,11 +497,15 @@ export const StudentProfile = () => {
       <div className="mx-auto max-w-lg">
         <div className="rounded-xl border border-border bg-card p-6 shadow-card space-y-6">
           <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-              <User className="h-8 w-8 text-muted-foreground" />
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted overflow-hidden border-2 border-border">
+              {latestUser.photo ? (
+                <img src={latestUser.photo} alt={latestUser.name} className="h-full w-full object-cover" />
+              ) : (
+                <User className="h-8 w-8 text-muted-foreground" />
+              )}
             </div>
             <div>
-              <h2 className="text-lg font-bold text-foreground">{user.name}</h2>
+              <h2 className="text-lg font-bold text-foreground">{latestUser.name}</h2>
               <p className="text-sm text-muted-foreground">Student</p>
             </div>
           </div>

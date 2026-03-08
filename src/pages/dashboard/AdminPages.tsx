@@ -1,5 +1,5 @@
 import DashboardLayout from "@/components/DashboardLayout";
-import { LayoutDashboard, GraduationCap, FileText, BarChart3, Award, Settings, Plus, Trash2, BookOpen, PlusCircle, Pencil, RotateCcw, Check, X } from "lucide-react";
+import { LayoutDashboard, GraduationCap, FileText, BarChart3, Award, Settings, Plus, Trash2, BookOpen, PlusCircle, Pencil, RotateCcw, Check, X, Upload, ImageIcon } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,6 +60,19 @@ function AddUserDialog({ onAdded }: { onAdded: () => void }) {
   const [password, setPassword] = useState("");
   const [gender, setGender] = useState<"male" | "female" | "other" | "">("");
   const [mobile, setMobile] = useState("");
+  const [photo, setPhoto] = useState<string>("");
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: "Error", description: "Photo must be less than 2MB.", variant: "destructive" });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setPhoto(reader.result as string);
+    reader.readAsDataURL(file);
+  };
 
   const handleSubmit = () => {
     if (!name || !email || !password || !gender || !mobile) {
@@ -84,9 +97,9 @@ function AddUserDialog({ onAdded }: { onAdded: () => void }) {
       return;
     }
     const id = `student-${Date.now()}`;
-    addUser({ id, name, email, password, role: "student", gender: gender as "male" | "female" | "other", mobile });
+    addUser({ id, name, email, password, role: "student", gender: gender as "male" | "female" | "other", mobile, photo: photo || undefined });
     toast({ title: "Success", description: "Student added successfully." });
-    setName(""); setEmail(""); setPassword(""); setGender(""); setMobile("");
+    setName(""); setEmail(""); setPassword(""); setGender(""); setMobile(""); setPhoto("");
     setOpen(false);
     onAdded();
   };
@@ -103,6 +116,21 @@ function AddUserDialog({ onAdded }: { onAdded: () => void }) {
           <DialogTitle>Add New Student</DialogTitle>
         </DialogHeader>
         <div className="space-y-3 pt-2">
+          <div className="flex items-center gap-4">
+            <div className="relative h-16 w-16 shrink-0 rounded-full bg-muted flex items-center justify-center overflow-hidden border border-border">
+              {photo ? (
+                <img src={photo} alt="Preview" className="h-full w-full object-cover" />
+              ) : (
+                <ImageIcon className="h-6 w-6 text-muted-foreground" />
+              )}
+            </div>
+            <label className="cursor-pointer">
+              <Button variant="outline" size="sm" asChild>
+                <span><Upload className="mr-1 h-3 w-3" /> Upload Photo</span>
+              </Button>
+              <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+            </label>
+          </div>
           <Input placeholder="Full Name *" value={name} onChange={e => setName(e.target.value)} />
           <Input placeholder="Email *" type="email" value={email} onChange={e => setEmail(e.target.value)} />
           <Input placeholder="Password *" type="password" value={password} onChange={e => setPassword(e.target.value)} />
@@ -132,6 +160,19 @@ function EditUserDialog({ student, onUpdated }: { student: User; onUpdated: () =
   const [password, setPassword] = useState(student.password);
   const [gender, setGender] = useState<string>(student.gender || "");
   const [mobile, setMobile] = useState(student.mobile || "");
+  const [photo, setPhoto] = useState<string>(student.photo || "");
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: "Error", description: "Photo must be less than 2MB.", variant: "destructive" });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setPhoto(reader.result as string);
+    reader.readAsDataURL(file);
+  };
 
   const handleSave = () => {
     if (!name || !email || !password || !gender || !mobile) {
@@ -155,7 +196,7 @@ function EditUserDialog({ student, onUpdated }: { student: User; onUpdated: () =
       toast({ title: "Error", description: "Mobile number already in use.", variant: "destructive" });
       return;
     }
-    updateUser(student.id, { name, email, password, gender: gender as "male" | "female" | "other", mobile });
+    updateUser(student.id, { name, email, password, gender: gender as "male" | "female" | "other", mobile, photo: photo || undefined });
     toast({ title: "Updated", description: `${name}'s details have been updated.` });
     setOpen(false);
     onUpdated();
@@ -173,6 +214,24 @@ function EditUserDialog({ student, onUpdated }: { student: User; onUpdated: () =
           <DialogTitle>Edit Student Details</DialogTitle>
         </DialogHeader>
         <div className="space-y-3 pt-2">
+          <div className="flex items-center gap-4">
+            <div className="relative h-16 w-16 shrink-0 rounded-full bg-muted flex items-center justify-center overflow-hidden border border-border">
+              {photo ? (
+                <img src={photo} alt="Preview" className="h-full w-full object-cover" />
+              ) : (
+                <ImageIcon className="h-6 w-6 text-muted-foreground" />
+              )}
+            </div>
+            <label className="cursor-pointer">
+              <Button variant="outline" size="sm" asChild>
+                <span><Upload className="mr-1 h-3 w-3" /> {photo ? "Change Photo" : "Upload Photo"}</span>
+              </Button>
+              <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+            </label>
+            {photo && (
+              <Button variant="ghost" size="sm" onClick={() => setPhoto("")} className="text-destructive">Remove</Button>
+            )}
+          </div>
           <Input placeholder="Full Name *" value={name} onChange={e => setName(e.target.value)} />
           <Input placeholder="Email *" type="email" value={email} onChange={e => setEmail(e.target.value)} />
           <Input placeholder="Password *" type="password" value={password} onChange={e => setPassword(e.target.value)} />
