@@ -62,6 +62,8 @@ function AddUserDialog({ onAdded }: { onAdded: () => void }) {
   const [gender, setGender] = useState<"male" | "female" | "other" | "">("");
   const [mobile, setMobile] = useState("");
   const [photo, setPhoto] = useState<string>("");
+  const [batchId, setBatchId] = useState<string>("");
+  const batches = getBatches();
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
