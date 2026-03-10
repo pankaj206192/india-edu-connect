@@ -365,7 +365,7 @@ export const ManageStudents = () => {
             </thead>
             <tbody>
               {filtered.length === 0 && (
-                <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">No students found.</td></tr>
+                <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">No students found.</td></tr>
               )}
               {filtered.map((s) => (
                 <tr key={s.id} className="border-b border-border last:border-0">
