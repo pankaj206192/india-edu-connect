@@ -100,9 +100,9 @@ function AddUserDialog({ onAdded }: { onAdded: () => void }) {
       return;
     }
     const id = `student-${Date.now()}`;
-    addUser({ id, name, email, password, role: "student", gender: gender as "male" | "female" | "other", mobile, photo: photo || undefined });
+    addUser({ id, name, email, password, role: "student", gender: gender as "male" | "female" | "other", mobile, photo: photo || undefined, batchId: batchId || undefined });
     toast({ title: "Success", description: "Student added successfully." });
-    setName(""); setEmail(""); setPassword(""); setGender(""); setMobile(""); setPhoto("");
+    setName(""); setEmail(""); setPassword(""); setGender(""); setMobile(""); setPhoto(""); setBatchId("");
     setOpen(false);
     onAdded();
   };
