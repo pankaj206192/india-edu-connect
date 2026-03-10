@@ -329,6 +329,7 @@ export const ManageStudents = () => {
   const [search, setSearch] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const batches = getBatches();
 
   const refresh = () => setStudents(getUsersByRole("student"));
   const filtered = students.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.email.toLowerCase().includes(search.toLowerCase()));
