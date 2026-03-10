@@ -543,34 +543,92 @@ function AssignStudentsContent({ initialSelected, allStudents, onSave }: {
   onSave: (studentIds: string[]) => void;
 }) {
   const [selected, setSelected] = useState<string[]>(initialSelected);
+  const [mode, setMode] = useState<"direct" | "batch">("direct");
+  const [selectedBatchId, setSelectedBatchId] = useState<string>("");
+  const batches = getBatches();
 
   const toggle = (id: string) => {
     setSelected(prev => prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]);
   };
 
-  const selectAll = () => {
-    setSelected(selected.length === allStudents.length ? [] : allStudents.map(s => s.id));
+  const displayedStudents = mode === "batch" && selectedBatchId
+    ? allStudents.filter(s => s.batchId === selectedBatchId)
+    : allStudents;
+
+  const selectAllDisplayed = () => {
+    const displayedIds = displayedStudents.map(s => s.id);
+    const allSelected = displayedIds.every(id => selected.includes(id));
+    if (allSelected) {
+      setSelected(prev => prev.filter(id => !displayedIds.includes(id)));
+    } else {
+      setSelected(prev => [...new Set([...prev, ...displayedIds])]);
+    }
   };
+
+  const allDisplayedSelected = displayedStudents.length > 0 && displayedStudents.every(s => selected.includes(s.id));
 
   return (
     <div className="space-y-4 pt-2">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">{selected.length} of {allStudents.length} selected</p>
-        <Button variant="outline" size="sm" onClick={selectAll}>
-          {selected.length === allStudents.length ? "Deselect All" : "Select All"}
+      {/* Mode Tabs */}
+      <div className="flex gap-2">
+        <Button
+          variant={mode === "direct" ? "default" : "outline"}
+          size="sm"
+          onClick={() => { setMode("direct"); setSelectedBatchId(""); }}
+        >
+          All Students
+        </Button>
+        <Button
+          variant={mode === "batch" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setMode("batch")}
+        >
+          By Batch
         </Button>
       </div>
+
+      {/* Batch Selector */}
+      {mode === "batch" && (
+        <Select value={selectedBatchId} onValueChange={setSelectedBatchId}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select a batch..." />
+          </SelectTrigger>
+          <SelectContent>
+            {batches.length === 0 && (
+              <SelectItem value="none" disabled>No batches created</SelectItem>
+            )}
+            {batches.map(b => (
+              <SelectItem key={b.id} value={b.id}>{b.name} — {b.timings}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">{selected.length} selected total · {displayedStudents.length} shown</p>
+        <Button variant="outline" size="sm" onClick={selectAllDisplayed}>
+          {allDisplayedSelected ? "Deselect Shown" : "Select Shown"}
+        </Button>
+      </div>
+
       <div className="space-y-2 max-h-60 overflow-y-auto">
-        {allStudents.length === 0 && (
-          <p className="text-sm text-muted-foreground text-center py-4">No students found. Add students first.</p>
+        {displayedStudents.length === 0 && (
+          <p className="text-sm text-muted-foreground text-center py-4">
+            {mode === "batch" && !selectedBatchId ? "Select a batch above." : "No students found."}
+          </p>
         )}
-        {allStudents.map(s => (
+        {displayedStudents.map(s => (
           <label key={s.id} className="flex items-center gap-3 rounded-lg border border-border p-3 cursor-pointer hover:bg-muted/50 transition-colors">
             <Checkbox checked={selected.includes(s.id)} onCheckedChange={() => toggle(s.id)} />
-            <div>
+            <div className="flex-1">
               <p className="text-sm font-medium text-foreground">{s.name}</p>
               <p className="text-xs text-muted-foreground">{s.email}</p>
             </div>
+            {s.batchId && (
+              <span className="text-xs rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
+                {batches.find(b => b.id === s.batchId)?.name || ""}
+              </span>
+            )}
           </label>
         ))}
       </div>
