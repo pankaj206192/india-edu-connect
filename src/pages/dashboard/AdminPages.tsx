@@ -382,6 +382,9 @@ export const ManageStudents = () => {
                   <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{s.email}</td>
                   <td className="px-4 py-3 text-muted-foreground hidden md:table-cell capitalize">{s.gender || "—"}</td>
                   <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{s.mobile || "—"}</td>
+                  <td className="px-4 py-3 text-muted-foreground hidden lg:table-cell">
+                    {s.batchId ? (batches.find(b => b.id === s.batchId)?.name || "—") : "—"}
+                  </td>
                   <td className="px-4 py-3 text-right flex items-center justify-end gap-1">
                     <EditUserDialog student={s} onUpdated={refresh} />
                     <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(s)}>
