@@ -148,6 +148,17 @@ function AddUserDialog({ onAdded }: { onAdded: () => void }) {
             </SelectContent>
           </Select>
           <Input placeholder="Mobile Number (10 digits) *" value={mobile} onChange={e => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))} />
+          <Select value={batchId} onValueChange={setBatchId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select Batch (optional)" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">No Batch</SelectItem>
+              {batches.map(b => (
+                <SelectItem key={b.id} value={b.id}>{b.name} — {b.timings}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button className="w-full" onClick={handleSubmit}>Add Student</Button>
         </div>
       </DialogContent>
