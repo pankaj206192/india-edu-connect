@@ -11,6 +11,7 @@ export interface User {
   gender: "male" | "female" | "other";
   mobile: string;
   photo?: string; // base64 data URL
+  batchId?: string;
 }
 
 interface AuthContextType {

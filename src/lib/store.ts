@@ -1,5 +1,48 @@
 // Offline data store using localStorage
 
+// ---- Batches ----
+export interface Batch {
+  id: string;
+  name: string;
+  timings: string; // e.g. "Mon-Fri 9:00 AM - 12:00 PM"
+  createdAt: string;
+}
+
+const BATCHES_KEY = "ei_batches";
+
+export function getBatches(): Batch[] {
+  const raw = localStorage.getItem(BATCHES_KEY);
+  if (!raw) return [];
+  return JSON.parse(raw);
+}
+
+export function saveBatch(batch: Batch) {
+  const batches = getBatches();
+  const idx = batches.findIndex(b => b.id === batch.id);
+  if (idx >= 0) batches[idx] = batch;
+  else batches.push(batch);
+  localStorage.setItem(BATCHES_KEY, JSON.stringify(batches));
+}
+
+export function deleteBatch(batchId: string) {
+  const batches = getBatches().filter(b => b.id !== batchId);
+  localStorage.setItem(BATCHES_KEY, JSON.stringify(batches));
+  // Remove batchId from all users
+  const raw = localStorage.getItem("ei_users");
+  if (raw) {
+    const users = JSON.parse(raw);
+    const updated = users.map((u: any) => u.batchId === batchId ? { ...u, batchId: undefined } : u);
+    localStorage.setItem("ei_users", JSON.stringify(updated));
+  }
+}
+
+export function getStudentsByBatch(batchId: string): string[] {
+  const raw = localStorage.getItem("ei_users");
+  if (!raw) return [];
+  return JSON.parse(raw).filter((u: any) => u.batchId === batchId).map((u: any) => u.id);
+}
+
+
 export interface Question {
   id: string;
   type: "mcq" | "short" | "long";
