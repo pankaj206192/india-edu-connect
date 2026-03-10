@@ -179,6 +179,8 @@ function EditUserDialog({ student, onUpdated }: { student: User; onUpdated: () =
   const [gender, setGender] = useState<string>(student.gender || "");
   const [mobile, setMobile] = useState(student.mobile || "");
   const [photo, setPhoto] = useState<string>(student.photo || "");
+  const [batchId, setBatchId] = useState<string>(student.batchId || "");
+  const batches = getBatches();
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
