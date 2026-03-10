@@ -1,5 +1,5 @@
 import DashboardLayout from "@/components/DashboardLayout";
-import { LayoutDashboard, GraduationCap, FileText, BarChart3, Award, Settings, Plus, Trash2, BookOpen, PlusCircle, Pencil, RotateCcw, Check, X, Upload, ImageIcon, Eye, EyeOff } from "lucide-react";
+import { LayoutDashboard, GraduationCap, FileText, BarChart3, Award, Settings, Plus, Trash2, BookOpen, PlusCircle, Pencil, RotateCcw, Check, X, Upload, ImageIcon, Eye, EyeOff, Users, Clock } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getUsersByRole, addUser, getUsers, updateUser, useAuth, type User } from "@/lib/auth";
-import { getTests, saveTest, getAttempts, getCertificates, saveCertificate, getRetakeRequests, approveRetake, rejectRetake, getSettings, saveSettings, type Test, type Question as StoreQuestion, type Certificate } from "@/lib/store";
+import { getTests, saveTest, getAttempts, getCertificates, saveCertificate, getRetakeRequests, approveRetake, rejectRetake, getSettings, saveSettings, getBatches, saveBatch, deleteBatch, type Test, type Question as StoreQuestion, type Certificate, type Batch } from "@/lib/store";
 import { generateCertificatePDF } from "@/lib/pdf";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -16,6 +16,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 const navItems = [
   { label: "Dashboard", path: "/dashboard/admin", icon: <LayoutDashboard className="h-4 w-4" /> },
   { label: "Manage Students", path: "/dashboard/admin/students", icon: <GraduationCap className="h-4 w-4" /> },
+  { label: "Batches", path: "/dashboard/admin/batches", icon: <Users className="h-4 w-4" /> },
   { label: "Tests", path: "/dashboard/admin/tests", icon: <FileText className="h-4 w-4" /> },
   { label: "Create Test", path: "/dashboard/admin/create-test", icon: <FileText className="h-4 w-4" /> },
   { label: "Results", path: "/dashboard/admin/results", icon: <BarChart3 className="h-4 w-4" /> },
@@ -61,6 +62,8 @@ function AddUserDialog({ onAdded }: { onAdded: () => void }) {
   const [gender, setGender] = useState<"male" | "female" | "other" | "">("");
   const [mobile, setMobile] = useState("");
   const [photo, setPhoto] = useState<string>("");
+  const [batchId, setBatchId] = useState<string>("");
+  const batches = getBatches();
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -97,9 +100,9 @@ function AddUserDialog({ onAdded }: { onAdded: () => void }) {
       return;
     }
     const id = `student-${Date.now()}`;
-    addUser({ id, name, email, password, role: "student", gender: gender as "male" | "female" | "other", mobile, photo: photo || undefined });
+    addUser({ id, name, email, password, role: "student", gender: gender as "male" | "female" | "other", mobile, photo: photo || undefined, batchId: batchId || undefined });
     toast({ title: "Success", description: "Student added successfully." });
-    setName(""); setEmail(""); setPassword(""); setGender(""); setMobile(""); setPhoto("");
+    setName(""); setEmail(""); setPassword(""); setGender(""); setMobile(""); setPhoto(""); setBatchId("");
     setOpen(false);
     onAdded();
   };
@@ -145,6 +148,17 @@ function AddUserDialog({ onAdded }: { onAdded: () => void }) {
             </SelectContent>
           </Select>
           <Input placeholder="Mobile Number (10 digits) *" value={mobile} onChange={e => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))} />
+          <Select value={batchId} onValueChange={setBatchId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select Batch (optional)" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">No Batch</SelectItem>
+              {batches.map(b => (
+                <SelectItem key={b.id} value={b.id}>{b.name} — {b.timings}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button className="w-full" onClick={handleSubmit}>Add Student</Button>
         </div>
       </DialogContent>
@@ -165,6 +179,8 @@ function EditUserDialog({ student, onUpdated }: { student: User; onUpdated: () =
   const [gender, setGender] = useState<string>(student.gender || "");
   const [mobile, setMobile] = useState(student.mobile || "");
   const [photo, setPhoto] = useState<string>(student.photo || "");
+  const [batchId, setBatchId] = useState<string>(student.batchId || "");
+  const batches = getBatches();
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -200,7 +216,7 @@ function EditUserDialog({ student, onUpdated }: { student: User; onUpdated: () =
       toast({ title: "Error", description: "Mobile number already in use.", variant: "destructive" });
       return;
     }
-    updateUser(student.id, { name, email, password, gender: gender as "male" | "female" | "other", mobile, photo: photo || undefined });
+    updateUser(student.id, { name, email, password, gender: gender as "male" | "female" | "other", mobile, photo: photo || undefined, batchId: batchId && batchId !== "none" ? batchId : undefined });
     toast({ title: "Updated", description: `${name}'s details have been updated.` });
     setOpen(false);
     onUpdated();
@@ -289,6 +305,17 @@ function EditUserDialog({ student, onUpdated }: { student: User; onUpdated: () =
             </SelectContent>
           </Select>
           <Input placeholder="Mobile Number (10 digits) *" value={mobile} onChange={e => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))} />
+          <Select value={batchId || "none"} onValueChange={(v) => setBatchId(v === "none" ? "" : v)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select Batch (optional)" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">No Batch</SelectItem>
+              {batches.map(b => (
+                <SelectItem key={b.id} value={b.id}>{b.name} — {b.timings}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button className="w-full" onClick={handleSave}>Save Changes</Button>
         </div>
       </DialogContent>
@@ -302,6 +329,7 @@ export const ManageStudents = () => {
   const [search, setSearch] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const batches = getBatches();
 
   const refresh = () => setStudents(getUsersByRole("student"));
   const filtered = students.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.email.toLowerCase().includes(search.toLowerCase()));
@@ -331,12 +359,13 @@ export const ManageStudents = () => {
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">Email</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden md:table-cell">Gender</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden md:table-cell">Mobile</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden lg:table-cell">Batch</th>
                 <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 && (
-                <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">No students found.</td></tr>
+                <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">No students found.</td></tr>
               )}
               {filtered.map((s) => (
                 <tr key={s.id} className="border-b border-border last:border-0">
@@ -353,6 +382,9 @@ export const ManageStudents = () => {
                   <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{s.email}</td>
                   <td className="px-4 py-3 text-muted-foreground hidden md:table-cell capitalize">{s.gender || "—"}</td>
                   <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{s.mobile || "—"}</td>
+                  <td className="px-4 py-3 text-muted-foreground hidden lg:table-cell">
+                    {s.batchId ? (batches.find(b => b.id === s.batchId)?.name || "—") : "—"}
+                  </td>
                   <td className="px-4 py-3 text-right flex items-center justify-end gap-1">
                     <EditUserDialog student={s} onUpdated={refresh} />
                     <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(s)}>
@@ -1179,3 +1211,207 @@ export const AdminRetakeRequests = () => {
     </DashboardLayout>
   );
 };
+
+export const AdminBatches = () => {
+  const { toast } = useToast();
+  const [batches, setBatches] = useState(() => getBatches());
+  const [open, setOpen] = useState(false);
+  const [editBatch, setEditBatch] = useState<Batch | null>(null);
+  const [name, setName] = useState("");
+  const [timings, setTimings] = useState("");
+  const [assignBatch, setAssignBatch] = useState<Batch | null>(null);
+  const allStudents = getUsersByRole("student");
+
+  const refresh = () => setBatches(getBatches());
+
+  const handleSave = () => {
+    if (!name.trim() || !timings.trim()) {
+      toast({ title: "Error", description: "Please fill batch name and timings.", variant: "destructive" });
+      return;
+    }
+    if (editBatch) {
+      saveBatch({ ...editBatch, name: name.trim(), timings: timings.trim() });
+      toast({ title: "Updated", description: "Batch updated successfully." });
+    } else {
+      saveBatch({ id: `batch-${Date.now()}`, name: name.trim(), timings: timings.trim(), createdAt: new Date().toISOString().split("T")[0] });
+      toast({ title: "Created", description: "Batch created successfully." });
+    }
+    setName(""); setTimings(""); setOpen(false); setEditBatch(null);
+    refresh();
+  };
+
+  const handleDelete = (batchId: string) => {
+    deleteBatch(batchId);
+    refresh();
+    toast({ title: "Deleted", description: "Batch has been removed." });
+  };
+
+  const handleAssignStudents = (studentIds: string[]) => {
+    if (!assignBatch) return;
+    // Remove batch from students no longer assigned
+    const allUsers = getUsers();
+    allUsers.forEach(u => {
+      if (u.role === "student") {
+        if (studentIds.includes(u.id)) {
+          updateUser(u.id, { batchId: assignBatch.id });
+        } else if (u.batchId === assignBatch.id) {
+          updateUser(u.id, { batchId: undefined });
+        }
+      }
+    });
+    setAssignBatch(null);
+    toast({ title: "Updated", description: "Students assigned to batch." });
+  };
+
+  const openEdit = (batch: Batch) => {
+    setEditBatch(batch);
+    setName(batch.name);
+    setTimings(batch.timings);
+    setOpen(true);
+  };
+
+  const openCreate = () => {
+    setEditBatch(null);
+    setName("");
+    setTimings("");
+    setOpen(true);
+  };
+
+  return (
+    <DashboardLayout role="admin" navItems={navItems} title="Manage Batches">
+      <div className="space-y-6">
+        <div className="flex justify-end">
+          <Button onClick={openCreate}>
+            <Plus className="mr-2 h-4 w-4" /> Create Batch
+          </Button>
+        </div>
+
+        <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border bg-muted">
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Batch Name</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Timings</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">Students</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden md:table-cell">Created</th>
+                <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {batches.length === 0 && (
+                <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No batches created yet.</td></tr>
+              )}
+              {batches.map((b) => {
+                const studentCount = allStudents.filter(s => s.batchId === b.id).length;
+                return (
+                  <tr key={b.id} className="border-b border-border last:border-0">
+                    <td className="px-4 py-3 font-medium text-foreground">{b.name}</td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      <span className="inline-flex items-center gap-1">
+                        <Clock className="h-3.5 w-3.5" /> {b.timings}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{studentCount} students</td>
+                    <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{b.createdAt}</td>
+                    <td className="px-4 py-3 text-right flex items-center justify-end gap-1">
+                      <Button variant="ghost" size="sm" onClick={() => setAssignBatch(b)} title="Assign Students">
+                        <GraduationCap className="h-4 w-4 text-primary" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => openEdit(b)} title="Edit Batch">
+                        <Pencil className="h-4 w-4 text-foreground" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDelete(b.id)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Create/Edit Dialog */}
+      <Dialog open={open} onOpenChange={(o) => { if (!o) { setOpen(false); setEditBatch(null); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editBatch ? "Edit Batch" : "Create New Batch"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 pt-2">
+            <div>
+              <Label className="text-sm font-medium">Batch Name *</Label>
+              <Input className="mt-1" placeholder="e.g. Morning Batch A" value={name} onChange={e => setName(e.target.value)} />
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Timings *</Label>
+              <Input className="mt-1" placeholder="e.g. Mon-Fri 9:00 AM - 12:00 PM" value={timings} onChange={e => setTimings(e.target.value)} />
+            </div>
+            <Button className="w-full" onClick={handleSave}>{editBatch ? "Update Batch" : "Create Batch"}</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Assign Students Dialog */}
+      <Dialog open={!!assignBatch} onOpenChange={(o) => { if (!o) setAssignBatch(null); }}>
+        <DialogContent className="max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Assign Students to "{assignBatch?.name}"</DialogTitle>
+          </DialogHeader>
+          {assignBatch && (
+            <BatchAssignStudents
+              key={assignBatch.id}
+              batchId={assignBatch.id}
+              allStudents={allStudents}
+              onSave={handleAssignStudents}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </DashboardLayout>
+  );
+};
+
+function BatchAssignStudents({ batchId, allStudents, onSave }: {
+  batchId: string;
+  allStudents: User[];
+  onSave: (studentIds: string[]) => void;
+}) {
+  const [selected, setSelected] = useState<string[]>(
+    allStudents.filter(s => s.batchId === batchId).map(s => s.id)
+  );
+
+  const toggle = (id: string) => {
+    setSelected(prev => prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]);
+  };
+
+  const selectAll = () => {
+    setSelected(selected.length === allStudents.length ? [] : allStudents.map(s => s.id));
+  };
+
+  return (
+    <div className="space-y-4 pt-2">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">{selected.length} of {allStudents.length} selected</p>
+        <Button variant="outline" size="sm" onClick={selectAll}>
+          {selected.length === allStudents.length ? "Deselect All" : "Select All"}
+        </Button>
+      </div>
+      <div className="space-y-2 max-h-60 overflow-y-auto">
+        {allStudents.length === 0 && (
+          <p className="text-sm text-muted-foreground text-center py-4">No students found. Add students first.</p>
+        )}
+        {allStudents.map(s => (
+          <label key={s.id} className="flex items-center gap-3 rounded-lg border border-border p-3 cursor-pointer hover:bg-muted/50 transition-colors">
+            <Checkbox checked={selected.includes(s.id)} onCheckedChange={() => toggle(s.id)} />
+            <div>
+              <p className="text-sm font-medium text-foreground">{s.name}</p>
+              <p className="text-xs text-muted-foreground">{s.email}</p>
+            </div>
+          </label>
+        ))}
+      </div>
+      <Button className="w-full" onClick={() => onSave(selected)}>Save Assignments</Button>
+    </div>
+  );
+}

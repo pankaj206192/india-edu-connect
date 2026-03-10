@@ -8,7 +8,7 @@ import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import AdminDashboard from "./pages/dashboard/AdminDashboard";
 import StudentDashboard from "./pages/dashboard/StudentDashboard";
-import { ManageStudents, AdminTests, AdminResults, AdminCertificates, AdminSettings, CreateTest, AdminRetakeRequests } from "./pages/dashboard/AdminPages";
+import { ManageStudents, AdminTests, AdminResults, AdminCertificates, AdminSettings, CreateTest, AdminRetakeRequests, AdminBatches } from "./pages/dashboard/AdminPages";
 import { StudentTests, TestHistory, StudentCertificates, TestAttempt, StudentProfile } from "./pages/dashboard/StudentPages";
 import NotFound from "./pages/NotFound";
 
@@ -27,6 +27,7 @@ const App = () => (
           {/* Admin Routes */}
           <Route path="/dashboard/admin" element={<ProtectedRoute allowedRoles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
           <Route path="/dashboard/admin/students" element={<ProtectedRoute allowedRoles={["admin"]}><ManageStudents /></ProtectedRoute>} />
+          <Route path="/dashboard/admin/batches" element={<ProtectedRoute allowedRoles={["admin"]}><AdminBatches /></ProtectedRoute>} />
           <Route path="/dashboard/admin/tests" element={<ProtectedRoute allowedRoles={["admin"]}><AdminTests /></ProtectedRoute>} />
           <Route path="/dashboard/admin/create-test" element={<ProtectedRoute allowedRoles={["admin"]}><CreateTest /></ProtectedRoute>} />
           <Route path="/dashboard/admin/edit-test" element={<ProtectedRoute allowedRoles={["admin"]}><CreateTest /></ProtectedRoute>} />

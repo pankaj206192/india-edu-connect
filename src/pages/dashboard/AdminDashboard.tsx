@@ -1,6 +1,6 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import StatCard from "@/components/StatCard";
-import { GraduationCap, FileText, Award, LayoutDashboard, UserPlus, BookOpen, Settings, BarChart3, RotateCcw } from "lucide-react";
+import { GraduationCap, FileText, Award, LayoutDashboard, UserPlus, BookOpen, Settings, BarChart3, RotateCcw, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { getUsersByRole } from "@/lib/auth";
@@ -9,6 +9,7 @@ import { getTests, getAttempts, getCertificates } from "@/lib/store";
 const navItems = [
   { label: "Dashboard", path: "/dashboard/admin", icon: <LayoutDashboard className="h-4 w-4" /> },
   { label: "Manage Students", path: "/dashboard/admin/students", icon: <GraduationCap className="h-4 w-4" /> },
+  { label: "Batches", path: "/dashboard/admin/batches", icon: <Users className="h-4 w-4" /> },
   { label: "Tests", path: "/dashboard/admin/tests", icon: <FileText className="h-4 w-4" /> },
   { label: "Create Test", path: "/dashboard/admin/create-test", icon: <BookOpen className="h-4 w-4" /> },
   { label: "Results", path: "/dashboard/admin/results", icon: <BarChart3 className="h-4 w-4" /> },
