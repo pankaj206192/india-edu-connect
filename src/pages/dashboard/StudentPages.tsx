@@ -276,14 +276,20 @@ export const TestAttempt = () => {
   const [test, setTest] = useState<Test | null>(null);
   const [submitted, setSubmitted] = useState(false);
 
-  // Load test from URL param
+  // Load test from URL param and shuffle questions
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const testId = params.get("testId");
     if (testId) {
       const found = getTests().find(t => t.id === testId);
       if (found) {
-        setTest(found);
+        // Shuffle questions using Fisher-Yates for each student
+        const shuffled = { ...found, questions: [...found.questions] };
+        for (let i = shuffled.questions.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled.questions[i], shuffled.questions[j]] = [shuffled.questions[j], shuffled.questions[i]];
+        }
+        setTest(shuffled);
         setTimeLeft(found.timeLimitMinutes * 60);
       }
     }
