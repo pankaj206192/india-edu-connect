@@ -444,14 +444,19 @@ export const AdminTests = () => {
   const [search, setSearch] = useState("");
   const [assignTest, setAssignTest] = useState<Test | null>(null);
   const allStudents = getUsersByRole("student");
+  const [deleteTarget, setDeleteTarget] = useState<Test | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
   const refresh = () => setTests(getTests());
 
-  const handleDelete = (testId: string) => {
-    const allTests = getTests().filter(t => t.id !== testId);
+  const handleDelete = () => {
+    if (!deleteTarget || deleteConfirmText !== "delete") return;
+    const allTests = getTests().filter(t => t.id !== deleteTarget.id);
     localStorage.setItem("ei_tests", JSON.stringify(allTests));
     refresh();
     toast({ title: "Deleted", description: "Test has been removed." });
+    setDeleteTarget(null);
+    setDeleteConfirmText("");
   };
 
   const handleAssignSave = (studentIds: string[]) => {
