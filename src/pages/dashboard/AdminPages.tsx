@@ -1107,24 +1107,12 @@ export const CreateTest = () => {
 
         <div className="rounded-xl border border-border bg-card p-6 shadow-card">
           <h2 className="mb-4 font-display text-lg font-bold text-foreground">Assign Students</h2>
-          {students.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No students found. Add students first.</p>
-          ) : (
-            <div className="grid gap-2 sm:grid-cols-2">
-              {students.map(s => (
-                <label key={s.id} className="flex items-center gap-2 rounded-lg border border-border p-3 cursor-pointer hover:bg-muted/50">
-                  <Checkbox
-                    checked={selectedStudents.includes(s.id)}
-                    onCheckedChange={() => toggleStudent(s.id)}
-                  />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{s.name}</p>
-                    <p className="text-xs text-muted-foreground">{s.email}</p>
-                  </div>
-                </label>
-              ))}
-            </div>
-          )}
+          <CreateTestAssignStudents
+            students={students}
+            selectedStudents={selectedStudents}
+            setSelectedStudents={setSelectedStudents}
+            toggleStudent={toggleStudent}
+          />
         </div>
 
         {questions.map((q, idx) => (
