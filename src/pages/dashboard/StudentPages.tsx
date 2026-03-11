@@ -65,6 +65,7 @@ export const StudentTests = () => {
 };
 
 export const TestHistory = () => {
+  useCopyProtection();
   const { user } = useAuth();
   const { toast } = useToast();
   const [retakeReason, setRetakeReason] = useState("");
