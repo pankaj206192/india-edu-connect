@@ -1523,3 +1523,80 @@ function BatchAssignStudents({ batchId, allStudents, onSave }: {
     </div>
   );
 }
+
+function CreateTestAssignStudents({ students, selectedStudents, setSelectedStudents, toggleStudent }: {
+  students: User[];
+  selectedStudents: string[];
+  setSelectedStudents: (ids: string[]) => void;
+  toggleStudent: (id: string) => void;
+}) {
+  const [search, setSearch] = useState("");
+  const [mode, setMode] = useState<"direct" | "batch">("direct");
+  const [selectedBatchId, setSelectedBatchId] = useState<string>("");
+  const batches = getBatches();
+
+  const filtered = students.filter(s => {
+    const q = search.toLowerCase();
+    const matchesSearch = !q || s.name.toLowerCase().includes(q) || s.email.toLowerCase().includes(q) || (s.mobile || "").includes(q);
+    const matchesBatch = mode === "direct" || !selectedBatchId || s.batchId === selectedBatchId;
+    return matchesSearch && matchesBatch;
+  });
+
+  const selectAllFiltered = () => {
+    const filteredIds = filtered.map(s => s.id);
+    const allSelected = filteredIds.every(id => selectedStudents.includes(id));
+    if (allSelected) {
+      setSelectedStudents(selectedStudents.filter(id => !filteredIds.includes(id)));
+    } else {
+      setSelectedStudents([...new Set([...selectedStudents, ...filteredIds])]);
+    }
+  };
+
+  if (students.length === 0) {
+    return <p className="text-sm text-muted-foreground">No students found. Add students first.</p>;
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex gap-2">
+        <Button variant={mode === "direct" ? "default" : "outline"} size="sm" onClick={() => { setMode("direct"); setSelectedBatchId(""); }}>All Students</Button>
+        <Button variant={mode === "batch" ? "default" : "outline"} size="sm" onClick={() => setMode("batch")}>By Batch</Button>
+      </div>
+      {mode === "batch" && (
+        <Select value={selectedBatchId} onValueChange={setSelectedBatchId}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select a batch..." />
+          </SelectTrigger>
+          <SelectContent>
+            {batches.length === 0 && <SelectItem value="none" disabled>No batches created</SelectItem>}
+            {batches.map(b => <SelectItem key={b.id} value={b.id}>{b.name} — {b.timings}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      )}
+      <Input placeholder="Search by name, email, or mobile..." value={search} onChange={e => setSearch(e.target.value)} />
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">{selectedStudents.length} selected · {filtered.length} shown</p>
+        <Button variant="outline" size="sm" onClick={selectAllFiltered}>
+          {filtered.length > 0 && filtered.every(s => selectedStudents.includes(s.id)) ? "Deselect Shown" : "Select Shown"}
+        </Button>
+      </div>
+      <div className="grid gap-2 sm:grid-cols-2 max-h-60 overflow-y-auto">
+        {filtered.length === 0 && <p className="col-span-2 text-sm text-muted-foreground text-center py-4">No students match your filters.</p>}
+        {filtered.map(s => (
+          <label key={s.id} className="flex items-center gap-2 rounded-lg border border-border p-3 cursor-pointer hover:bg-muted/50">
+            <Checkbox checked={selectedStudents.includes(s.id)} onCheckedChange={() => toggleStudent(s.id)} />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground truncate">{s.name}</p>
+              <p className="text-xs text-muted-foreground truncate">{s.email} · {s.mobile || ""}</p>
+            </div>
+            {s.batchId && (
+              <span className="text-xs rounded-full bg-muted px-2 py-0.5 text-muted-foreground shrink-0">
+                {batches.find(b => b.id === s.batchId)?.name || ""}
+              </span>
+            )}
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
