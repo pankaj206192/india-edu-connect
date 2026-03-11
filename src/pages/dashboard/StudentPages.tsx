@@ -490,6 +490,7 @@ export const TestAttempt = () => {
 };
 
 export const StudentProfile = () => {
+  useCopyProtection();
   const { user } = useAuth();
   const { toast } = useToast();
   const [resettingPassword, setResettingPassword] = useState(false);
