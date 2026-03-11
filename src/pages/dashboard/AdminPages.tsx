@@ -1320,10 +1320,16 @@ export const AdminBatches = () => {
     refresh();
   };
 
-  const handleDelete = (batchId: string) => {
-    deleteBatch(batchId);
+  const [deleteTarget, setDeleteTarget] = useState<Batch | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+
+  const handleDelete = () => {
+    if (!deleteTarget || deleteConfirmText !== "delete") return;
+    deleteBatch(deleteTarget.id);
     refresh();
     toast({ title: "Deleted", description: "Batch has been removed." });
+    setDeleteTarget(null);
+    setDeleteConfirmText("");
   };
 
   const handleAssignStudents = (studentIds: string[]) => {
