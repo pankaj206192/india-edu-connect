@@ -1275,6 +1275,13 @@ export const AdminRetakeRequests = () => {
                       </Button>
                     </div>
                   )}
+                  {req.status === "rejected" && (
+                    <div className="shrink-0">
+                      <Button size="sm" variant="outline" className="text-success border-success/30 hover:bg-success/10" onClick={() => handleApprove(req.id)}>
+                        <Check className="mr-1 h-3 w-3" /> Approve
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
