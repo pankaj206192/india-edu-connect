@@ -1406,7 +1406,7 @@ export const AdminBatches = () => {
                       <Button variant="ghost" size="sm" onClick={() => openEdit(b)} title="Edit Batch">
                         <Pencil className="h-4 w-4 text-foreground" />
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleDelete(b.id)}>
+                      <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(b)}>
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </td>
