@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useCopyProtection } from "@/hooks/use-copy-protection";
 import { useAuth, getUsers, updateUser, type User } from "@/lib/auth";
 import { useNavigate } from "react-router-dom";
 import {
@@ -24,6 +25,7 @@ const navItems = [
 ];
 
 export const StudentTests = () => {
+  useCopyProtection();
   const { user } = useAuth();
   const navigate = useNavigate();
   if (!user) return null;
@@ -63,6 +65,7 @@ export const StudentTests = () => {
 };
 
 export const TestHistory = () => {
+  useCopyProtection();
   const { user } = useAuth();
   const { toast } = useToast();
   const [retakeReason, setRetakeReason] = useState("");
@@ -190,6 +193,7 @@ export const TestHistory = () => {
 };
 
 export const StudentCertificates = () => {
+  useCopyProtection();
   const { user } = useAuth();
   if (!user) return null;
 
@@ -267,6 +271,7 @@ export const StudentCertificates = () => {
 };
 
 export const TestAttempt = () => {
+  useCopyProtection();
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -485,6 +490,7 @@ export const TestAttempt = () => {
 };
 
 export const StudentProfile = () => {
+  useCopyProtection();
   const { user } = useAuth();
   const { toast } = useToast();
   const [resettingPassword, setResettingPassword] = useState(false);
