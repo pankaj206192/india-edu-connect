@@ -193,6 +193,7 @@ export const TestHistory = () => {
 };
 
 export const StudentCertificates = () => {
+  useCopyProtection();
   const { user } = useAuth();
   if (!user) return null;
 
