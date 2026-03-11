@@ -25,6 +25,7 @@ const navItems = [
 ];
 
 export const StudentTests = () => {
+  useCopyProtection();
   const { user } = useAuth();
   const navigate = useNavigate();
   if (!user) return null;
