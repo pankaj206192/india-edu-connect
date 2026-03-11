@@ -271,6 +271,7 @@ export const StudentCertificates = () => {
 };
 
 export const TestAttempt = () => {
+  useCopyProtection();
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
