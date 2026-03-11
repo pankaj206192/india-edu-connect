@@ -512,7 +512,7 @@ export const AdminTests = () => {
                     <Button variant="ghost" size="sm" onClick={() => setAssignTest(t)} title="Assign Students">
                       <GraduationCap className="h-4 w-4 text-primary" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(t.id)}>
+                    <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(t)}>
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   </td>
