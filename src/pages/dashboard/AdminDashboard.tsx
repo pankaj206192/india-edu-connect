@@ -4,7 +4,7 @@ import { GraduationCap, FileText, Award, LayoutDashboard, UserPlus, BookOpen, Se
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { getUsersByRole } from "@/lib/auth";
-import { getTests, getAttempts, getCertificates } from "@/lib/store";
+import { getTests, getAttempts, getCertificates, getRetakeRequests, getFeedbacks } from "@/lib/store";
 
 const navItems = [
   { label: "Dashboard", path: "/dashboard/admin", icon: <LayoutDashboard className="h-4 w-4" /> },
