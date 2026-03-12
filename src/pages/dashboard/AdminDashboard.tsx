@@ -4,19 +4,7 @@ import { GraduationCap, FileText, Award, LayoutDashboard, UserPlus, BookOpen, Se
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { getUsersByRole } from "@/lib/auth";
-import { getTests, getAttempts, getCertificates } from "@/lib/store";
-
-const navItems = [
-  { label: "Dashboard", path: "/dashboard/admin", icon: <LayoutDashboard className="h-4 w-4" /> },
-  { label: "Manage Students", path: "/dashboard/admin/students", icon: <GraduationCap className="h-4 w-4" /> },
-  { label: "Batches", path: "/dashboard/admin/batches", icon: <Users className="h-4 w-4" /> },
-  { label: "Tests", path: "/dashboard/admin/tests", icon: <FileText className="h-4 w-4" /> },
-  { label: "Create Test", path: "/dashboard/admin/create-test", icon: <BookOpen className="h-4 w-4" /> },
-  { label: "Results", path: "/dashboard/admin/results", icon: <BarChart3 className="h-4 w-4" /> },
-  { label: "Retake Requests", path: "/dashboard/admin/retake-requests", icon: <RotateCcw className="h-4 w-4" /> },
-  { label: "Certificates", path: "/dashboard/admin/certificates", icon: <Award className="h-4 w-4" /> },
-  { label: "Settings", path: "/dashboard/admin/settings", icon: <Settings className="h-4 w-4" /> },
-];
+import { getTests, getAttempts, getCertificates, getRetakeRequests, getFeedbacks } from "@/lib/store";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -26,6 +14,23 @@ const AdminDashboard = () => {
   const attempts = getAttempts();
   const certs = getCertificates();
   const approvedCerts = certs.filter(c => c.status === "approved");
+  const pendingRetakes = getRetakeRequests().filter(r => r.status === "pending").length;
+  const pendingCerts = certs.filter(c => c.status === "pending").length;
+  const feedbackCount = getFeedbacks().length;
+  const newResults = attempts.length;
+
+  const navItems = [
+    { label: "Dashboard", path: "/dashboard/admin", icon: <LayoutDashboard className="h-4 w-4" /> },
+    { label: "Manage Students", path: "/dashboard/admin/students", icon: <GraduationCap className="h-4 w-4" /> },
+    { label: "Batches", path: "/dashboard/admin/batches", icon: <Users className="h-4 w-4" /> },
+    { label: "Tests", path: "/dashboard/admin/tests", icon: <FileText className="h-4 w-4" /> },
+    { label: "Create Test", path: "/dashboard/admin/create-test", icon: <BookOpen className="h-4 w-4" /> },
+    { label: "Results", path: "/dashboard/admin/results", icon: <BarChart3 className="h-4 w-4" />, badge: newResults },
+    { label: "Retake Requests", path: "/dashboard/admin/retake-requests", icon: <RotateCcw className="h-4 w-4" />, badge: pendingRetakes },
+    { label: "Certificates", path: "/dashboard/admin/certificates", icon: <Award className="h-4 w-4" />, badge: pendingCerts },
+    { label: "Feedback", path: "/dashboard/admin/feedback", icon: <FileText className="h-4 w-4" />, badge: feedbackCount },
+    { label: "Settings", path: "/dashboard/admin/settings", icon: <Settings className="h-4 w-4" /> },
+  ];
 
   // Pass/fail analytics per test
   const testAnalytics = tests.slice(-5).map(t => {
