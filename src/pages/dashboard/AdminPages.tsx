@@ -1131,6 +1131,17 @@ export const CreateTest = () => {
               <Label>Pass Percentage</Label>
               <Input type="number" value={passPercentage} onChange={e => setPassPercentage(Number(e.target.value))} className="mt-1" min={0} max={100} />
             </div>
+            <div className="flex items-center gap-3 sm:col-span-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={certificateEnabled}
+                  onChange={e => setCertificateEnabled(e.target.checked)}
+                  className="h-4 w-4 rounded border-input accent-primary"
+                />
+                <span className="text-sm font-medium text-foreground">Issue certificate for passing students</span>
+              </label>
+            </div>
           </div>
         </div>
 
