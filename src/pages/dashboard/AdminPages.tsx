@@ -1015,6 +1015,7 @@ export const CreateTest = () => {
   const [timeLimitMinutes, setTimeLimitMinutes] = useState(initMinutes);
   const timeLimit = timeLimitHours * 60 + timeLimitMinutes;
   const [passPercentage, setPassPercentage] = useState(existingTest?.passPercentage || 50);
+  const [certificateEnabled, setCertificateEnabled] = useState(existingTest?.certificateEnabled !== false);
   const [selectedStudents, setSelectedStudents] = useState<string[]>(existingTest?.assignedStudentIds || []);
   const students = getUsersByRole("student");
   const [questions, setQuestions] = useState<Question[]>(loadQuestions);
