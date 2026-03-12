@@ -7,6 +7,7 @@ interface NavItem {
   label: string;
   path: string;
   icon: ReactNode;
+  badge?: number;
 }
 
 interface DashboardLayoutProps {
