@@ -1096,6 +1096,7 @@ export const CreateTest = () => {
       status: existingTest?.status || "active",
       createdAt: existingTest?.createdAt || new Date().toISOString().split("T")[0],
       passPercentage,
+      certificateEnabled,
     };
 
     saveTest(test);
