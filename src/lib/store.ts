@@ -63,6 +63,37 @@ export interface Test {
   status: "draft" | "active" | "completed";
   createdAt: string;
   passPercentage: number;
+  certificateEnabled?: boolean; // default true for backward compat
+}
+
+// ---- Feedback ----
+export interface Feedback {
+  id: string;
+  testId: string;
+  testName: string;
+  studentId: string;
+  studentName: string;
+  batchId?: string;
+  feedback: string;
+  submittedAt: string;
+}
+
+const FEEDBACK_KEY = "ei_feedback";
+
+export function getFeedbacks(): Feedback[] {
+  const raw = localStorage.getItem(FEEDBACK_KEY);
+  if (!raw) return [];
+  return JSON.parse(raw);
+}
+
+export function saveFeedback(fb: Feedback) {
+  const feedbacks = getFeedbacks();
+  feedbacks.push(fb);
+  localStorage.setItem(FEEDBACK_KEY, JSON.stringify(feedbacks));
+}
+
+export function getFeedbacksForStudent(studentId: string): Feedback[] {
+  return getFeedbacks().filter(f => f.studentId === studentId);
 }
 
 export interface Attempt {
