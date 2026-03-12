@@ -153,6 +153,7 @@ function getSeedTests(): Test[] {
       creatorName: "Admin User",
       timeLimitMinutes: 60,
       passPercentage: 50,
+      certificateEnabled: true,
       assignedStudentIds: ["student-1", "student-2", "student-3"],
       status: "active",
       createdAt: "2026-03-01",
