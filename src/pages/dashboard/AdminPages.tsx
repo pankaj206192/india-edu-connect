@@ -1,5 +1,5 @@
 import DashboardLayout from "@/components/DashboardLayout";
-import { LayoutDashboard, GraduationCap, FileText, BarChart3, Award, Settings, Plus, Trash2, BookOpen, PlusCircle, Pencil, RotateCcw, Check, X, Upload, ImageIcon, Eye, EyeOff, Users, Clock } from "lucide-react";
+import { LayoutDashboard, GraduationCap, FileText, BarChart3, Award, Settings, Plus, Trash2, BookOpen, PlusCircle, Pencil, RotateCcw, Check, X, Upload, ImageIcon, Eye, EyeOff, Users, Clock, MessageSquare } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getUsersByRole, addUser, getUsers, updateUser, useAuth, type User } from "@/lib/auth";
-import { getTests, saveTest, getAttempts, getCertificates, saveCertificate, getRetakeRequests, approveRetake, rejectRetake, getSettings, saveSettings, getBatches, saveBatch, deleteBatch, type Test, type Question as StoreQuestion, type Certificate, type Batch } from "@/lib/store";
+import { getTests, saveTest, getAttempts, getCertificates, saveCertificate, getRetakeRequests, approveRetake, rejectRetake, getSettings, saveSettings, getBatches, saveBatch, deleteBatch, getFeedbacks, type Test, type Question as StoreQuestion, type Certificate, type Batch } from "@/lib/store";
 import { generateCertificatePDF } from "@/lib/pdf";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -22,6 +22,7 @@ const navItems = [
   { label: "Results", path: "/dashboard/admin/results", icon: <BarChart3 className="h-4 w-4" /> },
   { label: "Retake Requests", path: "/dashboard/admin/retake-requests", icon: <RotateCcw className="h-4 w-4" /> },
   { label: "Certificates", path: "/dashboard/admin/certificates", icon: <Award className="h-4 w-4" /> },
+  { label: "Feedback", path: "/dashboard/admin/feedback", icon: <MessageSquare className="h-4 w-4" /> },
   { label: "Settings", path: "/dashboard/admin/settings", icon: <Settings className="h-4 w-4" /> },
 ];
 
@@ -1014,6 +1015,7 @@ export const CreateTest = () => {
   const [timeLimitMinutes, setTimeLimitMinutes] = useState(initMinutes);
   const timeLimit = timeLimitHours * 60 + timeLimitMinutes;
   const [passPercentage, setPassPercentage] = useState(existingTest?.passPercentage || 50);
+  const [certificateEnabled, setCertificateEnabled] = useState(existingTest?.certificateEnabled !== false);
   const [selectedStudents, setSelectedStudents] = useState<string[]>(existingTest?.assignedStudentIds || []);
   const students = getUsersByRole("student");
   const [questions, setQuestions] = useState<Question[]>(loadQuestions);
@@ -1094,6 +1096,7 @@ export const CreateTest = () => {
       status: existingTest?.status || "active",
       createdAt: existingTest?.createdAt || new Date().toISOString().split("T")[0],
       passPercentage,
+      certificateEnabled,
     };
 
     saveTest(test);
@@ -1128,6 +1131,17 @@ export const CreateTest = () => {
             <div>
               <Label>Pass Percentage</Label>
               <Input type="number" value={passPercentage} onChange={e => setPassPercentage(Number(e.target.value))} className="mt-1" min={0} max={100} />
+            </div>
+            <div className="flex items-center gap-3 sm:col-span-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={certificateEnabled}
+                  onChange={e => setCertificateEnabled(e.target.checked)}
+                  className="h-4 w-4 rounded border-input accent-primary"
+                />
+                <span className="text-sm font-medium text-foreground">Issue certificate for passing students</span>
+              </label>
             </div>
           </div>
         </div>
@@ -1600,3 +1614,80 @@ function CreateTestAssignStudents({ students, selectedStudents, setSelectedStude
     </div>
   );
 }
+
+export const AdminFeedback = () => {
+  const [feedbacks] = useState(() => getFeedbacks());
+  const [search, setSearch] = useState("");
+  const [filterBatch, setFilterBatch] = useState<string>("");
+  const [filterTest, setFilterTest] = useState<string>("");
+  const batches = getBatches();
+  const tests = getTests();
+  const allStudents = getUsers();
+
+  const filtered = feedbacks.filter(f => {
+    const q = search.toLowerCase();
+    const student = allStudents.find(u => u.id === f.studentId);
+    const matchesSearch = !q || f.studentName.toLowerCase().includes(q) || f.testName.toLowerCase().includes(q) || (student?.email || "").toLowerCase().includes(q);
+    const matchesBatch = !filterBatch || f.batchId === filterBatch;
+    const matchesTest = !filterTest || f.testId === filterTest;
+    return matchesSearch && matchesBatch && matchesTest;
+  });
+
+  return (
+    <DashboardLayout role="admin" navItems={navItems} title="Student Feedback">
+      <div className="space-y-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <Input placeholder="Search by student or test name..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
+          <Select value={filterBatch} onValueChange={v => setFilterBatch(v === "all" ? "" : v)}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="All Batches" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Batches</SelectItem>
+              {batches.map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={filterTest} onValueChange={v => setFilterTest(v === "all" ? "" : v)}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="All Tests" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Tests</SelectItem>
+              {tests.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {filtered.length === 0 ? (
+          <div className="rounded-xl border border-border bg-card p-8 text-center shadow-card">
+            <MessageSquare className="mx-auto mb-3 h-12 w-12 text-muted-foreground" />
+            <p className="text-muted-foreground">No feedback found.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {filtered.map(fb => {
+              const batch = batches.find(b => b.id === fb.batchId);
+              return (
+                <div key={fb.id} className="rounded-xl border border-border bg-card p-5 shadow-card">
+                  <div className="flex items-start justify-between gap-4 mb-2">
+                    <div>
+                      <h3 className="font-medium text-foreground">{fb.studentName}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Test: <span className="text-foreground">{fb.testName}</span>
+                        {batch && <span className="ml-2 text-xs rounded-full bg-muted px-2 py-0.5">{batch.name}</span>}
+                      </p>
+                    </div>
+                    <span className="text-xs text-muted-foreground shrink-0">
+                      {new Date(fb.submittedAt).toLocaleDateString()} {new Date(fb.submittedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                  <p className="text-sm text-foreground bg-muted/50 rounded-lg p-3 italic">"{fb.feedback}"</p>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </DashboardLayout>
+  );
+};

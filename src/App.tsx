@@ -8,7 +8,7 @@ import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import AdminDashboard from "./pages/dashboard/AdminDashboard";
 import StudentDashboard from "./pages/dashboard/StudentDashboard";
-import { ManageStudents, AdminTests, AdminResults, AdminCertificates, AdminSettings, CreateTest, AdminRetakeRequests, AdminBatches } from "./pages/dashboard/AdminPages";
+import { ManageStudents, AdminTests, AdminResults, AdminCertificates, AdminSettings, CreateTest, AdminRetakeRequests, AdminBatches, AdminFeedback } from "./pages/dashboard/AdminPages";
 import { StudentTests, TestHistory, StudentCertificates, TestAttempt, StudentProfile } from "./pages/dashboard/StudentPages";
 import NotFound from "./pages/NotFound";
 
@@ -35,6 +35,7 @@ const App = () => (
           <Route path="/dashboard/admin/certificates" element={<ProtectedRoute allowedRoles={["admin"]}><AdminCertificates /></ProtectedRoute>} />
           <Route path="/dashboard/admin/retake-requests" element={<ProtectedRoute allowedRoles={["admin"]}><AdminRetakeRequests /></ProtectedRoute>} />
           <Route path="/dashboard/admin/settings" element={<ProtectedRoute allowedRoles={["admin"]}><AdminSettings /></ProtectedRoute>} />
+          <Route path="/dashboard/admin/feedback" element={<ProtectedRoute allowedRoles={["admin"]}><AdminFeedback /></ProtectedRoute>} />
 
           {/* Student Routes */}
           <Route path="/dashboard/student" element={<ProtectedRoute allowedRoles={["student"]}><StudentDashboard /></ProtectedRoute>} />

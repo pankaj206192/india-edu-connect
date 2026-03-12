@@ -1,5 +1,5 @@
 import DashboardLayout from "@/components/DashboardLayout";
-import { LayoutDashboard, FileText, History, Award, BookOpen, Download, Clock, CheckCircle, RotateCcw, User as UserIcon, KeyRound } from "lucide-react";
+import { LayoutDashboard, FileText, History, Award, BookOpen, Download, Clock, CheckCircle, RotateCcw, User as UserIcon, KeyRound, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect, useCallback } from "react";
@@ -12,6 +12,7 @@ import {
   getCertificatesForStudent, gradeTest, saveAttempt, saveCertificate,
   generateCertificateId, getTests, type Test,
   hasRetakeRequest, saveRetakeRequest, getRetakeRequestsForStudent,
+  saveFeedback,
 } from "@/lib/store";
 import { generateCertificatePDF } from "@/lib/pdf";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -280,6 +281,9 @@ export const TestAttempt = () => {
   const [timeLeft, setTimeLeft] = useState(0);
   const [test, setTest] = useState<Test | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [result, setResult] = useState<{ score: number; totalMarks: number; percentage: number; passed: boolean } | null>(null);
+  const [feedbackText, setFeedbackText] = useState("");
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
 
   // Load test from URL param and shuffle questions
   useEffect(() => {
@@ -288,7 +292,6 @@ export const TestAttempt = () => {
     if (testId) {
       const found = getTests().find(t => t.id === testId);
       if (found) {
-        // Shuffle questions using Fisher-Yates for each student
         const shuffled = { ...found, questions: [...found.questions] };
         for (let i = shuffled.questions.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
@@ -299,6 +302,27 @@ export const TestAttempt = () => {
       }
     }
   }, []);
+
+  // Block navigation during active test
+  useEffect(() => {
+    if (!test || submitted) return;
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "You have an active exam. Please submit before leaving.";
+    };
+    const handlePopState = (e: PopStateEvent) => {
+      e.preventDefault();
+      window.history.pushState(null, "", window.location.href);
+      toast({ title: "⚠️ Exam Active", description: "Please submit the exam before navigating away.", variant: "destructive" });
+    };
+    window.history.pushState(null, "", window.location.href);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [test, submitted, toast]);
 
   const submitTest = useCallback(() => {
     if (!test || !user || submitted) return;
@@ -324,7 +348,9 @@ export const TestAttempt = () => {
 
     saveAttempt(attempt);
 
-    if (passed) {
+    // Only create certificate if enabled for this test
+    const certificateEnabled = test.certificateEnabled !== false;
+    if (passed && certificateEnabled) {
       const cert: import("@/lib/store").Certificate = {
         id: generateCertificateId(),
         attemptId: attempt.id,
@@ -340,13 +366,8 @@ export const TestAttempt = () => {
       saveCertificate(cert);
     }
 
-    toast({
-      title: passed ? "🎉 Test Passed!" : "Test Submitted",
-      description: `You scored ${score}/${totalMarks} (${percentage}%). ${passed ? "Certificate pending admin approval." : "Better luck next time."}`,
-    });
-
-    navigate("/dashboard/student/history");
-  }, [test, user, answers, submitted, timeLeft, toast, navigate]);
+    setResult({ score, totalMarks, percentage, passed });
+  }, [test, user, answers, submitted, timeLeft]);
 
   // Countdown timer
   useEffect(() => {
@@ -364,6 +385,23 @@ export const TestAttempt = () => {
     return () => clearInterval(interval);
   }, [test, submitted, timeLeft, submitTest]);
 
+  const handleFeedbackSubmit = () => {
+    if (!feedbackText.trim() || !test || !user) return;
+    const latestUser = getUsers().find(u => u.id === user.id);
+    saveFeedback({
+      id: `fb-${Date.now()}`,
+      testId: test.id,
+      testName: test.name,
+      studentId: user.id,
+      studentName: user.name,
+      batchId: latestUser?.batchId,
+      feedback: feedbackText.trim(),
+      submittedAt: new Date().toISOString(),
+    });
+    setFeedbackSubmitted(true);
+    toast({ title: "Feedback Submitted", description: "Thank you for your feedback!" });
+  };
+
   if (!test || !user) {
     return (
       <DashboardLayout role="student" navItems={navItems} title="Test">
@@ -375,7 +413,7 @@ export const TestAttempt = () => {
     );
   }
 
-  if (hasAttempted(user.id, test.id) && !submitted) {
+  if (hasAttempted(user.id, test.id) && !submitted && !result) {
     return (
       <DashboardLayout role="student" navItems={navItems} title="Test">
         <div className="text-center py-12">
@@ -387,26 +425,98 @@ export const TestAttempt = () => {
     );
   }
 
+  // Result + Feedback Screen (shown after submission)
+  if (submitted && result) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="w-full max-w-lg space-y-6">
+          {/* Result Card */}
+          <div className="rounded-xl border border-border bg-card p-8 shadow-card text-center">
+            {result.passed ? (
+              <CheckCircle className="mx-auto mb-4 h-16 w-16 text-success" />
+            ) : (
+              <AlertTriangle className="mx-auto mb-4 h-16 w-16 text-destructive" />
+            )}
+            <h2 className="font-display text-2xl font-bold text-foreground mb-2">
+              {result.passed ? "🎉 Congratulations! You Passed!" : "Test Submitted"}
+            </h2>
+            <p className="text-lg text-muted-foreground mb-4">
+              Score: <span className="font-bold text-foreground">{result.score}/{result.totalMarks}</span> ({result.percentage}%)
+            </p>
+            <span className={`inline-block rounded-full px-4 py-1.5 text-sm font-medium ${
+              result.passed ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"
+            }`}>
+              {result.passed ? "PASSED" : "FAILED"}
+            </span>
+            {result.passed && test.certificateEnabled !== false && (
+              <p className="mt-3 text-sm text-muted-foreground">Certificate pending admin approval.</p>
+            )}
+          </div>
+
+          {/* Mandatory Feedback */}
+          {!feedbackSubmitted ? (
+            <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+              <h3 className="font-display text-lg font-bold text-foreground mb-2">Your Feedback <span className="text-destructive">*</span></h3>
+              <p className="text-sm text-muted-foreground mb-3">Please share your experience about this test. This is mandatory before you can continue.</p>
+              <textarea
+                value={feedbackText}
+                onChange={e => setFeedbackText(e.target.value)}
+                placeholder="Write your feedback about this test..."
+                className="w-full min-h-[120px] rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring mb-3"
+              />
+              <Button
+                className="w-full"
+                disabled={!feedbackText.trim()}
+                onClick={handleFeedbackSubmit}
+              >
+                {feedbackText.trim() ? "Submit Feedback" : "Please write your feedback to continue"}
+              </Button>
+            </div>
+          ) : (
+            <div className="rounded-xl border border-border bg-card p-6 shadow-card text-center">
+              <CheckCircle className="mx-auto mb-2 h-8 w-8 text-success" />
+              <p className="text-sm text-muted-foreground mb-4">Feedback submitted. You can now continue.</p>
+              <Button variant="hero" className="w-full" onClick={() => navigate("/dashboard/student/history")}>
+                Go to Test History
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   const q = test.questions[currentQ];
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
   const isLowTime = timeLeft < 120;
 
+  // Fullscreen exam UI - no sidebar/nav, no logout
   return (
-    <DashboardLayout role="student" navItems={navItems} title={`Test: ${test.name}`}>
-      <div className="mx-auto max-w-3xl space-y-6">
-        {/* Timer */}
-        <div className="flex items-center justify-between rounded-xl border border-border bg-card p-4 shadow-card">
-          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-            <Clock className="h-4 w-4 text-secondary" />
-            Question {currentQ + 1} of {test.questions.length}
-          </div>
+    <div className="min-h-screen bg-background">
+      {/* Minimal header */}
+      <div className="border-b border-border bg-card px-4 py-3">
+        <div className="mx-auto flex max-w-3xl items-center justify-between">
+          <h1 className="font-display text-lg font-bold text-foreground truncate">{test.name}</h1>
           <div className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-bold ${
             isLowTime ? "bg-destructive/10 text-destructive animate-pulse" : "bg-muted text-foreground"
           }`}>
             <Clock className="h-4 w-4" />
             {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
           </div>
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-3xl p-4 space-y-6">
+        {/* Question counter */}
+        <div className="flex items-center justify-between rounded-xl border border-border bg-card p-4 shadow-card">
+          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <Clock className="h-4 w-4 text-secondary" />
+            Question {currentQ + 1} of {test.questions.length}
+          </div>
+          <span className="text-xs text-muted-foreground">
+            {Object.keys(answers).length}/{test.questions.length} answered
+          </span>
         </div>
 
         {/* Question */}
@@ -485,7 +595,7 @@ export const TestAttempt = () => {
           )}
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 
