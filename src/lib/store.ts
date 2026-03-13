@@ -63,7 +63,8 @@ export interface Test {
   status: "draft" | "active" | "completed";
   createdAt: string;
   passPercentage: number;
-  certificateEnabled?: boolean; // default true for backward compat
+  certificateEnabled?: boolean;
+  liveCameraEnabled?: boolean;
 }
 
 // ---- Feedback ----
