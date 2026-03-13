@@ -379,3 +379,73 @@ export function rejectRetake(requestId: string) {
   req.resolvedAt = new Date().toISOString();
   localStorage.setItem(RETAKE_REQUESTS_KEY, JSON.stringify(requests));
 }
+
+// ---- Manual Grading ----
+export function updateAttempt(attemptId: string, updates: Partial<Attempt>) {
+  const raw = localStorage.getItem(ATTEMPTS_KEY);
+  if (!raw) return;
+  const attempts = JSON.parse(raw) as Attempt[];
+  const idx = attempts.findIndex(a => a.id === attemptId);
+  if (idx >= 0) {
+    attempts[idx] = { ...attempts[idx], ...updates };
+    localStorage.setItem(ATTEMPTS_KEY, JSON.stringify(attempts));
+  }
+}
+
+export function getPendingReviewAttempts(): Attempt[] {
+  return getAttempts().filter(a => a.gradingStatus === "pending_review");
+}
+
+// ---- Tab Switch Logs ----
+export interface TabSwitchLog {
+  attemptId: string;
+  studentId: string;
+  testId: string;
+  count: number;
+}
+
+const TAB_SWITCH_KEY = "ei_tab_switches";
+
+export function getTabSwitchLogs(): TabSwitchLog[] {
+  const raw = localStorage.getItem(TAB_SWITCH_KEY);
+  if (!raw) return [];
+  return JSON.parse(raw);
+}
+
+export function saveTabSwitchLog(log: TabSwitchLog) {
+  const logs = getTabSwitchLogs();
+  const idx = logs.findIndex(l => l.attemptId === log.attemptId);
+  if (idx >= 0) logs[idx] = log;
+  else logs.push(log);
+  localStorage.setItem(TAB_SWITCH_KEY, JSON.stringify(logs));
+}
+
+// ---- Camera Snapshots ----
+export interface CameraSnapshot {
+  studentId: string;
+  studentName: string;
+  testId: string;
+  testName: string;
+  image: string;
+  timestamp: string;
+}
+
+const CAMERA_KEY = "ei_camera_snapshots";
+
+export function getCameraSnapshots(): CameraSnapshot[] {
+  const raw = localStorage.getItem(CAMERA_KEY);
+  if (!raw) return [];
+  return JSON.parse(raw);
+}
+
+export function saveCameraSnapshot(snapshot: CameraSnapshot) {
+  const snapshots = getCameraSnapshots();
+  const filtered = snapshots.filter(s => !(s.studentId === snapshot.studentId && s.testId === snapshot.testId));
+  filtered.push(snapshot);
+  while (filtered.length > 50) filtered.shift();
+  localStorage.setItem(CAMERA_KEY, JSON.stringify(filtered));
+}
+
+export function getActiveCameraSnapshots(): CameraSnapshot[] {
+  return getCameraSnapshots();
+}
