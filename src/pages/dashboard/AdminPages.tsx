@@ -667,19 +667,89 @@ function AssignStudentsContent({ initialSelected, allStudents, onSave }: {
 }
 
 export const AdminResults = () => {
+  const { toast } = useToast();
   const [attempts, setAttempts] = useState(() => getAttempts());
   const tests = getTests();
   const [search, setSearch] = useState("");
+  const [gradeAttempt, setGradeAttempt] = useState<Attempt | null>(null);
+  const [manualScores, setManualScores] = useState<Record<string, number>>({});
+  const tabSwitchLogs = getTabSwitchLogs();
+
+  const refresh = () => setAttempts(getAttempts());
 
   const enriched = attempts.map(a => {
     const test = tests.find(t => t.id === a.testId);
-    return { ...a, testName: test?.name || "Unknown Test" };
+    const tabLog = tabSwitchLogs.find(l => l.attemptId === a.id);
+    return { ...a, testName: test?.name || "Unknown Test", tabSwitches: tabLog?.count || a.tabSwitchCount || 0 };
   });
 
   const filtered = enriched.filter(r =>
     r.studentName.toLowerCase().includes(search.toLowerCase()) ||
     r.testName.toLowerCase().includes(search.toLowerCase())
   );
+
+  const openGrading = (attempt: Attempt) => {
+    setGradeAttempt(attempt);
+    // Pre-fill with existing manual scores or 0
+    const test = tests.find(t => t.id === attempt.testId);
+    if (test) {
+      const scores: Record<string, number> = {};
+      test.questions.forEach(q => {
+        if (q.type === "short" || q.type === "long") {
+          scores[q.id] = attempt.manualScores?.[q.id] ?? 0;
+        }
+      });
+      setManualScores(scores);
+    }
+  };
+
+  const handleFinalizeGrade = () => {
+    if (!gradeAttempt) return;
+    const test = tests.find(t => t.id === gradeAttempt.testId);
+    if (!test) return;
+
+    // Calculate total score: MCQ auto + manual scores
+    let totalScore = 0;
+    let totalMarks = 0;
+    for (const q of test.questions) {
+      totalMarks += q.marks;
+      if (q.type === "mcq") {
+        if (gradeAttempt.answers[q.id] === q.correctAnswer) totalScore += q.marks;
+      } else {
+        totalScore += Math.min(manualScores[q.id] || 0, q.marks);
+      }
+    }
+    const percentage = totalMarks > 0 ? Math.round((totalScore / totalMarks) * 100) : 0;
+    const passed = percentage >= test.passPercentage;
+
+    updateAttempt(gradeAttempt.id, {
+      score: totalScore,
+      percentage,
+      passed,
+      gradingStatus: "graded",
+      manualScores,
+    });
+
+    // Create certificate if passed and enabled
+    if (passed && test.certificateEnabled !== false) {
+      saveCertificate({
+        id: generateCertificateId(),
+        attemptId: gradeAttempt.id,
+        testId: test.id,
+        testName: test.name,
+        studentId: gradeAttempt.studentId,
+        studentName: gradeAttempt.studentName,
+        score: totalScore,
+        percentage,
+        issuedAt: new Date().toISOString(),
+        status: "pending",
+      });
+    }
+
+    toast({ title: "Graded", description: `${gradeAttempt.studentName}'s test has been graded. Score: ${totalScore}/${totalMarks} (${percentage}%)` });
+    setGradeAttempt(null);
+    refresh();
+  };
 
   return (
     <DashboardLayout role="admin" navItems={navItems} title="Results">
@@ -692,24 +762,55 @@ export const AdminResults = () => {
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Student</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">Test</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Score</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">Percentage</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">%</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden md:table-cell">Tab Switches</th>
+                <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 && (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No results yet. Students need to attempt tests first.</td></tr>
+                <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">No results yet.</td></tr>
               )}
               {filtered.map((r) => (
                 <tr key={r.id} className="border-b border-border last:border-0">
                   <td className="px-4 py-3 font-medium text-foreground">{r.studentName}</td>
                   <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{r.testName}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{r.score}/{r.totalMarks}</td>
-                  <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{r.percentage}%</td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {r.gradingStatus === "pending_review" ? <span className="text-warning">Pending</span> : `${r.score}/${r.totalMarks}`}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
+                    {r.gradingStatus === "pending_review" ? "—" : `${r.percentage}%`}
+                  </td>
                   <td className="px-4 py-3">
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${r.passed ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
-                      {r.passed ? "Passed" : "Failed"}
-                    </span>
+                    {r.gradingStatus === "pending_review" ? (
+                      <span className="rounded-full bg-warning/10 px-2.5 py-0.5 text-xs font-medium text-warning">Needs Grading</span>
+                    ) : (
+                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${r.passed ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
+                        {r.passed ? "Passed" : "Failed"}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 hidden md:table-cell">
+                    {r.tabSwitches > 0 ? (
+                      <span className="rounded-full bg-destructive/10 px-2.5 py-0.5 text-xs font-medium text-destructive flex items-center gap-1 w-fit">
+                        <AlertTriangle className="h-3 w-3" /> {r.tabSwitches}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">0</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    {r.gradingStatus === "pending_review" && (
+                      <Button size="sm" variant="outline" onClick={() => openGrading(r)}>
+                        <Pencil className="mr-1 h-3 w-3" /> Grade
+                      </Button>
+                    )}
+                    {r.gradingStatus === "graded" && (
+                      <Button size="sm" variant="ghost" onClick={() => openGrading(r)}>
+                        <Eye className="mr-1 h-3 w-3" /> Review
+                      </Button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -717,6 +818,74 @@ export const AdminResults = () => {
           </table>
         </div>
       </div>
+
+      {/* Grading Dialog */}
+      <Dialog open={!!gradeAttempt} onOpenChange={(o) => { if (!o) setGradeAttempt(null); }}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Grade: {gradeAttempt?.studentName} — {tests.find(t => t.id === gradeAttempt?.testId)?.name}</DialogTitle>
+          </DialogHeader>
+          {gradeAttempt && (() => {
+            const test = tests.find(t => t.id === gradeAttempt.testId);
+            if (!test) return null;
+            return (
+              <div className="space-y-4 pt-2">
+                {gradeAttempt.tabSwitchCount && gradeAttempt.tabSwitchCount > 0 && (
+                  <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    Tab switches detected: {gradeAttempt.tabSwitchCount}
+                  </div>
+                )}
+                {test.questions.map((q, idx) => {
+                  const studentAnswer = gradeAttempt.answers[q.id] || "(no answer)";
+                  const isMcq = q.type === "mcq";
+                  const mcqCorrect = isMcq && studentAnswer === q.correctAnswer;
+                  return (
+                    <div key={q.id} className="rounded-lg border border-border p-4 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-foreground">Q{idx + 1}: {q.text}</span>
+                        <span className="text-xs text-muted-foreground rounded-full bg-muted px-2 py-0.5 capitalize">{q.type} · {q.marks} marks</span>
+                      </div>
+                      <div className="rounded-lg bg-muted/50 p-3">
+                        <p className="text-xs text-muted-foreground mb-1">Student's Answer:</p>
+                        <p className="text-sm text-foreground">{studentAnswer}</p>
+                      </div>
+                      {isMcq ? (
+                        <div className="flex items-center gap-2">
+                          <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${mcqCorrect ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
+                            {mcqCorrect ? `✓ Correct (${q.marks} marks)` : `✗ Wrong (0 marks)`}
+                          </span>
+                          {!mcqCorrect && <span className="text-xs text-muted-foreground">Correct: {q.correctAnswer}</span>}
+                        </div>
+                      ) : (
+                        <div className="space-y-1">
+                          <p className="text-xs text-muted-foreground">Expected keywords: <span className="text-foreground">{q.correctAnswer}</span></p>
+                          <div className="flex items-center gap-2">
+                            <Label className="text-xs shrink-0">Marks (0-{q.marks}):</Label>
+                            <Input
+                              type="number"
+                              min={0}
+                              max={q.marks}
+                              value={manualScores[q.id] ?? 0}
+                              onChange={e => setManualScores({ ...manualScores, [q.id]: Math.min(q.marks, Math.max(0, Number(e.target.value))) })}
+                              className="h-8 w-20"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+                {gradeAttempt.gradingStatus === "pending_review" && (
+                  <Button className="w-full" onClick={handleFinalizeGrade}>
+                    <Check className="mr-2 h-4 w-4" /> Finalize & Save Grade
+                  </Button>
+                )}
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };
