@@ -12,7 +12,6 @@ import { getTests, saveTest, getAttempts, getCertificates, saveCertificate, getR
 import { generateCertificatePDF } from "@/lib/pdf";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useNavigate, useSearchParams } from "react-router-dom";
 
 const navItems = [
   { label: "Dashboard", path: "/dashboard/admin", icon: <LayoutDashboard className="h-4 w-4" /> },
