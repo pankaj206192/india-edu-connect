@@ -1,8 +1,8 @@
 import DashboardLayout from "@/components/DashboardLayout";
-import { LayoutDashboard, FileText, History, Award, BookOpen, Download, Clock, CheckCircle, RotateCcw, User as UserIcon, KeyRound, AlertTriangle } from "lucide-react";
+import { LayoutDashboard, FileText, History, Award, BookOpen, Download, Clock, CheckCircle, RotateCcw, User as UserIcon, KeyRound, AlertTriangle, Camera, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useCopyProtection } from "@/hooks/use-copy-protection";
 import { useAuth, getUsers, updateUser, type User } from "@/lib/auth";
@@ -12,7 +12,7 @@ import {
   getCertificatesForStudent, gradeTest, saveAttempt, saveCertificate,
   generateCertificateId, getTests, type Test,
   hasRetakeRequest, saveRetakeRequest, getRetakeRequestsForStudent,
-  saveFeedback,
+  saveFeedback, saveTabSwitchLog, saveCameraSnapshot,
 } from "@/lib/store";
 import { generateCertificatePDF } from "@/lib/pdf";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
