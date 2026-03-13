@@ -102,13 +102,16 @@ export interface Attempt {
   testId: string;
   studentId: string;
   studentName: string;
-  answers: Record<string, string>; // questionId -> answer
+  answers: Record<string, string>;
   score: number;
   totalMarks: number;
   percentage: number;
   passed: boolean;
   submittedAt: string;
   timeTakenSeconds: number;
+  gradingStatus?: "auto_graded" | "pending_review" | "graded";
+  manualScores?: Record<string, number>;
+  tabSwitchCount?: number;
 }
 
 export interface Certificate {
