@@ -129,19 +129,26 @@ export const TestHistory = () => {
                   const test = getTests().find(t => t.id === a.testId);
                   const retakeStatus = getRetakeStatus(a.testId);
                   const hasPending = hasRetakeRequest(user.id, a.testId);
+                  const isPendingReview = a.gradingStatus === "pending_review";
                   return (
                     <tr key={a.id} className="border-b border-border last:border-0">
                       <td className="px-4 py-3 font-medium text-foreground">{test?.name || "Unknown"}</td>
                       <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
                         {new Date(a.submittedAt).toLocaleDateString()}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground">{a.score}/{a.totalMarks} ({a.percentage}%)</td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {isPendingReview ? <span className="text-warning">Under Review</span> : `${a.score}/${a.totalMarks} (${a.percentage}%)`}
+                      </td>
                       <td className="px-4 py-3">
-                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          a.passed ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"
-                        }`}>
-                          {a.passed ? "Passed" : "Failed"}
-                        </span>
+                        {isPendingReview ? (
+                          <span className="rounded-full bg-warning/10 px-2.5 py-0.5 text-xs font-medium text-warning">Under Review</span>
+                        ) : (
+                          <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                            a.passed ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"
+                          }`}>
+                            {a.passed ? "Passed" : "Failed"}
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         {!a.passed && !hasPending && retakeStatus !== "rejected" && (
