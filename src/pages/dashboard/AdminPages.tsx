@@ -1877,3 +1877,68 @@ export const AdminFeedback = () => {
     </DashboardLayout>
   );
 };
+
+export const AdminLiveTest = () => {
+  const [snapshots, setSnapshots] = useState(() => getCameraSnapshots());
+  const tests = getTests();
+  const [selectedTest, setSelectedTest] = useState<string>("");
+
+  // Auto-refresh every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSnapshots(getCameraSnapshots());
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const activeTests = tests.filter(t => t.liveCameraEnabled && t.status === "active");
+
+  const filteredSnapshots = selectedTest
+    ? snapshots.filter(s => s.testId === selectedTest)
+    : snapshots;
+
+  return (
+    <DashboardLayout role="admin" navItems={navItems} title="Live Test Monitoring">
+      <div className="space-y-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <Select value={selectedTest} onValueChange={v => setSelectedTest(v === "all" ? "" : v)}>
+            <SelectTrigger className="w-64">
+              <SelectValue placeholder="All Proctored Tests" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Tests</SelectItem>
+              {activeTests.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <p className="text-sm text-muted-foreground">Auto-refreshes every 5 seconds · {filteredSnapshots.length} active feeds</p>
+        </div>
+
+        {filteredSnapshots.length === 0 ? (
+          <div className="rounded-xl border border-border bg-card p-12 text-center shadow-card">
+            <Camera className="mx-auto mb-3 h-16 w-16 text-muted-foreground" />
+            <h3 className="font-display text-lg font-bold text-foreground mb-1">No Active Camera Feeds</h3>
+            <p className="text-sm text-muted-foreground">Camera feeds will appear here when students start proctored exams.</p>
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {filteredSnapshots.map((s, idx) => (
+              <div key={`${s.studentId}-${s.testId}-${idx}`} className="rounded-xl border border-border bg-card p-3 shadow-card">
+                <div className="relative rounded-lg overflow-hidden bg-black mb-2">
+                  <img src={s.image} alt={s.studentName} className="w-full h-auto" />
+                  <div className="absolute top-1 right-1 rounded bg-success/90 px-1.5 py-0.5 text-[10px] font-bold text-white flex items-center gap-1">
+                    <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" /> LIVE
+                  </div>
+                </div>
+                <p className="text-sm font-medium text-foreground truncate">{s.studentName}</p>
+                <p className="text-xs text-muted-foreground truncate">{s.testName}</p>
+                <p className="text-xs text-muted-foreground">
+                  {new Date(s.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </DashboardLayout>
+  );
+};
