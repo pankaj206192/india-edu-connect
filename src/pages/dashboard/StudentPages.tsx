@@ -1,8 +1,8 @@
 import DashboardLayout from "@/components/DashboardLayout";
-import { LayoutDashboard, FileText, History, Award, BookOpen, Download, Clock, CheckCircle, RotateCcw, User as UserIcon, KeyRound, AlertTriangle } from "lucide-react";
+import { LayoutDashboard, FileText, History, Award, BookOpen, Download, Clock, CheckCircle, RotateCcw, User as UserIcon, KeyRound, AlertTriangle, Camera, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useCopyProtection } from "@/hooks/use-copy-protection";
 import { useAuth, getUsers, updateUser, type User } from "@/lib/auth";
@@ -12,7 +12,7 @@ import {
   getCertificatesForStudent, gradeTest, saveAttempt, saveCertificate,
   generateCertificateId, getTests, type Test,
   hasRetakeRequest, saveRetakeRequest, getRetakeRequestsForStudent,
-  saveFeedback,
+  saveFeedback, saveTabSwitchLog, saveCameraSnapshot,
 } from "@/lib/store";
 import { generateCertificatePDF } from "@/lib/pdf";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -129,19 +129,26 @@ export const TestHistory = () => {
                   const test = getTests().find(t => t.id === a.testId);
                   const retakeStatus = getRetakeStatus(a.testId);
                   const hasPending = hasRetakeRequest(user.id, a.testId);
+                  const isPendingReview = a.gradingStatus === "pending_review";
                   return (
                     <tr key={a.id} className="border-b border-border last:border-0">
                       <td className="px-4 py-3 font-medium text-foreground">{test?.name || "Unknown"}</td>
                       <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
                         {new Date(a.submittedAt).toLocaleDateString()}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground">{a.score}/{a.totalMarks} ({a.percentage}%)</td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {isPendingReview ? <span className="text-warning">Under Review</span> : `${a.score}/${a.totalMarks} (${a.percentage}%)`}
+                      </td>
                       <td className="px-4 py-3">
-                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          a.passed ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"
-                        }`}>
-                          {a.passed ? "Passed" : "Failed"}
-                        </span>
+                        {isPendingReview ? (
+                          <span className="rounded-full bg-warning/10 px-2.5 py-0.5 text-xs font-medium text-warning">Under Review</span>
+                        ) : (
+                          <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                            a.passed ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"
+                          }`}>
+                            {a.passed ? "Passed" : "Failed"}
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         {!a.passed && !hasPending && retakeStatus !== "rejected" && (
@@ -281,9 +288,15 @@ export const TestAttempt = () => {
   const [timeLeft, setTimeLeft] = useState(0);
   const [test, setTest] = useState<Test | null>(null);
   const [submitted, setSubmitted] = useState(false);
-  const [result, setResult] = useState<{ score: number; totalMarks: number; percentage: number; passed: boolean } | null>(null);
+  const [result, setResult] = useState<{ score: number; totalMarks: number; percentage: number; passed: boolean; gradingStatus: string } | null>(null);
   const [feedbackText, setFeedbackText] = useState("");
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const tabSwitchRef = useRef(0);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const cameraIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [cameraActive, setCameraActive] = useState(false);
+  const [cameraError, setCameraError] = useState(false);
 
   // Load test from URL param and shuffle questions
   useEffect(() => {
@@ -302,6 +315,52 @@ export const TestAttempt = () => {
       }
     }
   }, []);
+
+  // Camera setup for live proctoring
+  useEffect(() => {
+    if (!test || !user || test.liveCameraEnabled !== true) return;
+    const startCamera = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 160, height: 120, facingMode: "user" } });
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+        setCameraActive(true);
+        // Capture snapshots every 15 seconds
+        cameraIntervalRef.current = setInterval(() => {
+          if (videoRef.current && !submitted) {
+            const canvas = document.createElement("canvas");
+            canvas.width = 160;
+            canvas.height = 120;
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+              ctx.drawImage(videoRef.current, 0, 0, 160, 120);
+              const image = canvas.toDataURL("image/jpeg", 0.5);
+              saveCameraSnapshot({
+                studentId: user.id,
+                studentName: user.name,
+                testId: test.id,
+                testName: test.name,
+                image,
+                timestamp: new Date().toISOString(),
+              });
+            }
+          }
+        }, 15000);
+      } catch {
+        setCameraError(true);
+        toast({ title: "Camera Required", description: "Please allow camera access for this proctored exam.", variant: "destructive" });
+      }
+    };
+    startCamera();
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(t => t.stop());
+      }
+      if (cameraIntervalRef.current) clearInterval(cameraIntervalRef.current);
+    };
+  }, [test, user, submitted, toast]);
 
   // Block navigation during active test
   useEffect(() => {
@@ -324,13 +383,74 @@ export const TestAttempt = () => {
     };
   }, [test, submitted, toast]);
 
+  // Tab switch detection
+  useEffect(() => {
+    if (!test || submitted) return;
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        tabSwitchRef.current += 1;
+        toast({ title: "⚠️ Tab Switch Detected!", description: `Warning: Tab switching is monitored by admin. Count: ${tabSwitchRef.current}`, variant: "destructive" });
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [test, submitted, toast]);
+
+  // Screenshot protection: blur on tab switch, block print screen
+  useEffect(() => {
+    if (!test || submitted) return;
+    const handleVisibility = () => {
+      document.body.style.filter = document.hidden ? "blur(30px)" : "none";
+    };
+    const style = document.createElement("style");
+    style.textContent = `
+      @media print { body { display: none !important; } }
+      body { -webkit-touch-callout: none; }
+    `;
+    document.head.appendChild(style);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "PrintScreen") {
+        e.preventDefault();
+        document.body.style.filter = "blur(30px)";
+        setTimeout(() => { document.body.style.filter = "none"; }, 2000);
+        toast({ title: "⚠️ Screenshot Blocked", description: "Screenshots are not allowed during the exam.", variant: "destructive" });
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    document.addEventListener("keyup", handleKeyDown);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+      document.removeEventListener("keyup", handleKeyDown);
+      document.body.style.filter = "none";
+      style.remove();
+    };
+  }, [test, submitted, toast]);
+
   const submitTest = useCallback(() => {
     if (!test || !user || submitted) return;
     setSubmitted(true);
 
-    const { score, totalMarks } = gradeTest(test, answers);
-    const percentage = Math.round((score / totalMarks) * 100);
-    const passed = percentage >= test.passPercentage;
+    // Stop camera
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop());
+    }
+    if (cameraIntervalRef.current) clearInterval(cameraIntervalRef.current);
+
+    const hasManualQuestions = test.questions.some(q => q.type === "short" || q.type === "long");
+
+    // Auto-grade MCQs only; short/long get 0 initially (admin grades manually)
+    let score = 0;
+    let totalMarks = 0;
+    for (const q of test.questions) {
+      totalMarks += q.marks;
+      if (q.type === "mcq") {
+        if (answers[q.id] === q.correctAnswer) score += q.marks;
+      }
+    }
+
+    const gradingStatus = hasManualQuestions ? "pending_review" as const : "auto_graded" as const;
+    const percentage = totalMarks > 0 ? Math.round((score / totalMarks) * 100) : 0;
+    const passed = gradingStatus === "auto_graded" ? percentage >= test.passPercentage : false;
 
     const attempt = {
       id: `attempt-${Date.now()}`,
@@ -344,13 +464,25 @@ export const TestAttempt = () => {
       passed,
       submittedAt: new Date().toISOString(),
       timeTakenSeconds: (test.timeLimitMinutes * 60) - timeLeft,
+      gradingStatus,
+      tabSwitchCount: tabSwitchRef.current,
     };
 
     saveAttempt(attempt);
 
-    // Only create certificate if enabled for this test
+    // Save tab switch log
+    if (tabSwitchRef.current > 0) {
+      saveTabSwitchLog({
+        attemptId: attempt.id,
+        studentId: user.id,
+        testId: test.id,
+        count: tabSwitchRef.current,
+      });
+    }
+
+    // Only create certificate for auto-graded passed tests
     const certificateEnabled = test.certificateEnabled !== false;
-    if (passed && certificateEnabled) {
+    if (passed && certificateEnabled && gradingStatus === "auto_graded") {
       const cert: import("@/lib/store").Certificate = {
         id: generateCertificateId(),
         attemptId: attempt.id,
@@ -366,7 +498,7 @@ export const TestAttempt = () => {
       saveCertificate(cert);
     }
 
-    setResult({ score, totalMarks, percentage, passed });
+    setResult({ score, totalMarks, percentage, passed, gradingStatus });
   }, [test, user, answers, submitted, timeLeft]);
 
   // Countdown timer
@@ -413,6 +545,21 @@ export const TestAttempt = () => {
     );
   }
 
+  // Camera permission required but not granted
+  if (test.liveCameraEnabled && cameraError && !submitted) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="w-full max-w-md rounded-xl border border-border bg-card p-8 shadow-card text-center">
+          <Camera className="mx-auto mb-4 h-16 w-16 text-destructive" />
+          <h2 className="font-display text-xl font-bold text-foreground mb-2">Camera Access Required</h2>
+          <p className="text-sm text-muted-foreground mb-4">This is a proctored exam. You must allow camera access to proceed.</p>
+          <p className="text-xs text-muted-foreground mb-4">Please enable camera permissions in your browser settings and refresh.</p>
+          <Button onClick={() => window.location.reload()}>Retry</Button>
+        </div>
+      </div>
+    );
+  }
+
   if (hasAttempted(user.id, test.id) && !submitted && !result) {
     return (
       <DashboardLayout role="student" navItems={navItems} title="Test">
@@ -427,10 +574,53 @@ export const TestAttempt = () => {
 
   // Result + Feedback Screen (shown after submission)
   if (submitted && result) {
+    // Pending review screen (has short/long questions)
+    if (result.gradingStatus === "pending_review") {
+      return (
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
+          <div className="w-full max-w-lg space-y-6">
+            <div className="rounded-xl border border-border bg-card p-8 shadow-card text-center">
+              <Clock className="mx-auto mb-4 h-16 w-16 text-warning" />
+              <h2 className="font-display text-2xl font-bold text-foreground mb-2">Test Submitted Successfully</h2>
+              <p className="text-muted-foreground mb-2">Your answers have been submitted for admin review.</p>
+              <p className="text-sm text-muted-foreground">Results will be available once the admin has graded your short/long answer questions.</p>
+              {tabSwitchRef.current > 0 && (
+                <p className="mt-3 text-xs text-destructive">Tab switches detected: {tabSwitchRef.current}</p>
+              )}
+            </div>
+
+            {!feedbackSubmitted ? (
+              <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+                <h3 className="font-display text-lg font-bold text-foreground mb-2">Your Feedback <span className="text-destructive">*</span></h3>
+                <p className="text-sm text-muted-foreground mb-3">Please share your experience about this test. This is mandatory before you can continue.</p>
+                <textarea
+                  value={feedbackText}
+                  onChange={e => setFeedbackText(e.target.value)}
+                  placeholder="Write your feedback about this test..."
+                  className="w-full min-h-[120px] rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring mb-3"
+                />
+                <Button className="w-full" disabled={!feedbackText.trim()} onClick={handleFeedbackSubmit}>
+                  {feedbackText.trim() ? "Submit Feedback" : "Please write your feedback to continue"}
+                </Button>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-border bg-card p-6 shadow-card text-center">
+                <CheckCircle className="mx-auto mb-2 h-8 w-8 text-success" />
+                <p className="text-sm text-muted-foreground mb-4">Feedback submitted. You can now continue.</p>
+                <Button variant="hero" className="w-full" onClick={() => navigate("/dashboard/student/history")}>
+                  Go to Test History
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // Auto-graded result (MCQ only tests)
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="w-full max-w-lg space-y-6">
-          {/* Result Card */}
           <div className="rounded-xl border border-border bg-card p-8 shadow-card text-center">
             {result.passed ? (
               <CheckCircle className="mx-auto mb-4 h-16 w-16 text-success" />
@@ -451,9 +641,11 @@ export const TestAttempt = () => {
             {result.passed && test.certificateEnabled !== false && (
               <p className="mt-3 text-sm text-muted-foreground">Certificate pending admin approval.</p>
             )}
+            {tabSwitchRef.current > 0 && (
+              <p className="mt-3 text-xs text-destructive">Tab switches detected: {tabSwitchRef.current}</p>
+            )}
           </div>
 
-          {/* Mandatory Feedback */}
           {!feedbackSubmitted ? (
             <div className="rounded-xl border border-border bg-card p-6 shadow-card">
               <h3 className="font-display text-lg font-bold text-foreground mb-2">Your Feedback <span className="text-destructive">*</span></h3>
@@ -498,16 +690,39 @@ export const TestAttempt = () => {
       <div className="border-b border-border bg-card px-4 py-3">
         <div className="mx-auto flex max-w-3xl items-center justify-between">
           <h1 className="font-display text-lg font-bold text-foreground truncate">{test.name}</h1>
-          <div className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-bold ${
-            isLowTime ? "bg-destructive/10 text-destructive animate-pulse" : "bg-muted text-foreground"
-          }`}>
-            <Clock className="h-4 w-4" />
-            {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
+          <div className="flex items-center gap-3">
+            {/* Camera indicator */}
+            {test.liveCameraEnabled && (
+              <div className={`flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs ${cameraActive ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
+                <Camera className="h-3.5 w-3.5" />
+                {cameraActive ? "Live" : "Off"}
+              </div>
+            )}
+            {/* Tab switch indicator */}
+            {tabSwitchRef.current > 0 && (
+              <div className="flex items-center gap-1 rounded-lg bg-destructive/10 px-2 py-1 text-xs text-destructive">
+                <EyeOff className="h-3.5 w-3.5" />
+                {tabSwitchRef.current}
+              </div>
+            )}
+            <div className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-bold ${
+              isLowTime ? "bg-destructive/10 text-destructive animate-pulse" : "bg-muted text-foreground"
+            }`}>
+              <Clock className="h-4 w-4" />
+              {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
+            </div>
           </div>
         </div>
       </div>
 
       <div className="mx-auto max-w-3xl p-4 space-y-6">
+        {/* Camera preview (small, fixed) */}
+        {test.liveCameraEnabled && cameraActive && (
+          <div className="fixed bottom-4 right-4 z-50 rounded-lg overflow-hidden border-2 border-border shadow-lg">
+            <video ref={videoRef} autoPlay muted playsInline className="w-32 h-24 object-cover bg-black" />
+          </div>
+        )}
+
         {/* Question counter */}
         <div className="flex items-center justify-between rounded-xl border border-border bg-card p-4 shadow-card">
           <div className="flex items-center gap-2 text-sm font-medium text-foreground">
