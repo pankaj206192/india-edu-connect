@@ -1,10 +1,10 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import StatCard from "@/components/StatCard";
-import { GraduationCap, FileText, Award, LayoutDashboard, UserPlus, BookOpen, Settings, BarChart3, RotateCcw, Users } from "lucide-react";
+import { GraduationCap, FileText, Award, LayoutDashboard, UserPlus, BookOpen, Settings, BarChart3, RotateCcw, Users, Camera, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { getUsersByRole } from "@/lib/auth";
-import { getTests, getAttempts, getCertificates, getRetakeRequests, getFeedbacks } from "@/lib/store";
+import { getTests, getAttempts, getCertificates, getRetakeRequests, getFeedbacks, getPendingReviewAttempts } from "@/lib/store";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
