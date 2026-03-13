@@ -18,6 +18,7 @@ const AdminDashboard = () => {
   const pendingCerts = certs.filter(c => c.status === "pending").length;
   const feedbackCount = getFeedbacks().length;
   const newResults = attempts.length;
+  const pendingGrading = getPendingReviewAttempts().length;
 
   const navItems = [
     { label: "Dashboard", path: "/dashboard/admin", icon: <LayoutDashboard className="h-4 w-4" /> },
