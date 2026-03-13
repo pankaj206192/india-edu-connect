@@ -1315,6 +1315,20 @@ export const CreateTest = () => {
                 <span className="text-sm font-medium text-foreground">Issue certificate for passing students</span>
               </label>
             </div>
+            <div className="flex items-center gap-3 sm:col-span-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={liveCameraEnabled}
+                  onChange={e => setLiveCameraEnabled(e.target.checked)}
+                  className="h-4 w-4 rounded border-input accent-primary"
+                />
+                <span className="text-sm font-medium text-foreground">Enable live camera proctoring</span>
+              </label>
+              {liveCameraEnabled && (
+                <span className="text-xs text-muted-foreground">(Students must allow camera access to take this test)</span>
+              )}
+            </div>
           </div>
         </div>
 
