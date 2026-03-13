@@ -1268,6 +1268,7 @@ export const CreateTest = () => {
       createdAt: existingTest?.createdAt || new Date().toISOString().split("T")[0],
       passPercentage,
       certificateEnabled,
+      liveCameraEnabled,
     };
 
     saveTest(test);
