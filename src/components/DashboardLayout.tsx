@@ -35,11 +35,11 @@ const DashboardLayout = ({ children, role, navItems, title }: DashboardLayoutPro
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-gradient-hero text-primary-foreground transition-transform duration-300 lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-gradient-hero text-primary-foreground transition-transform duration-300 lg:static lg:translate-x-0 flex flex-col ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex h-16 items-center justify-between px-4 border-b border-primary-foreground/10">
+        <div className="flex h-16 items-center justify-between px-4 border-b border-primary-foreground/10 shrink-0">
           <div className="flex items-center gap-2">
             <BookOpen className="h-6 w-6" />
             <span className="font-display text-lg font-bold">Ethical India</span>
@@ -49,13 +49,13 @@ const DashboardLayout = ({ children, role, navItems, title }: DashboardLayoutPro
           </button>
         </div>
 
-        <div className="px-3 py-2">
+        <div className="px-3 py-2 shrink-0">
           <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-primary-foreground/50">
             {role} Panel
           </p>
         </div>
 
-        <nav className="flex-1 space-y-1 px-3">
+        <nav className="flex-1 space-y-1 px-3 overflow-y-auto">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
@@ -80,7 +80,7 @@ const DashboardLayout = ({ children, role, navItems, title }: DashboardLayoutPro
           })}
         </nav>
 
-        <div className="border-t border-primary-foreground/10 p-3">
+        <div className="border-t border-primary-foreground/10 p-3 shrink-0">
           {user && (
             <div className="mb-2 px-3">
               <p className="text-sm font-medium text-primary-foreground/90 truncate">{user.name}</p>

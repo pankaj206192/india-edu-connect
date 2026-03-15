@@ -449,3 +449,51 @@ export function saveCameraSnapshot(snapshot: CameraSnapshot) {
 export function getActiveCameraSnapshots(): CameraSnapshot[] {
   return getCameraSnapshots();
 }
+
+// ---- Reviewed Tracking ----
+const REVIEWED_FEEDBACK_KEY = "ei_reviewed_feedbacks";
+const REVIEWED_RESULTS_KEY = "ei_reviewed_results";
+
+export function getReviewedFeedbackIds(): Set<string> {
+  const raw = localStorage.getItem(REVIEWED_FEEDBACK_KEY);
+  if (!raw) return new Set();
+  return new Set(JSON.parse(raw));
+}
+
+export function markFeedbackReviewed(feedbackId: string) {
+  const ids = getReviewedFeedbackIds();
+  ids.add(feedbackId);
+  localStorage.setItem(REVIEWED_FEEDBACK_KEY, JSON.stringify([...ids]));
+}
+
+export function markAllFeedbackReviewed() {
+  const ids = getFeedbacks().map(f => f.id);
+  localStorage.setItem(REVIEWED_FEEDBACK_KEY, JSON.stringify(ids));
+}
+
+export function getUnreviewedFeedbackCount(): number {
+  const reviewed = getReviewedFeedbackIds();
+  return getFeedbacks().filter(f => !reviewed.has(f.id)).length;
+}
+
+export function getReviewedResultIds(): Set<string> {
+  const raw = localStorage.getItem(REVIEWED_RESULTS_KEY);
+  if (!raw) return new Set();
+  return new Set(JSON.parse(raw));
+}
+
+export function markResultReviewed(attemptId: string) {
+  const ids = getReviewedResultIds();
+  ids.add(attemptId);
+  localStorage.setItem(REVIEWED_RESULTS_KEY, JSON.stringify([...ids]));
+}
+
+export function markAllResultsReviewed() {
+  const ids = getAttempts().map(a => a.id);
+  localStorage.setItem(REVIEWED_RESULTS_KEY, JSON.stringify(ids));
+}
+
+export function getUnreviewedResultCount(): number {
+  const reviewed = getReviewedResultIds();
+  return getAttempts().filter(a => !reviewed.has(a.id) && a.gradingStatus !== "pending_review").length;
+}
