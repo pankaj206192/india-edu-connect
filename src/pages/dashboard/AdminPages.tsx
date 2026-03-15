@@ -766,7 +766,30 @@ export const AdminResults = () => {
   return (
     <DashboardLayout role="admin" navItems={navItems} title="Results">
       <div className="space-y-6">
-        <Input placeholder="Search by student or test..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <Input placeholder="Search by student or test..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => {
+              markAllResultsReviewed();
+              toast({ title: "Done", description: "All results marked as reviewed." });
+            }}>
+              <CheckCheck className="mr-1 h-4 w-4" /> Mark All Reviewed
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => {
+              const rows = filtered.map(r => [
+                r.studentName, r.testName,
+                r.gradingStatus === "pending_review" ? "Pending" : `${r.score}/${r.totalMarks}`,
+                r.gradingStatus === "pending_review" ? "" : `${r.percentage}%`,
+                r.gradingStatus === "pending_review" ? "Needs Grading" : r.passed ? "Passed" : "Failed",
+                r.tabSwitches,
+                new Date(r.submittedAt).toLocaleDateString(),
+              ]);
+              exportCSV("results.csv", ["Student", "Test", "Score", "Percentage", "Status", "Tab Switches", "Date"], rows);
+            }}>
+              <Download className="mr-1 h-4 w-4" /> Export CSV
+            </Button>
+          </div>
+        </div>
         <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
           <table className="w-full text-sm">
             <thead>
