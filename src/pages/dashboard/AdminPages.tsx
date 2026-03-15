@@ -1837,7 +1837,9 @@ function CreateTestAssignStudents({ students, selectedStudents, setSelectedStude
 }
 
 export const AdminFeedback = () => {
+  const { toast } = useToast();
   const [feedbacks] = useState(() => getFeedbacks());
+  const [reviewedIds, setReviewedIds] = useState(() => getReviewedFeedbackIds());
   const [search, setSearch] = useState("");
   const [filterBatch, setFilterBatch] = useState<string>("");
   const [filterTest, setFilterTest] = useState<string>("");
@@ -1854,10 +1856,21 @@ export const AdminFeedback = () => {
     return matchesSearch && matchesBatch && matchesTest;
   });
 
+  const handleMarkRead = (id: string) => {
+    markFeedbackReviewed(id);
+    setReviewedIds(getReviewedFeedbackIds());
+  };
+
+  const handleMarkAllRead = () => {
+    markAllFeedbackReviewed();
+    setReviewedIds(getReviewedFeedbackIds());
+    toast({ title: "Done", description: "All feedback marked as reviewed." });
+  };
+
   return (
     <DashboardLayout role="admin" navItems={navItems} title="Student Feedback">
       <div className="space-y-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
           <Input placeholder="Search by student or test name..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
           <Select value={filterBatch} onValueChange={v => setFilterBatch(v === "all" ? "" : v)}>
             <SelectTrigger className="w-48">
@@ -1877,6 +1890,20 @@ export const AdminFeedback = () => {
               {tests.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
             </SelectContent>
           </Select>
+          <div className="flex gap-2 ml-auto">
+            <Button variant="outline" size="sm" onClick={handleMarkAllRead}>
+              <CheckCheck className="mr-1 h-4 w-4" /> Mark All Read
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => {
+              const rows = filtered.map(f => {
+                const batch = batches.find(b => b.id === f.batchId);
+                return [f.studentName, f.testName, batch?.name || "", f.feedback, new Date(f.submittedAt).toLocaleDateString()];
+              });
+              exportCSV("feedback.csv", ["Student", "Test", "Batch", "Feedback", "Date"], rows);
+            }}>
+              <Download className="mr-1 h-4 w-4" /> Export CSV
+            </Button>
+          </div>
         </div>
 
         {filtered.length === 0 ? (
@@ -1888,19 +1915,30 @@ export const AdminFeedback = () => {
           <div className="space-y-3">
             {filtered.map(fb => {
               const batch = batches.find(b => b.id === fb.batchId);
+              const isRead = reviewedIds.has(fb.id);
               return (
-                <div key={fb.id} className="rounded-xl border border-border bg-card p-5 shadow-card">
+                <div key={fb.id} className={`rounded-xl border bg-card p-5 shadow-card transition-colors ${isRead ? "border-border opacity-75" : "border-primary/30 bg-primary/5"}`}>
                   <div className="flex items-start justify-between gap-4 mb-2">
                     <div>
-                      <h3 className="font-medium text-foreground">{fb.studentName}</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-medium text-foreground">{fb.studentName}</h3>
+                        {!isRead && <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />}
+                      </div>
                       <p className="text-sm text-muted-foreground">
                         Test: <span className="text-foreground">{fb.testName}</span>
                         {batch && <span className="ml-2 text-xs rounded-full bg-muted px-2 py-0.5">{batch.name}</span>}
                       </p>
                     </div>
-                    <span className="text-xs text-muted-foreground shrink-0">
-                      {new Date(fb.submittedAt).toLocaleDateString()} {new Date(fb.submittedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(fb.submittedAt).toLocaleDateString()} {new Date(fb.submittedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                      {!isRead && (
+                        <Button variant="ghost" size="sm" onClick={() => handleMarkRead(fb.id)} title="Mark as read">
+                          <Check className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                   <p className="text-sm text-foreground bg-muted/50 rounded-lg p-3 italic">"{fb.feedback}"</p>
                 </div>
