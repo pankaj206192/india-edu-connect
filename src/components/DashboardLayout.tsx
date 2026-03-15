@@ -82,7 +82,7 @@ const DashboardLayout = ({ children, role, navItems, title }: DashboardLayoutPro
           })}
         </nav>
 
-        <div className="border-t border-primary-foreground/10 p-3">
+        <div className="border-t border-primary-foreground/10 p-3 shrink-0">
           {user && (
             <div className="mb-2 px-3">
               <p className="text-sm font-medium text-primary-foreground/90 truncate">{user.name}</p>
