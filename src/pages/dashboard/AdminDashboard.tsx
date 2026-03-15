@@ -26,11 +26,11 @@ const AdminDashboard = () => {
     { label: "Batches", path: "/dashboard/admin/batches", icon: <Users className="h-4 w-4" /> },
     { label: "Tests", path: "/dashboard/admin/tests", icon: <FileText className="h-4 w-4" /> },
     { label: "Create Test", path: "/dashboard/admin/create-test", icon: <BookOpen className="h-4 w-4" /> },
-    { label: "Results", path: "/dashboard/admin/results", icon: <BarChart3 className="h-4 w-4" />, badge: pendingGrading || newResults },
+    { label: "Results", path: "/dashboard/admin/results", icon: <BarChart3 className="h-4 w-4" />, badge: pendingGrading || unreviewedResults },
     { label: "Live Test", path: "/dashboard/admin/live-test", icon: <Camera className="h-4 w-4" /> },
     { label: "Retake Requests", path: "/dashboard/admin/retake-requests", icon: <RotateCcw className="h-4 w-4" />, badge: pendingRetakes },
     { label: "Certificates", path: "/dashboard/admin/certificates", icon: <Award className="h-4 w-4" />, badge: pendingCerts },
-    { label: "Feedback", path: "/dashboard/admin/feedback", icon: <MessageSquare className="h-4 w-4" />, badge: feedbackCount },
+    { label: "Feedback", path: "/dashboard/admin/feedback", icon: <MessageSquare className="h-4 w-4" />, badge: unreviewedFeedback },
     { label: "Settings", path: "/dashboard/admin/settings", icon: <Settings className="h-4 w-4" /> },
   ];
 
