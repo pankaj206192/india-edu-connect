@@ -56,8 +56,6 @@ const DashboardLayout = ({ children, role, navItems, title }: DashboardLayoutPro
         </div>
 
         <nav className="flex-1 space-y-1 px-3 overflow-y-auto">
-
-        <nav className="flex-1 space-y-1 px-3">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
