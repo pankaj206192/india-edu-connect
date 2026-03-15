@@ -351,7 +351,18 @@ export const ManageStudents = () => {
       <div className="space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <Input placeholder="Search students..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
-          <AddUserDialog onAdded={refresh} />
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => {
+              const rows = filtered.map(s => [
+                s.name, s.email, s.gender || "", s.mobile || "",
+                s.batchId ? (batches.find(b => b.id === s.batchId)?.name || "") : "",
+              ]);
+              exportCSV("students.csv", ["Name", "Email", "Gender", "Mobile", "Batch"], rows);
+            }}>
+              <Download className="mr-2 h-4 w-4" /> Export CSV
+            </Button>
+            <AddUserDialog onAdded={refresh} />
+          </div>
         </div>
         <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
           <table className="w-full text-sm">
