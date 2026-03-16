@@ -1,4 +1,4 @@
-import { ReactNode, useState, useMemo } from "react";
+import { ReactNode, useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { BookOpen, Menu, X, LogOut, Bell } from "lucide-react";
 import { useAuth } from "@/lib/auth";
