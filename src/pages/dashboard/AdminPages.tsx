@@ -1607,7 +1607,7 @@ export const AdminBatches = () => {
   };
 
   return (
-    <DashboardLayout role="admin" navItems={navItems} title="Manage Batches">
+    <DashboardLayout role="admin" navItems={getAdminNavItems()} title="Manage Batches">
       <div className="space-y-6">
         <div className="flex justify-end">
           <Button onClick={openCreate}>
