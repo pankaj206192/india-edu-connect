@@ -1,6 +1,6 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { BookOpen, Menu, X, LogOut } from "lucide-react";
+import { BookOpen, Menu, X, LogOut, Bell } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
 interface NavItem {
@@ -102,7 +102,26 @@ const DashboardLayout = ({ children, role, navItems, title }: DashboardLayoutPro
           <button className="lg:hidden text-foreground" onClick={() => setSidebarOpen(true)}>
             <Menu className="h-5 w-5" />
           </button>
-          <h1 className="font-display text-lg font-bold text-foreground">{title}</h1>
+          <h1 className="font-display text-lg font-bold text-foreground flex-1">{title}</h1>
+          {role === "admin" && (() => {
+            const totalBadges = navItems.reduce((sum, item) => sum + (item.badge || 0), 0);
+            return (
+              <button
+                onClick={() => {
+                  const firstWithBadge = navItems.find(item => item.badge && item.badge > 0);
+                  if (firstWithBadge) navigate(firstWithBadge.path);
+                }}
+                className="relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              >
+                <Bell className="h-5 w-5" />
+                {totalBadges > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                    {totalBadges}
+                  </span>
+                )}
+              </button>
+            );
+          })()}
         </header>
         <main className="flex-1 overflow-y-auto p-4 lg:p-6">
           {children}
