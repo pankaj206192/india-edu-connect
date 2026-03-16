@@ -355,7 +355,7 @@ export const ManageStudents = () => {
   };
 
   return (
-    <DashboardLayout role="admin" navItems={navItems} title="Manage Students">
+    <DashboardLayout role="admin" navItems={getAdminNavItems()} title="Manage Students">
       <div className="space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <Input placeholder="Search students..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
