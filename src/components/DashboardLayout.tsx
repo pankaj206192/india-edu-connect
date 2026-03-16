@@ -1,4 +1,4 @@
-import { ReactNode, useState, useMemo } from "react";
+import { ReactNode, useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { BookOpen, Menu, X, LogOut, Bell } from "lucide-react";
 import { useAuth } from "@/lib/auth";
@@ -22,6 +22,18 @@ const DashboardLayout = ({ children, role, navItems, title }: DashboardLayoutPro
   const location = useLocation();
   const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [bellOpen, setBellOpen] = useState(false);
+  const bellRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (bellRef.current && !bellRef.current.contains(e.target as Node)) {
+        setBellOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -104,22 +116,53 @@ const DashboardLayout = ({ children, role, navItems, title }: DashboardLayoutPro
           </button>
           <h1 className="font-display text-lg font-bold text-foreground flex-1">{title}</h1>
           {role === "admin" && (() => {
-            const totalBadges = navItems.reduce((sum, item) => sum + (item.badge || 0), 0);
+            const itemsWithBadges = navItems.filter(item => item.badge && item.badge > 0);
+            const totalBadges = itemsWithBadges.reduce((sum, item) => sum + (item.badge || 0), 0);
             return (
-              <button
-                onClick={() => {
-                  const firstWithBadge = navItems.find(item => item.badge && item.badge > 0);
-                  if (firstWithBadge) navigate(firstWithBadge.path);
-                }}
-                className="relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-              >
-                <Bell className="h-5 w-5" />
-                {totalBadges > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
-                    {totalBadges}
-                  </span>
+              <div className="relative" ref={bellRef}>
+                <button
+                  onClick={() => setBellOpen(!bellOpen)}
+                  className="relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                >
+                  <Bell className="h-5 w-5" />
+                  {totalBadges > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground animate-count-up">
+                      {totalBadges}
+                    </span>
+                  )}
+                </button>
+                {bellOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-72 rounded-xl border border-border bg-card shadow-lg z-50 overflow-hidden">
+                    <div className="px-4 py-3 border-b border-border">
+                      <p className="text-sm font-semibold text-foreground">Notifications</p>
+                      {totalBadges === 0 && (
+                        <p className="text-xs text-muted-foreground mt-0.5">All caught up!</p>
+                      )}
+                    </div>
+                    <div className="max-h-64 overflow-y-auto">
+                      {itemsWithBadges.length === 0 ? (
+                        <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+                          No pending notifications
+                        </div>
+                      ) : (
+                        itemsWithBadges.map((item) => (
+                          <button
+                            key={item.path}
+                            onClick={() => { navigate(item.path); setBellOpen(false); }}
+                            className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-muted transition-colors"
+                          >
+                            <span className="text-secondary">{item.icon}</span>
+                            <span className="flex-1 text-sm font-medium text-foreground">{item.label}</span>
+                            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-bold text-destructive-foreground">
+                              {item.badge}
+                            </span>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
                 )}
-              </button>
+              </div>
             );
           })()}
         </header>
