@@ -8,27 +8,35 @@ import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getUsersByRole, addUser, getUsers, updateUser, useAuth, type User } from "@/lib/auth";
-import { getTests, saveTest, getAttempts, getCertificates, saveCertificate, getRetakeRequests, approveRetake, rejectRetake, getSettings, saveSettings, getBatches, saveBatch, deleteBatch, getFeedbacks, updateAttempt, getTabSwitchLogs, getCameraSnapshots, generateCertificateId, getPendingReviewAttempts, markFeedbackReviewed, markAllFeedbackReviewed, getReviewedFeedbackIds, markResultReviewed, markAllResultsReviewed, getReviewedResultIds, type Test, type Question as StoreQuestion, type Certificate, type Batch, type Attempt } from "@/lib/store";
+import { getTests, saveTest, getAttempts, getCertificates, saveCertificate, getRetakeRequests, approveRetake, rejectRetake, getSettings, saveSettings, getBatches, saveBatch, deleteBatch, getFeedbacks, updateAttempt, getTabSwitchLogs, getCameraSnapshots, generateCertificateId, getPendingReviewAttempts, markFeedbackReviewed, markAllFeedbackReviewed, getReviewedFeedbackIds, markResultReviewed, markAllResultsReviewed, getReviewedResultIds, getUnreviewedFeedbackCount, getUnreviewedResultCount, type Test, type Question as StoreQuestion, type Certificate, type Batch, type Attempt } from "@/lib/store";
 import { generateCertificatePDF } from "@/lib/pdf";
 import { exportCSV } from "@/lib/csv";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-const navItems = [
-  { label: "Dashboard", path: "/dashboard/admin", icon: <LayoutDashboard className="h-4 w-4" /> },
-  { label: "Manage Students", path: "/dashboard/admin/students", icon: <GraduationCap className="h-4 w-4" /> },
-  { label: "Batches", path: "/dashboard/admin/batches", icon: <Users className="h-4 w-4" /> },
-  { label: "Tests", path: "/dashboard/admin/tests", icon: <FileText className="h-4 w-4" /> },
-  { label: "Create Test", path: "/dashboard/admin/create-test", icon: <FileText className="h-4 w-4" /> },
-  { label: "Results", path: "/dashboard/admin/results", icon: <BarChart3 className="h-4 w-4" /> },
-  { label: "Live Test", path: "/dashboard/admin/live-test", icon: <Camera className="h-4 w-4" /> },
-  { label: "Retake Requests", path: "/dashboard/admin/retake-requests", icon: <RotateCcw className="h-4 w-4" /> },
-  { label: "Certificates", path: "/dashboard/admin/certificates", icon: <Award className="h-4 w-4" /> },
-  { label: "Feedback", path: "/dashboard/admin/feedback", icon: <MessageSquare className="h-4 w-4" /> },
-  { label: "Settings", path: "/dashboard/admin/settings", icon: <Settings className="h-4 w-4" /> },
-];
+function getAdminNavItems() {
+  const pendingRetakes = getRetakeRequests().filter(r => r.status === "pending").length;
+  const pendingCerts = getCertificates().filter(c => c.status === "pending").length;
+  const unreviewedFeedback = getUnreviewedFeedbackCount();
+  const pendingGrading = getPendingReviewAttempts().length;
+  const unreviewedResults = getUnreviewedResultCount();
 
-export { navItems };
+  return [
+    { label: "Dashboard", path: "/dashboard/admin", icon: <LayoutDashboard className="h-4 w-4" /> },
+    { label: "Manage Students", path: "/dashboard/admin/students", icon: <GraduationCap className="h-4 w-4" /> },
+    { label: "Batches", path: "/dashboard/admin/batches", icon: <Users className="h-4 w-4" /> },
+    { label: "Tests", path: "/dashboard/admin/tests", icon: <FileText className="h-4 w-4" /> },
+    { label: "Create Test", path: "/dashboard/admin/create-test", icon: <BookOpen className="h-4 w-4" /> },
+    { label: "Results", path: "/dashboard/admin/results", icon: <BarChart3 className="h-4 w-4" />, badge: (pendingGrading || unreviewedResults) || undefined },
+    { label: "Live Test", path: "/dashboard/admin/live-test", icon: <Camera className="h-4 w-4" /> },
+    { label: "Retake Requests", path: "/dashboard/admin/retake-requests", icon: <RotateCcw className="h-4 w-4" />, badge: pendingRetakes || undefined },
+    { label: "Certificates", path: "/dashboard/admin/certificates", icon: <Award className="h-4 w-4" />, badge: pendingCerts || undefined },
+    { label: "Feedback", path: "/dashboard/admin/feedback", icon: <MessageSquare className="h-4 w-4" />, badge: unreviewedFeedback || undefined },
+    { label: "Settings", path: "/dashboard/admin/settings", icon: <Settings className="h-4 w-4" /> },
+  ];
+}
+
+export { getAdminNavItems };
 
 function deleteUser(userId: string) {
   // Remove user
@@ -347,7 +355,7 @@ export const ManageStudents = () => {
   };
 
   return (
-    <DashboardLayout role="admin" navItems={navItems} title="Manage Students">
+    <DashboardLayout role="admin" navItems={getAdminNavItems()} title="Manage Students">
       <div className="space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <Input placeholder="Search students..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
@@ -485,7 +493,7 @@ export const AdminTests = () => {
   const filtered = tests.filter(t => t.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <DashboardLayout role="admin" navItems={navItems} title="All Tests">
+    <DashboardLayout role="admin" navItems={getAdminNavItems()} title="All Tests">
       <div className="space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <Input placeholder="Search tests..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
@@ -764,7 +772,7 @@ export const AdminResults = () => {
   };
 
   return (
-    <DashboardLayout role="admin" navItems={navItems} title="Results">
+    <DashboardLayout role="admin" navItems={getAdminNavItems()} title="Results">
       <div className="space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <Input placeholder="Search by student or test..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
@@ -961,7 +969,7 @@ export const AdminCertificates = () => {
   };
 
   return (
-    <DashboardLayout role="admin" navItems={navItems} title="Certificates">
+    <DashboardLayout role="admin" navItems={getAdminNavItems()} title="Certificates">
       <div className="space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <Input placeholder="Search certificates..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
@@ -1086,7 +1094,7 @@ export const AdminSettings = () => {
   };
 
   return (
-    <DashboardLayout role="admin" navItems={navItems} title="Settings">
+    <DashboardLayout role="admin" navItems={getAdminNavItems()} title="Settings">
       <div className="max-w-2xl space-y-6">
         {/* Admin Profile */}
         <div className="rounded-xl border border-border bg-card p-6 shadow-card">
@@ -1312,7 +1320,7 @@ export const CreateTest = () => {
   };
 
   return (
-    <DashboardLayout role="admin" navItems={navItems} title={isEditing ? "Edit Test" : "Create Test"}>
+    <DashboardLayout role="admin" navItems={getAdminNavItems()} title={isEditing ? "Edit Test" : "Create Test"}>
       <div className="mx-auto max-w-3xl space-y-6">
         <div className="rounded-xl border border-border bg-card p-6 shadow-card">
           <h2 className="mb-4 font-display text-lg font-bold text-foreground">Test Details</h2>
@@ -1459,7 +1467,7 @@ export const AdminRetakeRequests = () => {
   };
 
   return (
-    <DashboardLayout role="admin" navItems={navItems} title="Retake Requests">
+    <DashboardLayout role="admin" navItems={getAdminNavItems()} title="Retake Requests">
       <div className="space-y-6">
         <div className="flex gap-2 flex-wrap">
           {(["pending", "approved", "rejected", "all"] as const).map(f => (
@@ -1599,7 +1607,7 @@ export const AdminBatches = () => {
   };
 
   return (
-    <DashboardLayout role="admin" navItems={navItems} title="Manage Batches">
+    <DashboardLayout role="admin" navItems={getAdminNavItems()} title="Manage Batches">
       <div className="space-y-6">
         <div className="flex justify-end">
           <Button onClick={openCreate}>
@@ -1868,7 +1876,7 @@ export const AdminFeedback = () => {
   };
 
   return (
-    <DashboardLayout role="admin" navItems={navItems} title="Student Feedback">
+    <DashboardLayout role="admin" navItems={getAdminNavItems()} title="Student Feedback">
       <div className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
           <Input placeholder="Search by student or test name..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
@@ -1971,7 +1979,7 @@ export const AdminLiveTest = () => {
     : snapshots;
 
   return (
-    <DashboardLayout role="admin" navItems={navItems} title="Live Test Monitoring">
+    <DashboardLayout role="admin" navItems={getAdminNavItems()} title="Live Test Monitoring">
       <div className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <Select value={selectedTest} onValueChange={v => setSelectedTest(v === "all" ? "" : v)}>
