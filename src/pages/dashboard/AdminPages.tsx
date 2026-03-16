@@ -1094,7 +1094,7 @@ export const AdminSettings = () => {
   };
 
   return (
-    <DashboardLayout role="admin" navItems={navItems} title="Settings">
+    <DashboardLayout role="admin" navItems={getAdminNavItems()} title="Settings">
       <div className="max-w-2xl space-y-6">
         {/* Admin Profile */}
         <div className="rounded-xl border border-border bg-card p-6 shadow-card">
