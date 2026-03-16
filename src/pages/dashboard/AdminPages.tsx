@@ -1320,7 +1320,7 @@ export const CreateTest = () => {
   };
 
   return (
-    <DashboardLayout role="admin" navItems={navItems} title={isEditing ? "Edit Test" : "Create Test"}>
+    <DashboardLayout role="admin" navItems={getAdminNavItems()} title={isEditing ? "Edit Test" : "Create Test"}>
       <div className="mx-auto max-w-3xl space-y-6">
         <div className="rounded-xl border border-border bg-card p-6 shadow-card">
           <h2 className="mb-4 font-display text-lg font-bold text-foreground">Test Details</h2>
