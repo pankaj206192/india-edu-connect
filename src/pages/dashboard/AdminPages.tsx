@@ -1876,7 +1876,7 @@ export const AdminFeedback = () => {
   };
 
   return (
-    <DashboardLayout role="admin" navItems={navItems} title="Student Feedback">
+    <DashboardLayout role="admin" navItems={getAdminNavItems()} title="Student Feedback">
       <div className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
           <Input placeholder="Search by student or test name..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
