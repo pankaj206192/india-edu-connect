@@ -493,7 +493,7 @@ export const AdminTests = () => {
   const filtered = tests.filter(t => t.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <DashboardLayout role="admin" navItems={navItems} title="All Tests">
+    <DashboardLayout role="admin" navItems={getAdminNavItems()} title="All Tests">
       <div className="space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <Input placeholder="Search tests..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
