@@ -1467,7 +1467,7 @@ export const AdminRetakeRequests = () => {
   };
 
   return (
-    <DashboardLayout role="admin" navItems={navItems} title="Retake Requests">
+    <DashboardLayout role="admin" navItems={getAdminNavItems()} title="Retake Requests">
       <div className="space-y-6">
         <div className="flex gap-2 flex-wrap">
           {(["pending", "approved", "rejected", "all"] as const).map(f => (
