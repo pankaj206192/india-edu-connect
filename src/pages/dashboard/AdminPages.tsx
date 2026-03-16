@@ -1979,7 +1979,7 @@ export const AdminLiveTest = () => {
     : snapshots;
 
   return (
-    <DashboardLayout role="admin" navItems={navItems} title="Live Test Monitoring">
+    <DashboardLayout role="admin" navItems={getAdminNavItems()} title="Live Test Monitoring">
       <div className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <Select value={selectedTest} onValueChange={v => setSelectedTest(v === "all" ? "" : v)}>

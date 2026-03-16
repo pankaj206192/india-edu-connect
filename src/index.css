@@ -135,4 +135,26 @@
   .shadow-glow {
     box-shadow: var(--shadow-glow);
   }
+
+  .sidebar-scroll::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .sidebar-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .sidebar-scroll::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary-foreground) / 0.2);
+    border-radius: 9999px;
+  }
+
+  .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary-foreground) / 0.3);
+  }
+
+  .sidebar-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--primary-foreground) / 0.2) transparent;
+  }
 }
