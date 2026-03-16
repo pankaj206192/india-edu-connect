@@ -14,21 +14,29 @@ import { exportCSV } from "@/lib/csv";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-const navItems = [
-  { label: "Dashboard", path: "/dashboard/admin", icon: <LayoutDashboard className="h-4 w-4" /> },
-  { label: "Manage Students", path: "/dashboard/admin/students", icon: <GraduationCap className="h-4 w-4" /> },
-  { label: "Batches", path: "/dashboard/admin/batches", icon: <Users className="h-4 w-4" /> },
-  { label: "Tests", path: "/dashboard/admin/tests", icon: <FileText className="h-4 w-4" /> },
-  { label: "Create Test", path: "/dashboard/admin/create-test", icon: <FileText className="h-4 w-4" /> },
-  { label: "Results", path: "/dashboard/admin/results", icon: <BarChart3 className="h-4 w-4" /> },
-  { label: "Live Test", path: "/dashboard/admin/live-test", icon: <Camera className="h-4 w-4" /> },
-  { label: "Retake Requests", path: "/dashboard/admin/retake-requests", icon: <RotateCcw className="h-4 w-4" /> },
-  { label: "Certificates", path: "/dashboard/admin/certificates", icon: <Award className="h-4 w-4" /> },
-  { label: "Feedback", path: "/dashboard/admin/feedback", icon: <MessageSquare className="h-4 w-4" /> },
-  { label: "Settings", path: "/dashboard/admin/settings", icon: <Settings className="h-4 w-4" /> },
-];
+function getAdminNavItems() {
+  const pendingRetakes = getRetakeRequests().filter(r => r.status === "pending").length;
+  const pendingCerts = getCertificates().filter(c => c.status === "pending").length;
+  const unreviewedFeedback = getUnreviewedFeedbackCount();
+  const pendingGrading = getPendingReviewAttempts().length;
+  const unreviewedResults = getUnreviewedResultCount();
 
-export { navItems };
+  return [
+    { label: "Dashboard", path: "/dashboard/admin", icon: <LayoutDashboard className="h-4 w-4" /> },
+    { label: "Manage Students", path: "/dashboard/admin/students", icon: <GraduationCap className="h-4 w-4" /> },
+    { label: "Batches", path: "/dashboard/admin/batches", icon: <Users className="h-4 w-4" /> },
+    { label: "Tests", path: "/dashboard/admin/tests", icon: <FileText className="h-4 w-4" /> },
+    { label: "Create Test", path: "/dashboard/admin/create-test", icon: <BookOpen className="h-4 w-4" /> },
+    { label: "Results", path: "/dashboard/admin/results", icon: <BarChart3 className="h-4 w-4" />, badge: (pendingGrading || unreviewedResults) || undefined },
+    { label: "Live Test", path: "/dashboard/admin/live-test", icon: <Camera className="h-4 w-4" /> },
+    { label: "Retake Requests", path: "/dashboard/admin/retake-requests", icon: <RotateCcw className="h-4 w-4" />, badge: pendingRetakes || undefined },
+    { label: "Certificates", path: "/dashboard/admin/certificates", icon: <Award className="h-4 w-4" />, badge: pendingCerts || undefined },
+    { label: "Feedback", path: "/dashboard/admin/feedback", icon: <MessageSquare className="h-4 w-4" />, badge: unreviewedFeedback || undefined },
+    { label: "Settings", path: "/dashboard/admin/settings", icon: <Settings className="h-4 w-4" /> },
+  ];
+}
+
+export { getAdminNavItems };
 
 function deleteUser(userId: string) {
   // Remove user
