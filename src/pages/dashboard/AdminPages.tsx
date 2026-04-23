@@ -381,11 +381,16 @@ export const ManageStudents = () => {
           <Input placeholder="Search students..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => {
-              const rows = filtered.map(s => [
-                s.name, s.email, s.gender || "", s.mobile || "",
-                s.batchId ? (batches.find(b => b.id === s.batchId)?.name || "") : "",
-              ]);
-              exportCSV("students.csv", ["Name", "Email", "Gender", "Mobile", "Batch"], rows);
+              const rows = filtered.map(s => {
+                const b = s.batchId ? batches.find(x => x.id === s.batchId) : undefined;
+                return [
+                  s.name, s.email, s.gender || "", s.mobile || "",
+                  b?.name || "",
+                  b?.timings || "",
+                  b?.createdAt ? new Date(b.createdAt).getFullYear().toString() : "",
+                ];
+              });
+              exportCSV("students.csv", ["Name", "Email", "Gender", "Mobile", "Batch", "Batch Timing", "Batch Year"], rows);
             }}>
               <Download className="mr-2 h-4 w-4" /> Export CSV
             </Button>
@@ -425,7 +430,19 @@ export const ManageStudents = () => {
                   <td className="px-4 py-3 text-muted-foreground hidden md:table-cell capitalize">{s.gender || "—"}</td>
                   <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{s.mobile || "—"}</td>
                   <td className="px-4 py-3 text-muted-foreground hidden lg:table-cell">
-                    {s.batchId ? (batches.find(b => b.id === s.batchId)?.name || "—") : "—"}
+                    {(() => {
+                      if (!s.batchId) return <span>—</span>;
+                      const b = batches.find(x => x.id === s.batchId);
+                      if (!b) return <span>—</span>;
+                      const year = b.createdAt ? new Date(b.createdAt).getFullYear() : null;
+                      return (
+                        <div className="flex flex-col">
+                          <span className="text-foreground font-medium">{b.name}</span>
+                          {b.timings && <span className="text-xs text-muted-foreground">{b.timings}</span>}
+                          {year && <span className="text-xs text-muted-foreground">Year: {year}</span>}
+                        </div>
+                      );
+                    })()}
                   </td>
                   <td className="px-4 py-3 text-right flex items-center justify-end gap-1">
                     <EditUserDialog student={s} onUpdated={refresh} />
