@@ -45,6 +45,7 @@ function deleteUser(userId: string) {
 
   // Remove attempts
   const attempts = JSON.parse(localStorage.getItem("ei_attempts") || "[]");
+  const removedAttemptIds = new Set(attempts.filter((a: any) => a.studentId === userId).map((a: any) => a.id));
   localStorage.setItem("ei_attempts", JSON.stringify(attempts.filter((a: any) => a.studentId !== userId)));
 
   // Remove certificates
@@ -54,6 +55,25 @@ function deleteUser(userId: string) {
   // Remove retake requests
   const retakes = JSON.parse(localStorage.getItem("ei_retake_requests") || "[]");
   localStorage.setItem("ei_retake_requests", JSON.stringify(retakes.filter((r: any) => r.studentId !== userId)));
+
+  // Remove feedback
+  const feedbacks = JSON.parse(localStorage.getItem("ei_feedback") || "[]");
+  localStorage.setItem("ei_feedback", JSON.stringify(feedbacks.filter((f: any) => f.studentId !== userId)));
+
+  // Remove tab-switch logs
+  const tabLogs = JSON.parse(localStorage.getItem("ei_tab_switches") || "[]");
+  localStorage.setItem("ei_tab_switches", JSON.stringify(tabLogs.filter((l: any) => l.studentId !== userId)));
+
+  // Remove camera snapshots
+  const snaps = JSON.parse(localStorage.getItem("ei_camera_snapshots") || "[]");
+  localStorage.setItem("ei_camera_snapshots", JSON.stringify(snaps.filter((s: any) => s.studentId !== userId)));
+
+  // Clean up reviewed-tracking entries for removed attempts/feedback
+  const reviewedResults: string[] = JSON.parse(localStorage.getItem("ei_reviewed_results") || "[]");
+  localStorage.setItem("ei_reviewed_results", JSON.stringify(reviewedResults.filter(id => !removedAttemptIds.has(id))));
+  const removedFeedbackIds = new Set(feedbacks.filter((f: any) => f.studentId === userId).map((f: any) => f.id));
+  const reviewedFeedback: string[] = JSON.parse(localStorage.getItem("ei_reviewed_feedbacks") || "[]");
+  localStorage.setItem("ei_reviewed_feedbacks", JSON.stringify(reviewedFeedback.filter(id => !removedFeedbackIds.has(id))));
 
   // Remove from test assignments
   const tests = JSON.parse(localStorage.getItem("ei_tests") || "[]");
@@ -691,6 +711,8 @@ export const AdminResults = () => {
   const [attempts, setAttempts] = useState(() => getAttempts());
   const tests = getTests();
   const [search, setSearch] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
   const [gradeAttempt, setGradeAttempt] = useState<Attempt | null>(null);
   const [manualScores, setManualScores] = useState<Record<string, number>>({});
   const tabSwitchLogs = getTabSwitchLogs();
@@ -703,10 +725,16 @@ export const AdminResults = () => {
     return { ...a, testName: test?.name || "Unknown Test", tabSwitches: tabLog?.count || a.tabSwitchCount || 0 };
   });
 
-  const filtered = enriched.filter(r =>
-    r.studentName.toLowerCase().includes(search.toLowerCase()) ||
-    r.testName.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = enriched.filter(r => {
+    const matchesSearch =
+      r.studentName.toLowerCase().includes(search.toLowerCase()) ||
+      r.testName.toLowerCase().includes(search.toLowerCase());
+    if (!matchesSearch) return false;
+    const submitted = new Date(r.submittedAt).getTime();
+    if (fromDate && submitted < new Date(fromDate).getTime()) return false;
+    if (toDate && submitted > new Date(toDate).getTime() + 86400000 - 1) return false;
+    return true;
+  });
 
   const openGrading = (attempt: Attempt) => {
     setGradeAttempt(attempt);
@@ -774,8 +802,26 @@ export const AdminResults = () => {
   return (
     <DashboardLayout role="admin" navItems={getAdminNavItems()} title="Results">
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <Input placeholder="Search by student or test..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:flex-wrap">
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Search</Label>
+              <Input placeholder="Student or test..." className="w-full sm:w-56" value={search} onChange={e => setSearch(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">From</Label>
+              <Input type="date" className="w-full sm:w-40" value={fromDate} onChange={e => setFromDate(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">To</Label>
+              <Input type="date" className="w-full sm:w-40" value={toDate} onChange={e => setToDate(e.target.value)} />
+            </div>
+            {(fromDate || toDate) && (
+              <Button variant="ghost" size="sm" onClick={() => { setFromDate(""); setToDate(""); }}>
+                <X className="mr-1 h-3 w-3" /> Clear dates
+              </Button>
+            )}
+          </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => {
               markAllResultsReviewed();
@@ -808,12 +854,13 @@ export const AdminResults = () => {
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">%</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden md:table-cell">Tab Switches</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden lg:table-cell">Submitted</th>
                 <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 && (
-                <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">No results yet.</td></tr>
+                <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">No results match the filters.</td></tr>
               )}
               {filtered.map((r) => (
                 <tr key={r.id} className="border-b border-border last:border-0">
@@ -842,6 +889,9 @@ export const AdminResults = () => {
                     ) : (
                       <span className="text-xs text-muted-foreground">0</span>
                     )}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground hidden lg:table-cell whitespace-nowrap">
+                    {new Date(r.submittedAt).toLocaleDateString()}
                   </td>
                   <td className="px-4 py-3 text-right">
                     {r.gradingStatus === "pending_review" && (
