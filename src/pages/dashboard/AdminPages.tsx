@@ -727,6 +727,8 @@ export const AdminResults = () => {
   const { toast } = useToast();
   const [attempts, setAttempts] = useState(() => getAttempts());
   const tests = getTests();
+  const allUsers = getUsers();
+  const batches = getBatches();
   const [search, setSearch] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
@@ -741,7 +743,16 @@ export const AdminResults = () => {
   const enriched = attempts.map(a => {
     const test = tests.find(t => t.id === a.testId);
     const tabLog = tabSwitchLogs.find(l => l.attemptId === a.id);
-    return { ...a, testName: test?.name || "Unknown Test", tabSwitches: tabLog?.count || a.tabSwitchCount || 0 };
+    const student = allUsers.find(u => u.id === a.studentId);
+    const batch = student?.batchId ? batches.find(b => b.id === student.batchId) : undefined;
+    return {
+      ...a,
+      testName: test?.name || "Unknown Test",
+      tabSwitches: tabLog?.count || a.tabSwitchCount || 0,
+      batchName: batch?.name || "",
+      batchTimings: batch?.timings || "",
+      batchYear: batch?.createdAt ? new Date(batch.createdAt).getFullYear() : null,
+    };
   });
 
   const filtered = enriched.filter(r => {
@@ -879,14 +890,22 @@ export const AdminResults = () => {
             </Button>
             <Button variant="outline" size="sm" onClick={() => {
               const rows = filtered.map(r => [
-                r.studentName, r.testName,
+                r.studentName,
+                r.batchName,
+                r.batchTimings,
+                r.batchYear ? r.batchYear.toString() : "",
+                r.testName,
                 r.gradingStatus === "pending_review" ? "Pending" : `${r.score}/${r.totalMarks}`,
                 r.gradingStatus === "pending_review" ? "" : `${r.percentage}%`,
                 r.gradingStatus === "pending_review" ? "Needs Grading" : r.passed ? "Passed" : "Failed",
                 r.tabSwitches,
                 new Date(r.submittedAt).toLocaleDateString(),
               ]);
-              exportCSV("results.csv", ["Student", "Test", "Score", "Percentage", "Status", "Tab Switches", "Date"], rows);
+              exportCSV(
+                "results.csv",
+                ["Student", "Batch", "Batch Timing", "Batch Year", "Test", "Score", "Percentage", "Status", "Tab Switches", "Date"],
+                rows,
+              );
             }}>
               <Download className="mr-1 h-4 w-4" /> Export CSV
             </Button>
@@ -897,6 +916,7 @@ export const AdminResults = () => {
             <thead>
               <tr className="border-b border-border bg-muted">
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Student</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden md:table-cell">Batch</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">Test</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Score</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">%</th>
@@ -908,11 +928,22 @@ export const AdminResults = () => {
             </thead>
             <tbody>
               {filtered.length === 0 && (
-                <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">No results match the filters.</td></tr>
+                <tr><td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">No results match the filters.</td></tr>
               )}
               {filtered.map((r) => (
                 <tr key={r.id} className="border-b border-border last:border-0">
                   <td className="px-4 py-3 font-medium text-foreground">{r.studentName}</td>
+                  <td className="px-4 py-3 hidden md:table-cell">
+                    {r.batchName ? (
+                      <div className="flex flex-col">
+                        <span className="text-foreground">{r.batchName}</span>
+                        {r.batchTimings && <span className="text-xs text-muted-foreground">{r.batchTimings}</span>}
+                        {r.batchYear && <span className="text-xs text-muted-foreground">Year: {r.batchYear}</span>}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{r.testName}</td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {r.gradingStatus === "pending_review" ? <span className="text-warning">Pending</span> : `${r.score}/${r.totalMarks}`}
