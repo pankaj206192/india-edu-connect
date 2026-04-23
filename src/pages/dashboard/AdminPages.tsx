@@ -730,6 +730,8 @@ export const AdminResults = () => {
   const [search, setSearch] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+  const [filterMonth, setFilterMonth] = useState<string>("");
+  const [filterYear, setFilterYear] = useState<string>("");
   const [gradeAttempt, setGradeAttempt] = useState<Attempt | null>(null);
   const [manualScores, setManualScores] = useState<Record<string, number>>({});
   const tabSwitchLogs = getTabSwitchLogs();
@@ -747,11 +749,20 @@ export const AdminResults = () => {
       r.studentName.toLowerCase().includes(search.toLowerCase()) ||
       r.testName.toLowerCase().includes(search.toLowerCase());
     if (!matchesSearch) return false;
-    const submitted = new Date(r.submittedAt).getTime();
+    const d = new Date(r.submittedAt);
+    const submitted = d.getTime();
     if (fromDate && submitted < new Date(fromDate).getTime()) return false;
     if (toDate && submitted > new Date(toDate).getTime() + 86400000 - 1) return false;
+    if (filterMonth && (d.getMonth() + 1).toString() !== filterMonth) return false;
+    if (filterYear && d.getFullYear().toString() !== filterYear) return false;
     return true;
   });
+
+  const availableYears = Array.from(new Set(attempts.map(a => new Date(a.submittedAt).getFullYear()))).sort((a, b) => b - a);
+  const monthOptions = [
+    ["1", "January"], ["2", "February"], ["3", "March"], ["4", "April"], ["5", "May"], ["6", "June"],
+    ["7", "July"], ["8", "August"], ["9", "September"], ["10", "October"], ["11", "November"], ["12", "December"],
+  ];
 
   const openGrading = (attempt: Attempt) => {
     setGradeAttempt(attempt);
