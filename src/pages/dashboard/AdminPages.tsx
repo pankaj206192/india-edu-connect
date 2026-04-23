@@ -919,7 +919,7 @@ export const AdminResults = () => {
                 {test.questions.map((q, idx) => {
                   const studentAnswer = gradeAttempt.answers[q.id] || "(no answer)";
                   const isMcq = q.type === "mcq";
-                  const mcqCorrect = isMcq && studentAnswer === q.correctAnswer;
+                  const isMcqCorrect = isMcq && studentAnswer === q.correctAnswer;
                   return (
                     <div key={q.id} className="rounded-lg border border-border p-4 space-y-2">
                       <div className="flex items-center justify-between">
@@ -932,10 +932,10 @@ export const AdminResults = () => {
                       </div>
                       {isMcq ? (
                         <div className="flex items-center gap-2">
-                          <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${mcqCorrect ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
-                            {mcqCorrect ? `✓ Correct (${q.marks} marks)` : `✗ Wrong (0 marks)`}
+                          <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${isMcqCorrect ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
+                            {isMcqCorrect ? `✓ Correct (${q.marks} marks)` : `✗ Wrong (0 marks)`}
                           </span>
-                          {!mcqCorrect && <span className="text-xs text-muted-foreground">Correct: {q.correctAnswer}</span>}
+                          {!isMcqCorrect && <span className="text-xs text-muted-foreground">Correct: {q.correctAnswer}</span>}
                         </div>
                       ) : (
                         <div className="space-y-1">
