@@ -890,14 +890,22 @@ export const AdminResults = () => {
             </Button>
             <Button variant="outline" size="sm" onClick={() => {
               const rows = filtered.map(r => [
-                r.studentName, r.testName,
+                r.studentName,
+                r.batchName,
+                r.batchTimings,
+                r.batchYear ? r.batchYear.toString() : "",
+                r.testName,
                 r.gradingStatus === "pending_review" ? "Pending" : `${r.score}/${r.totalMarks}`,
                 r.gradingStatus === "pending_review" ? "" : `${r.percentage}%`,
                 r.gradingStatus === "pending_review" ? "Needs Grading" : r.passed ? "Passed" : "Failed",
                 r.tabSwitches,
                 new Date(r.submittedAt).toLocaleDateString(),
               ]);
-              exportCSV("results.csv", ["Student", "Test", "Score", "Percentage", "Status", "Tab Switches", "Date"], rows);
+              exportCSV(
+                "results.csv",
+                ["Student", "Batch", "Batch Timing", "Batch Year", "Test", "Score", "Percentage", "Status", "Tab Switches", "Date"],
+                rows,
+              );
             }}>
               <Download className="mr-1 h-4 w-4" /> Export CSV
             </Button>
