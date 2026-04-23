@@ -854,12 +854,13 @@ export const AdminResults = () => {
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">%</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden md:table-cell">Tab Switches</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden lg:table-cell">Submitted</th>
                 <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 && (
-                <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">No results yet.</td></tr>
+                <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">No results match the filters.</td></tr>
               )}
               {filtered.map((r) => (
                 <tr key={r.id} className="border-b border-border last:border-0">
@@ -888,6 +889,9 @@ export const AdminResults = () => {
                     ) : (
                       <span className="text-xs text-muted-foreground">0</span>
                     )}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground hidden lg:table-cell whitespace-nowrap">
+                    {new Date(r.submittedAt).toLocaleDateString()}
                   </td>
                   <td className="px-4 py-3 text-right">
                     {r.gradingStatus === "pending_review" && (
