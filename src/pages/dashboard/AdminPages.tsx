@@ -381,11 +381,16 @@ export const ManageStudents = () => {
           <Input placeholder="Search students..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => {
-              const rows = filtered.map(s => [
-                s.name, s.email, s.gender || "", s.mobile || "",
-                s.batchId ? (batches.find(b => b.id === s.batchId)?.name || "") : "",
-              ]);
-              exportCSV("students.csv", ["Name", "Email", "Gender", "Mobile", "Batch"], rows);
+              const rows = filtered.map(s => {
+                const b = s.batchId ? batches.find(x => x.id === s.batchId) : undefined;
+                return [
+                  s.name, s.email, s.gender || "", s.mobile || "",
+                  b?.name || "",
+                  b?.timings || "",
+                  b?.createdAt ? new Date(b.createdAt).getFullYear().toString() : "",
+                ];
+              });
+              exportCSV("students.csv", ["Name", "Email", "Gender", "Mobile", "Batch", "Batch Timing", "Batch Year"], rows);
             }}>
               <Download className="mr-2 h-4 w-4" /> Export CSV
             </Button>
@@ -425,7 +430,19 @@ export const ManageStudents = () => {
                   <td className="px-4 py-3 text-muted-foreground hidden md:table-cell capitalize">{s.gender || "—"}</td>
                   <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{s.mobile || "—"}</td>
                   <td className="px-4 py-3 text-muted-foreground hidden lg:table-cell">
-                    {s.batchId ? (batches.find(b => b.id === s.batchId)?.name || "—") : "—"}
+                    {(() => {
+                      if (!s.batchId) return <span>—</span>;
+                      const b = batches.find(x => x.id === s.batchId);
+                      if (!b) return <span>—</span>;
+                      const year = b.createdAt ? new Date(b.createdAt).getFullYear() : null;
+                      return (
+                        <div className="flex flex-col">
+                          <span className="text-foreground font-medium">{b.name}</span>
+                          {b.timings && <span className="text-xs text-muted-foreground">{b.timings}</span>}
+                          {year && <span className="text-xs text-muted-foreground">Year: {year}</span>}
+                        </div>
+                      );
+                    })()}
                   </td>
                   <td className="px-4 py-3 text-right flex items-center justify-end gap-1">
                     <EditUserDialog student={s} onUpdated={refresh} />
@@ -713,6 +730,8 @@ export const AdminResults = () => {
   const [search, setSearch] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+  const [filterMonth, setFilterMonth] = useState<string>("");
+  const [filterYear, setFilterYear] = useState<string>("");
   const [gradeAttempt, setGradeAttempt] = useState<Attempt | null>(null);
   const [manualScores, setManualScores] = useState<Record<string, number>>({});
   const tabSwitchLogs = getTabSwitchLogs();
@@ -730,11 +749,20 @@ export const AdminResults = () => {
       r.studentName.toLowerCase().includes(search.toLowerCase()) ||
       r.testName.toLowerCase().includes(search.toLowerCase());
     if (!matchesSearch) return false;
-    const submitted = new Date(r.submittedAt).getTime();
+    const d = new Date(r.submittedAt);
+    const submitted = d.getTime();
     if (fromDate && submitted < new Date(fromDate).getTime()) return false;
     if (toDate && submitted > new Date(toDate).getTime() + 86400000 - 1) return false;
+    if (filterMonth && (d.getMonth() + 1).toString() !== filterMonth) return false;
+    if (filterYear && d.getFullYear().toString() !== filterYear) return false;
     return true;
   });
+
+  const availableYears = Array.from(new Set(attempts.map(a => new Date(a.submittedAt).getFullYear()))).sort((a, b) => b - a);
+  const monthOptions = [
+    ["1", "January"], ["2", "February"], ["3", "March"], ["4", "April"], ["5", "May"], ["6", "June"],
+    ["7", "July"], ["8", "August"], ["9", "September"], ["10", "October"], ["11", "November"], ["12", "December"],
+  ];
 
   const openGrading = (attempt: Attempt) => {
     setGradeAttempt(attempt);
@@ -816,9 +844,29 @@ export const AdminResults = () => {
               <Label className="text-xs text-muted-foreground">To</Label>
               <Input type="date" className="w-full sm:w-40" value={toDate} onChange={e => setToDate(e.target.value)} />
             </div>
-            {(fromDate || toDate) && (
-              <Button variant="ghost" size="sm" onClick={() => { setFromDate(""); setToDate(""); }}>
-                <X className="mr-1 h-3 w-3" /> Clear dates
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Month</Label>
+              <Select value={filterMonth} onValueChange={v => setFilterMonth(v === "all" ? "" : v)}>
+                <SelectTrigger className="w-full sm:w-36"><SelectValue placeholder="All Months" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Months</SelectItem>
+                  {monthOptions.map(([val, label]) => <SelectItem key={val} value={val}>{label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Year</Label>
+              <Select value={filterYear} onValueChange={v => setFilterYear(v === "all" ? "" : v)}>
+                <SelectTrigger className="w-full sm:w-32"><SelectValue placeholder="All Years" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Years</SelectItem>
+                  {availableYears.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            {(fromDate || toDate || filterMonth || filterYear) && (
+              <Button variant="ghost" size="sm" onClick={() => { setFromDate(""); setToDate(""); setFilterMonth(""); setFilterYear(""); }}>
+                <X className="mr-1 h-3 w-3" /> Clear filters
               </Button>
             )}
           </div>
@@ -1938,6 +1986,8 @@ export const AdminFeedback = () => {
   const [search, setSearch] = useState("");
   const [filterBatch, setFilterBatch] = useState<string>("");
   const [filterTest, setFilterTest] = useState<string>("");
+  const [filterMonth, setFilterMonth] = useState<string>("");
+  const [filterYear, setFilterYear] = useState<string>("");
   const batches = getBatches();
   const tests = getTests();
   const allStudents = getUsers();
@@ -1948,8 +1998,17 @@ export const AdminFeedback = () => {
     const matchesSearch = !q || f.studentName.toLowerCase().includes(q) || f.testName.toLowerCase().includes(q) || (student?.email || "").toLowerCase().includes(q);
     const matchesBatch = !filterBatch || f.batchId === filterBatch;
     const matchesTest = !filterTest || f.testId === filterTest;
-    return matchesSearch && matchesBatch && matchesTest;
+    const d = new Date(f.submittedAt);
+    const matchesMonth = !filterMonth || (d.getMonth() + 1).toString() === filterMonth;
+    const matchesYear = !filterYear || d.getFullYear().toString() === filterYear;
+    return matchesSearch && matchesBatch && matchesTest && matchesMonth && matchesYear;
   });
+
+  const availableYears = Array.from(new Set(feedbacks.map(f => new Date(f.submittedAt).getFullYear()))).sort((a, b) => b - a);
+  const months = [
+    ["1", "January"], ["2", "February"], ["3", "March"], ["4", "April"], ["5", "May"], ["6", "June"],
+    ["7", "July"], ["8", "August"], ["9", "September"], ["10", "October"], ["11", "November"], ["12", "December"],
+  ];
 
   const handleMarkRead = (id: string) => {
     markFeedbackReviewed(id);
@@ -1983,6 +2042,24 @@ export const AdminFeedback = () => {
             <SelectContent>
               <SelectItem value="all">All Tests</SelectItem>
               {tests.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={filterMonth} onValueChange={v => setFilterMonth(v === "all" ? "" : v)}>
+            <SelectTrigger className="w-36">
+              <SelectValue placeholder="All Months" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Months</SelectItem>
+              {months.map(([val, label]) => <SelectItem key={val} value={val}>{label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={filterYear} onValueChange={v => setFilterYear(v === "all" ? "" : v)}>
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="All Years" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Years</SelectItem>
+              {availableYears.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
             </SelectContent>
           </Select>
           <div className="flex gap-2 ml-auto">
