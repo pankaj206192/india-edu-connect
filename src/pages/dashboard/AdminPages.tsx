@@ -45,6 +45,7 @@ function deleteUser(userId: string) {
 
   // Remove attempts
   const attempts = JSON.parse(localStorage.getItem("ei_attempts") || "[]");
+  const removedAttemptIds = new Set(attempts.filter((a: any) => a.studentId === userId).map((a: any) => a.id));
   localStorage.setItem("ei_attempts", JSON.stringify(attempts.filter((a: any) => a.studentId !== userId)));
 
   // Remove certificates
@@ -54,6 +55,25 @@ function deleteUser(userId: string) {
   // Remove retake requests
   const retakes = JSON.parse(localStorage.getItem("ei_retake_requests") || "[]");
   localStorage.setItem("ei_retake_requests", JSON.stringify(retakes.filter((r: any) => r.studentId !== userId)));
+
+  // Remove feedback
+  const feedbacks = JSON.parse(localStorage.getItem("ei_feedback") || "[]");
+  localStorage.setItem("ei_feedback", JSON.stringify(feedbacks.filter((f: any) => f.studentId !== userId)));
+
+  // Remove tab-switch logs
+  const tabLogs = JSON.parse(localStorage.getItem("ei_tab_switches") || "[]");
+  localStorage.setItem("ei_tab_switches", JSON.stringify(tabLogs.filter((l: any) => l.studentId !== userId)));
+
+  // Remove camera snapshots
+  const snaps = JSON.parse(localStorage.getItem("ei_camera_snapshots") || "[]");
+  localStorage.setItem("ei_camera_snapshots", JSON.stringify(snaps.filter((s: any) => s.studentId !== userId)));
+
+  // Clean up reviewed-tracking entries for removed attempts/feedback
+  const reviewedResults: string[] = JSON.parse(localStorage.getItem("ei_reviewed_results") || "[]");
+  localStorage.setItem("ei_reviewed_results", JSON.stringify(reviewedResults.filter(id => !removedAttemptIds.has(id))));
+  const removedFeedbackIds = new Set(feedbacks.filter((f: any) => f.studentId === userId).map((f: any) => f.id));
+  const reviewedFeedback: string[] = JSON.parse(localStorage.getItem("ei_reviewed_feedbacks") || "[]");
+  localStorage.setItem("ei_reviewed_feedbacks", JSON.stringify(reviewedFeedback.filter(id => !removedFeedbackIds.has(id))));
 
   // Remove from test assignments
   const tests = JSON.parse(localStorage.getItem("ei_tests") || "[]");
