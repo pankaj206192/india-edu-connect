@@ -38,6 +38,14 @@ const Login = () => {
     setPassword(demoCredentials[role].password);
   };
 
+  const handleGoogleSignIn = () => {
+    toast({
+      title: "Google Sign-In",
+      description:
+        "Google sign-in requires Lovable Cloud to be enabled. Ask in chat to enable it and we'll connect Google for admin login.",
+    });
+  };
+
   return (
     <div className="flex min-h-screen">
       {/* Left Panel */}
@@ -123,6 +131,30 @@ const Login = () => {
               Sign In
             </Button>
           </form>
+
+          {/* Divider */}
+          <div className="my-4 flex items-center gap-3">
+            <div className="h-px flex-1 bg-border" />
+            <span className="text-xs uppercase tracking-wider text-muted-foreground">or</span>
+            <div className="h-px flex-1 bg-border" />
+          </div>
+
+          {/* Google Sign-In */}
+          <Button
+            type="button"
+            variant="outline"
+            size="lg"
+            className="w-full gap-2"
+            onClick={handleGoogleSignIn}
+          >
+            <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="#EA4335"
+                d="M12 10.2v3.9h5.5c-.24 1.4-1.66 4.1-5.5 4.1-3.31 0-6-2.74-6-6.1s2.69-6.1 6-6.1c1.88 0 3.14.8 3.86 1.49l2.63-2.53C16.84 3.45 14.66 2.5 12 2.5 6.86 2.5 2.7 6.66 2.7 11.8s4.16 9.3 9.3 9.3c5.37 0 8.93-3.78 8.93-9.1 0-.61-.07-1.08-.16-1.55H12z"
+              />
+            </svg>
+            Continue with Google
+          </Button>
 
           {/* Mobile demo credentials */}
           <div className="mt-6 rounded-lg border border-border bg-muted p-3 text-xs text-muted-foreground lg:hidden">
