@@ -849,9 +849,9 @@ export const AdminResults = () => {
                         <Pencil className="mr-1 h-3 w-3" /> Grade
                       </Button>
                     )}
-                    {r.gradingStatus === "graded" && (
+                    {r.gradingStatus !== "pending_review" && (
                       <Button size="sm" variant="ghost" onClick={() => openGrading(r)}>
-                        <Eye className="mr-1 h-3 w-3" /> Review
+                        <Eye className="mr-1 h-3 w-3" /> View Analysis
                       </Button>
                     )}
                   </td>
@@ -871,8 +871,45 @@ export const AdminResults = () => {
           {gradeAttempt && (() => {
             const test = tests.find(t => t.id === gradeAttempt.testId);
             if (!test) return null;
+            // Compute analysis summary
+            let mcqCorrect = 0, mcqWrong = 0, mcqTotal = 0, subjectiveTotal = 0;
+            test.questions.forEach(q => {
+              if (q.type === "mcq") {
+                mcqTotal++;
+                if (gradeAttempt.answers[q.id] === q.correctAnswer) mcqCorrect++;
+                else mcqWrong++;
+              } else {
+                subjectiveTotal++;
+              }
+            });
             return (
               <div className="space-y-4 pt-2">
+                {/* Analysis summary */}
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  <div className="rounded-lg border border-border bg-card p-3">
+                    <p className="text-xs text-muted-foreground">Score</p>
+                    <p className="text-lg font-semibold text-foreground">
+                      {gradeAttempt.gradingStatus === "pending_review" ? "—" : `${gradeAttempt.score}/${gradeAttempt.totalMarks}`}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-border bg-card p-3">
+                    <p className="text-xs text-muted-foreground">Percentage</p>
+                    <p className="text-lg font-semibold text-foreground">
+                      {gradeAttempt.gradingStatus === "pending_review" ? "—" : `${gradeAttempt.percentage}%`}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-border bg-success/5 p-3">
+                    <p className="text-xs text-muted-foreground">MCQ Correct</p>
+                    <p className="text-lg font-semibold text-success">{mcqCorrect}<span className="text-sm text-muted-foreground">/{mcqTotal}</span></p>
+                  </div>
+                  <div className="rounded-lg border border-border bg-destructive/5 p-3">
+                    <p className="text-xs text-muted-foreground">MCQ Wrong</p>
+                    <p className="text-lg font-semibold text-destructive">{mcqWrong}<span className="text-sm text-muted-foreground">/{mcqTotal}</span></p>
+                  </div>
+                </div>
+                {subjectiveTotal > 0 && (
+                  <p className="text-xs text-muted-foreground">{subjectiveTotal} subjective question{subjectiveTotal > 1 ? "s" : ""} (manually graded)</p>
+                )}
                 {gradeAttempt.tabSwitchCount && gradeAttempt.tabSwitchCount > 0 && (
                   <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4" />
@@ -882,7 +919,7 @@ export const AdminResults = () => {
                 {test.questions.map((q, idx) => {
                   const studentAnswer = gradeAttempt.answers[q.id] || "(no answer)";
                   const isMcq = q.type === "mcq";
-                  const mcqCorrect = isMcq && studentAnswer === q.correctAnswer;
+                  const isMcqCorrect = isMcq && studentAnswer === q.correctAnswer;
                   return (
                     <div key={q.id} className="rounded-lg border border-border p-4 space-y-2">
                       <div className="flex items-center justify-between">
@@ -895,10 +932,10 @@ export const AdminResults = () => {
                       </div>
                       {isMcq ? (
                         <div className="flex items-center gap-2">
-                          <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${mcqCorrect ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
-                            {mcqCorrect ? `✓ Correct (${q.marks} marks)` : `✗ Wrong (0 marks)`}
+                          <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${isMcqCorrect ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
+                            {isMcqCorrect ? `✓ Correct (${q.marks} marks)` : `✗ Wrong (0 marks)`}
                           </span>
-                          {!mcqCorrect && <span className="text-xs text-muted-foreground">Correct: {q.correctAnswer}</span>}
+                          {!isMcqCorrect && <span className="text-xs text-muted-foreground">Correct: {q.correctAnswer}</span>}
                         </div>
                       ) : (
                         <div className="space-y-1">
