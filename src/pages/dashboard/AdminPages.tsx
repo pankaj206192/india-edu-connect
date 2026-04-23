@@ -1955,6 +1955,8 @@ export const AdminFeedback = () => {
   const [search, setSearch] = useState("");
   const [filterBatch, setFilterBatch] = useState<string>("");
   const [filterTest, setFilterTest] = useState<string>("");
+  const [filterMonth, setFilterMonth] = useState<string>("");
+  const [filterYear, setFilterYear] = useState<string>("");
   const batches = getBatches();
   const tests = getTests();
   const allStudents = getUsers();
@@ -1965,8 +1967,17 @@ export const AdminFeedback = () => {
     const matchesSearch = !q || f.studentName.toLowerCase().includes(q) || f.testName.toLowerCase().includes(q) || (student?.email || "").toLowerCase().includes(q);
     const matchesBatch = !filterBatch || f.batchId === filterBatch;
     const matchesTest = !filterTest || f.testId === filterTest;
-    return matchesSearch && matchesBatch && matchesTest;
+    const d = new Date(f.submittedAt);
+    const matchesMonth = !filterMonth || (d.getMonth() + 1).toString() === filterMonth;
+    const matchesYear = !filterYear || d.getFullYear().toString() === filterYear;
+    return matchesSearch && matchesBatch && matchesTest && matchesMonth && matchesYear;
   });
+
+  const availableYears = Array.from(new Set(feedbacks.map(f => new Date(f.submittedAt).getFullYear()))).sort((a, b) => b - a);
+  const months = [
+    ["1", "January"], ["2", "February"], ["3", "March"], ["4", "April"], ["5", "May"], ["6", "June"],
+    ["7", "July"], ["8", "August"], ["9", "September"], ["10", "October"], ["11", "November"], ["12", "December"],
+  ];
 
   const handleMarkRead = (id: string) => {
     markFeedbackReviewed(id);
@@ -2000,6 +2011,24 @@ export const AdminFeedback = () => {
             <SelectContent>
               <SelectItem value="all">All Tests</SelectItem>
               {tests.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={filterMonth} onValueChange={v => setFilterMonth(v === "all" ? "" : v)}>
+            <SelectTrigger className="w-36">
+              <SelectValue placeholder="All Months" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Months</SelectItem>
+              {months.map(([val, label]) => <SelectItem key={val} value={val}>{label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={filterYear} onValueChange={v => setFilterYear(v === "all" ? "" : v)}>
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="All Years" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Years</SelectItem>
+              {availableYears.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
             </SelectContent>
           </Select>
           <div className="flex gap-2 ml-auto">
