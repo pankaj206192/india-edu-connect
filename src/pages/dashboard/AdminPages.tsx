@@ -844,9 +844,29 @@ export const AdminResults = () => {
               <Label className="text-xs text-muted-foreground">To</Label>
               <Input type="date" className="w-full sm:w-40" value={toDate} onChange={e => setToDate(e.target.value)} />
             </div>
-            {(fromDate || toDate) && (
-              <Button variant="ghost" size="sm" onClick={() => { setFromDate(""); setToDate(""); }}>
-                <X className="mr-1 h-3 w-3" /> Clear dates
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Month</Label>
+              <Select value={filterMonth} onValueChange={v => setFilterMonth(v === "all" ? "" : v)}>
+                <SelectTrigger className="w-full sm:w-36"><SelectValue placeholder="All Months" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Months</SelectItem>
+                  {monthOptions.map(([val, label]) => <SelectItem key={val} value={val}>{label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Year</Label>
+              <Select value={filterYear} onValueChange={v => setFilterYear(v === "all" ? "" : v)}>
+                <SelectTrigger className="w-full sm:w-32"><SelectValue placeholder="All Years" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Years</SelectItem>
+                  {availableYears.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            {(fromDate || toDate || filterMonth || filterYear) && (
+              <Button variant="ghost" size="sm" onClick={() => { setFromDate(""); setToDate(""); setFilterMonth(""); setFilterYear(""); }}>
+                <X className="mr-1 h-3 w-3" /> Clear filters
               </Button>
             )}
           </div>
