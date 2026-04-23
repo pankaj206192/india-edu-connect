@@ -802,8 +802,26 @@ export const AdminResults = () => {
   return (
     <DashboardLayout role="admin" navItems={getAdminNavItems()} title="Results">
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <Input placeholder="Search by student or test..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:flex-wrap">
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Search</Label>
+              <Input placeholder="Student or test..." className="w-full sm:w-56" value={search} onChange={e => setSearch(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">From</Label>
+              <Input type="date" className="w-full sm:w-40" value={fromDate} onChange={e => setFromDate(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">To</Label>
+              <Input type="date" className="w-full sm:w-40" value={toDate} onChange={e => setToDate(e.target.value)} />
+            </div>
+            {(fromDate || toDate) && (
+              <Button variant="ghost" size="sm" onClick={() => { setFromDate(""); setToDate(""); }}>
+                <X className="mr-1 h-3 w-3" /> Clear dates
+              </Button>
+            )}
+          </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => {
               markAllResultsReviewed();
