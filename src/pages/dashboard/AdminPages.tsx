@@ -916,6 +916,7 @@ export const AdminResults = () => {
             <thead>
               <tr className="border-b border-border bg-muted">
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Student</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden md:table-cell">Batch</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">Test</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Score</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">%</th>
@@ -927,11 +928,22 @@ export const AdminResults = () => {
             </thead>
             <tbody>
               {filtered.length === 0 && (
-                <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">No results match the filters.</td></tr>
+                <tr><td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">No results match the filters.</td></tr>
               )}
               {filtered.map((r) => (
                 <tr key={r.id} className="border-b border-border last:border-0">
                   <td className="px-4 py-3 font-medium text-foreground">{r.studentName}</td>
+                  <td className="px-4 py-3 hidden md:table-cell">
+                    {r.batchName ? (
+                      <div className="flex flex-col">
+                        <span className="text-foreground">{r.batchName}</span>
+                        {r.batchTimings && <span className="text-xs text-muted-foreground">{r.batchTimings}</span>}
+                        {r.batchYear && <span className="text-xs text-muted-foreground">Year: {r.batchYear}</span>}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{r.testName}</td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {r.gradingStatus === "pending_review" ? <span className="text-warning">Pending</span> : `${r.score}/${r.totalMarks}`}
