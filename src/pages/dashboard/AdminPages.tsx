@@ -727,6 +727,8 @@ export const AdminResults = () => {
   const { toast } = useToast();
   const [attempts, setAttempts] = useState(() => getAttempts());
   const tests = getTests();
+  const allUsers = getUsers();
+  const batches = getBatches();
   const [search, setSearch] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
@@ -741,7 +743,16 @@ export const AdminResults = () => {
   const enriched = attempts.map(a => {
     const test = tests.find(t => t.id === a.testId);
     const tabLog = tabSwitchLogs.find(l => l.attemptId === a.id);
-    return { ...a, testName: test?.name || "Unknown Test", tabSwitches: tabLog?.count || a.tabSwitchCount || 0 };
+    const student = allUsers.find(u => u.id === a.studentId);
+    const batch = student?.batchId ? batches.find(b => b.id === student.batchId) : undefined;
+    return {
+      ...a,
+      testName: test?.name || "Unknown Test",
+      tabSwitches: tabLog?.count || a.tabSwitchCount || 0,
+      batchName: batch?.name || "",
+      batchTimings: batch?.timings || "",
+      batchYear: batch?.createdAt ? new Date(batch.createdAt).getFullYear() : null,
+    };
   });
 
   const filtered = enriched.filter(r => {
