@@ -849,9 +849,9 @@ export const AdminResults = () => {
                         <Pencil className="mr-1 h-3 w-3" /> Grade
                       </Button>
                     )}
-                    {r.gradingStatus === "graded" && (
+                    {r.gradingStatus !== "pending_review" && (
                       <Button size="sm" variant="ghost" onClick={() => openGrading(r)}>
-                        <Eye className="mr-1 h-3 w-3" /> Review
+                        <Eye className="mr-1 h-3 w-3" /> View Analysis
                       </Button>
                     )}
                   </td>
