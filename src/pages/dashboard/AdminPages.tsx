@@ -711,6 +711,8 @@ export const AdminResults = () => {
   const [attempts, setAttempts] = useState(() => getAttempts());
   const tests = getTests();
   const [search, setSearch] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
   const [gradeAttempt, setGradeAttempt] = useState<Attempt | null>(null);
   const [manualScores, setManualScores] = useState<Record<string, number>>({});
   const tabSwitchLogs = getTabSwitchLogs();
@@ -723,10 +725,16 @@ export const AdminResults = () => {
     return { ...a, testName: test?.name || "Unknown Test", tabSwitches: tabLog?.count || a.tabSwitchCount || 0 };
   });
 
-  const filtered = enriched.filter(r =>
-    r.studentName.toLowerCase().includes(search.toLowerCase()) ||
-    r.testName.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = enriched.filter(r => {
+    const matchesSearch =
+      r.studentName.toLowerCase().includes(search.toLowerCase()) ||
+      r.testName.toLowerCase().includes(search.toLowerCase());
+    if (!matchesSearch) return false;
+    const submitted = new Date(r.submittedAt).getTime();
+    if (fromDate && submitted < new Date(fromDate).getTime()) return false;
+    if (toDate && submitted > new Date(toDate).getTime() + 86400000 - 1) return false;
+    return true;
+  });
 
   const openGrading = (attempt: Attempt) => {
     setGradeAttempt(attempt);
