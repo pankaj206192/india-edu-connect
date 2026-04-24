@@ -954,7 +954,7 @@ export const AdminResults = () => {
             </Button>
           </div>
         </div>
-        <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
+        <div className="rounded-xl border border-border bg-card shadow-card overflow-x-auto">
           <table className="w-full text-sm min-w-[820px]">
             <thead>
               <tr className="border-b border-border bg-muted">
