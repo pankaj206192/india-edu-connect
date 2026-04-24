@@ -423,14 +423,16 @@ export const ManageStudents = () => {
             <Button variant="outline" onClick={() => {
               const rows = filtered.map(s => {
                 const b = s.batchId ? batches.find(x => x.id === s.batchId) : undefined;
+                const my = b?.monthYear || (b?.createdAt ? b.createdAt.slice(0, 7) : "");
+                const myLabel = my ? new Date(my + "-01").toLocaleString(undefined, { month: "long", year: "numeric" }) : "";
                 return [
                   s.name, s.email, s.gender || "", s.mobile || "",
                   b?.name || "",
                   b?.timings || "",
-                  b?.createdAt ? new Date(b.createdAt).getFullYear().toString() : "",
+                  myLabel,
                 ];
               });
-              exportCSV("students.csv", ["Name", "Email", "Gender", "Mobile", "Batch", "Batch Timing", "Batch Year"], rows);
+              exportCSV("students.csv", ["Name", "Email", "Gender", "Mobile", "Batch", "Batch Timing", "Batch Month/Year"], rows);
             }}>
               <Download className="mr-2 h-4 w-4" /> Export CSV
             </Button>
