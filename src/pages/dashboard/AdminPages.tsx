@@ -358,21 +358,31 @@ export const ManageStudents = () => {
   const { toast } = useToast();
   const [students, setStudents] = useState(() => getUsersByRole("student"));
   const [search, setSearch] = useState("");
+  const [filterYear, setFilterYear] = useState<string>("");
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const batches = getBatches();
 
   const refresh = () => setStudents(getUsersByRole("student"));
+
+  const availableYears = Array.from(new Set(
+    batches
+      .map(b => (b.createdAt ? new Date(b.createdAt).getFullYear().toString() : ""))
+      .filter(Boolean)
+  )).sort((a, b) => Number(b) - Number(a));
+
   const filtered = students.filter(s => {
     const q = search.toLowerCase();
-    if (!q) return true;
     const batch = s.batchId ? batches.find(b => b.id === s.batchId) : undefined;
     const batchName = batch?.name.toLowerCase() || "";
-    return (
+    const batchYear = batch?.createdAt ? new Date(batch.createdAt).getFullYear().toString() : "";
+    const matchesSearch = !q || (
       s.name.toLowerCase().includes(q) ||
       s.email.toLowerCase().includes(q) ||
       batchName.includes(q)
     );
+    const matchesYear = !filterYear || batchYear === filterYear;
+    return matchesSearch && matchesYear;
   });
 
   const handleDelete = () => {
