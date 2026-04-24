@@ -779,9 +779,15 @@ export const AdminResults = () => {
   const [filterYear, setFilterYear] = useState<string>("");
   const [gradeAttempt, setGradeAttempt] = useState<Attempt | null>(null);
   const [manualScores, setManualScores] = useState<Record<string, number>>({});
+  const [reviewedIds, setReviewedIds] = useState(() => getReviewedResultIds());
   const tabSwitchLogs = getTabSwitchLogs();
 
   const refresh = () => setAttempts(getAttempts());
+
+  const handleMarkRead = (attemptId: string) => {
+    markResultReviewed(attemptId);
+    setReviewedIds(getReviewedResultIds());
+  };
 
   const enriched = attempts.map(a => {
     const test = tests.find(t => t.id === a.testId);
