@@ -5,6 +5,7 @@ export interface Batch {
   id: string;
   name: string;
   timings: string; // e.g. "Mon-Fri 9:00 AM - 12:00 PM"
+  monthYear?: string; // "YYYY-MM" — month and year identifier for the batch
   createdAt: string;
 }
 
