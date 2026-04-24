@@ -363,7 +363,17 @@ export const ManageStudents = () => {
   const batches = getBatches();
 
   const refresh = () => setStudents(getUsersByRole("student"));
-  const filtered = students.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.email.toLowerCase().includes(search.toLowerCase()));
+  const filtered = students.filter(s => {
+    const q = search.toLowerCase();
+    if (!q) return true;
+    const batch = s.batchId ? batches.find(b => b.id === s.batchId) : undefined;
+    const batchName = batch?.name.toLowerCase() || "";
+    return (
+      s.name.toLowerCase().includes(q) ||
+      s.email.toLowerCase().includes(q) ||
+      batchName.includes(q)
+    );
+  });
 
   const handleDelete = () => {
     if (!deleteTarget || deleteConfirmText !== "delete") return;
@@ -378,7 +388,7 @@ export const ManageStudents = () => {
     <DashboardLayout role="admin" navItems={getAdminNavItems()} title="Manage Students">
       <div className="space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <Input placeholder="Search students..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
+          <Input placeholder="Search by name, email, or batch..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => {
               const rows = filtered.map(s => {
