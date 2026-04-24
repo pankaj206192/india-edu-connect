@@ -1838,6 +1838,7 @@ export const AdminBatches = () => {
               <tr className="border-b border-border bg-muted">
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Batch Name</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Timings</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">Month/Year</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">Students</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden md:table-cell">Created</th>
                 <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
@@ -1845,10 +1846,12 @@ export const AdminBatches = () => {
             </thead>
             <tbody>
               {batches.length === 0 && (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No batches created yet.</td></tr>
+                <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">No batches created yet.</td></tr>
               )}
               {batches.map((b) => {
                 const studentCount = allStudents.filter(s => s.batchId === b.id).length;
+                const my = b.monthYear || (b.createdAt ? b.createdAt.slice(0, 7) : "");
+                const myLabel = my ? new Date(my + "-01").toLocaleString(undefined, { month: "long", year: "numeric" }) : "—";
                 return (
                   <tr key={b.id} className="border-b border-border last:border-0">
                     <td className="px-4 py-3 font-medium text-foreground">{b.name}</td>
@@ -1857,6 +1860,7 @@ export const AdminBatches = () => {
                         <Clock className="h-3.5 w-3.5" /> {b.timings}
                       </span>
                     </td>
+                    <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{myLabel}</td>
                     <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{studentCount} students</td>
                     <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{b.createdAt}</td>
                     <td className="px-4 py-3 text-right flex items-center justify-end gap-1">
