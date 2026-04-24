@@ -986,8 +986,15 @@ export const AdminResults = () => {
                 <tr><td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">No results match the filters.</td></tr>
               )}
               {filtered.map((r) => (
-                <tr key={r.id} className="border-b border-border last:border-0">
-                  <td className="px-4 py-3 font-medium text-foreground">{r.studentName}</td>
+                <tr key={r.id} className={`border-b border-border last:border-0 ${!reviewedIds.has(r.id) && r.gradingStatus !== "pending_review" ? "bg-primary/5" : ""}`}>
+                  <td className="px-4 py-3 font-medium text-foreground">
+                    <span className="inline-flex items-center gap-2">
+                      {!reviewedIds.has(r.id) && r.gradingStatus !== "pending_review" && (
+                        <span className="h-2 w-2 rounded-full bg-primary" title="Unread" />
+                      )}
+                      {r.studentName}
+                    </span>
+                  </td>
                   <td className="px-4 py-3 hidden md:table-cell">
                     {r.batchName ? (
                       <div className="flex flex-col">
