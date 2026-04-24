@@ -363,7 +363,17 @@ export const ManageStudents = () => {
   const batches = getBatches();
 
   const refresh = () => setStudents(getUsersByRole("student"));
-  const filtered = students.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.email.toLowerCase().includes(search.toLowerCase()));
+  const filtered = students.filter(s => {
+    const q = search.toLowerCase();
+    if (!q) return true;
+    const batch = s.batchId ? batches.find(b => b.id === s.batchId) : undefined;
+    const batchName = batch?.name.toLowerCase() || "";
+    return (
+      s.name.toLowerCase().includes(q) ||
+      s.email.toLowerCase().includes(q) ||
+      batchName.includes(q)
+    );
+  });
 
   const handleDelete = () => {
     if (!deleteTarget || deleteConfirmText !== "delete") return;
