@@ -439,8 +439,8 @@ export const ManageStudents = () => {
             <AddUserDialog onAdded={refresh} />
           </div>
         </div>
-        <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="rounded-xl border border-border bg-card shadow-card overflow-x-auto">
+          <table className="w-full text-sm min-w-[720px]">
             <thead>
               <tr className="border-b border-border bg-muted">
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Photo</th>
@@ -884,8 +884,8 @@ export const AdminResults = () => {
   return (
     <DashboardLayout role="admin" navItems={getAdminNavItems()} title="Results">
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:flex-wrap">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:flex-wrap min-w-0">
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Search</Label>
               <Input placeholder="Student or test..." className="w-full sm:w-56" value={search} onChange={e => setSearch(e.target.value)} />
@@ -924,7 +924,7 @@ export const AdminResults = () => {
               </Button>
             )}
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 shrink-0">
             <Button variant="outline" size="sm" onClick={() => {
               markAllResultsReviewed();
               toast({ title: "Done", description: "All results marked as reviewed." });
@@ -954,8 +954,8 @@ export const AdminResults = () => {
             </Button>
           </div>
         </div>
-        <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="rounded-xl border border-border bg-card shadow-card overflow-x-auto">
+          <table className="w-full text-sm min-w-[820px]">
             <thead>
               <tr className="border-b border-border bg-muted">
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Student</th>
@@ -2123,7 +2123,7 @@ export const AdminFeedback = () => {
     <DashboardLayout role="admin" navItems={getAdminNavItems()} title="Student Feedback">
       <div className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
-          <Input placeholder="Search by student or test name..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
+          <Input placeholder="Search by student or test name..." className="w-full sm:w-64" value={search} onChange={e => setSearch(e.target.value)} />
           <Select value={filterBatch} onValueChange={v => setFilterBatch(v === "all" ? "" : v)}>
             <SelectTrigger className="w-48">
               <SelectValue placeholder="All Batches" />
@@ -2160,7 +2160,7 @@ export const AdminFeedback = () => {
               {availableYears.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
             </SelectContent>
           </Select>
-          <div className="flex gap-2 ml-auto">
+          <div className="flex flex-wrap gap-2 sm:ml-auto">
             <Button variant="outline" size="sm" onClick={handleMarkAllRead}>
               <CheckCheck className="mr-1 h-4 w-4" /> Mark All Read
             </Button>
