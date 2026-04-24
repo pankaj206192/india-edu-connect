@@ -398,7 +398,23 @@ export const ManageStudents = () => {
     <DashboardLayout role="admin" navItems={getAdminNavItems()} title="Manage Students">
       <div className="space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <Input placeholder="Search by name, email, or batch..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap">
+            <Input placeholder="Search by name, email, or batch..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
+            <Select value={filterYear || "all"} onValueChange={v => setFilterYear(v === "all" ? "" : v)}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Batch year" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All years</SelectItem>
+                {availableYears.map(y => (
+                  <SelectItem key={y} value={y}>{y}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {(search || filterYear) && (
+              <Button variant="ghost" size="sm" onClick={() => { setSearch(""); setFilterYear(""); }}>Clear</Button>
+            )}
+          </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => {
               const rows = filtered.map(s => {
