@@ -365,17 +365,21 @@ export const ManageStudents = () => {
 
   const refresh = () => setStudents(getUsersByRole("student"));
 
+  const batchYearOf = (b?: Batch) => {
+    if (!b) return "";
+    if (b.monthYear) return b.monthYear.slice(0, 4);
+    return b.createdAt ? new Date(b.createdAt).getFullYear().toString() : "";
+  };
+
   const availableYears = Array.from(new Set(
-    batches
-      .map(b => (b.createdAt ? new Date(b.createdAt).getFullYear().toString() : ""))
-      .filter(Boolean)
+    batches.map(b => batchYearOf(b)).filter(Boolean)
   )).sort((a, b) => Number(b) - Number(a));
 
   const filtered = students.filter(s => {
     const q = search.toLowerCase();
     const batch = s.batchId ? batches.find(b => b.id === s.batchId) : undefined;
     const batchName = batch?.name.toLowerCase() || "";
-    const batchYear = batch?.createdAt ? new Date(batch.createdAt).getFullYear().toString() : "";
+    const batchYear = batchYearOf(batch);
     const matchesSearch = !q || (
       s.name.toLowerCase().includes(q) ||
       s.email.toLowerCase().includes(q) ||
@@ -419,14 +423,16 @@ export const ManageStudents = () => {
             <Button variant="outline" onClick={() => {
               const rows = filtered.map(s => {
                 const b = s.batchId ? batches.find(x => x.id === s.batchId) : undefined;
+                const my = b?.monthYear || (b?.createdAt ? b.createdAt.slice(0, 7) : "");
+                const myLabel = my ? new Date(my + "-01").toLocaleString(undefined, { month: "long", year: "numeric" }) : "";
                 return [
                   s.name, s.email, s.gender || "", s.mobile || "",
                   b?.name || "",
                   b?.timings || "",
-                  b?.createdAt ? new Date(b.createdAt).getFullYear().toString() : "",
+                  myLabel,
                 ];
               });
-              exportCSV("students.csv", ["Name", "Email", "Gender", "Mobile", "Batch", "Batch Timing", "Batch Year"], rows);
+              exportCSV("students.csv", ["Name", "Email", "Gender", "Mobile", "Batch", "Batch Timing", "Batch Month/Year"], rows);
             }}>
               <Download className="mr-2 h-4 w-4" /> Export CSV
             </Button>
@@ -470,12 +476,13 @@ export const ManageStudents = () => {
                       if (!s.batchId) return <span>—</span>;
                       const b = batches.find(x => x.id === s.batchId);
                       if (!b) return <span>—</span>;
-                      const year = b.createdAt ? new Date(b.createdAt).getFullYear() : null;
+                      const my = b.monthYear || (b.createdAt ? b.createdAt.slice(0, 7) : "");
+                      const myLabel = my ? new Date(my + "-01").toLocaleString(undefined, { month: "short", year: "numeric" }) : "";
                       return (
                         <div className="flex flex-col">
                           <span className="text-foreground font-medium">{b.name}</span>
                           {b.timings && <span className="text-xs text-muted-foreground">{b.timings}</span>}
-                          {year && <span className="text-xs text-muted-foreground">Year: {year}</span>}
+                          {myLabel && <span className="text-xs text-muted-foreground">{myLabel}</span>}
                         </div>
                       );
                     })()}
@@ -1744,24 +1751,37 @@ export const AdminBatches = () => {
   const [editBatch, setEditBatch] = useState<Batch | null>(null);
   const [name, setName] = useState("");
   const [timings, setTimings] = useState("");
+  const [monthYear, setMonthYear] = useState("");
   const [assignBatch, setAssignBatch] = useState<Batch | null>(null);
   const allStudents = getUsersByRole("student");
 
   const refresh = () => setBatches(getBatches());
 
   const handleSave = () => {
-    if (!name.trim() || !timings.trim()) {
-      toast({ title: "Error", description: "Please fill batch name and timings.", variant: "destructive" });
+    if (!name.trim() || !timings.trim() || !monthYear) {
+      toast({ title: "Error", description: "Please fill name, timings, and month/year.", variant: "destructive" });
+      return;
+    }
+    const nameN = name.trim().toLowerCase();
+    const timingsN = timings.trim().toLowerCase();
+    const duplicate = batches.find(b =>
+      (!editBatch || b.id !== editBatch.id) &&
+      b.name.trim().toLowerCase() === nameN &&
+      b.timings.trim().toLowerCase() === timingsN &&
+      (b.monthYear || "") === monthYear
+    );
+    if (duplicate) {
+      toast({ title: "Duplicate batch", description: "This batch already exists with the same name, timings, and month/year.", variant: "destructive" });
       return;
     }
     if (editBatch) {
-      saveBatch({ ...editBatch, name: name.trim(), timings: timings.trim() });
+      saveBatch({ ...editBatch, name: name.trim(), timings: timings.trim(), monthYear });
       toast({ title: "Updated", description: "Batch updated successfully." });
     } else {
-      saveBatch({ id: `batch-${Date.now()}`, name: name.trim(), timings: timings.trim(), createdAt: new Date().toISOString().split("T")[0] });
+      saveBatch({ id: `batch-${Date.now()}`, name: name.trim(), timings: timings.trim(), monthYear, createdAt: new Date().toISOString().split("T")[0] });
       toast({ title: "Created", description: "Batch created successfully." });
     }
-    setName(""); setTimings(""); setOpen(false); setEditBatch(null);
+    setName(""); setTimings(""); setMonthYear(""); setOpen(false); setEditBatch(null);
     refresh();
   };
 
@@ -1798,6 +1818,7 @@ export const AdminBatches = () => {
     setEditBatch(batch);
     setName(batch.name);
     setTimings(batch.timings);
+    setMonthYear(batch.monthYear || (batch.createdAt ? batch.createdAt.slice(0, 7) : ""));
     setOpen(true);
   };
 
@@ -1805,6 +1826,7 @@ export const AdminBatches = () => {
     setEditBatch(null);
     setName("");
     setTimings("");
+    setMonthYear("");
     setOpen(true);
   };
 
@@ -1823,6 +1845,7 @@ export const AdminBatches = () => {
               <tr className="border-b border-border bg-muted">
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Batch Name</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Timings</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">Month/Year</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">Students</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden md:table-cell">Created</th>
                 <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
@@ -1830,10 +1853,12 @@ export const AdminBatches = () => {
             </thead>
             <tbody>
               {batches.length === 0 && (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No batches created yet.</td></tr>
+                <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">No batches created yet.</td></tr>
               )}
               {batches.map((b) => {
                 const studentCount = allStudents.filter(s => s.batchId === b.id).length;
+                const my = b.monthYear || (b.createdAt ? b.createdAt.slice(0, 7) : "");
+                const myLabel = my ? new Date(my + "-01").toLocaleString(undefined, { month: "long", year: "numeric" }) : "—";
                 return (
                   <tr key={b.id} className="border-b border-border last:border-0">
                     <td className="px-4 py-3 font-medium text-foreground">{b.name}</td>
@@ -1842,6 +1867,7 @@ export const AdminBatches = () => {
                         <Clock className="h-3.5 w-3.5" /> {b.timings}
                       </span>
                     </td>
+                    <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{myLabel}</td>
                     <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{studentCount} students</td>
                     <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{b.createdAt}</td>
                     <td className="px-4 py-3 text-right flex items-center justify-end gap-1">
@@ -1877,6 +1903,11 @@ export const AdminBatches = () => {
             <div>
               <Label className="text-sm font-medium">Timings *</Label>
               <Input className="mt-1" placeholder="e.g. Mon-Fri 9:00 AM - 12:00 PM" value={timings} onChange={e => setTimings(e.target.value)} />
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Month & Year *</Label>
+              <Input type="month" className="mt-1" value={monthYear} onChange={e => setMonthYear(e.target.value)} />
+              <p className="mt-1 text-xs text-muted-foreground">Used to identify the batch year (e.g. April 2026).</p>
             </div>
             <Button className="w-full" onClick={handleSave}>{editBatch ? "Update Batch" : "Create Batch"}</Button>
           </div>
