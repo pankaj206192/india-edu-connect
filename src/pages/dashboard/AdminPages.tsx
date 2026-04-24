@@ -474,12 +474,13 @@ export const ManageStudents = () => {
                       if (!s.batchId) return <span>—</span>;
                       const b = batches.find(x => x.id === s.batchId);
                       if (!b) return <span>—</span>;
-                      const year = b.createdAt ? new Date(b.createdAt).getFullYear() : null;
+                      const my = b.monthYear || (b.createdAt ? b.createdAt.slice(0, 7) : "");
+                      const myLabel = my ? new Date(my + "-01").toLocaleString(undefined, { month: "short", year: "numeric" }) : "";
                       return (
                         <div className="flex flex-col">
                           <span className="text-foreground font-medium">{b.name}</span>
                           {b.timings && <span className="text-xs text-muted-foreground">{b.timings}</span>}
-                          {year && <span className="text-xs text-muted-foreground">Year: {year}</span>}
+                          {myLabel && <span className="text-xs text-muted-foreground">{myLabel}</span>}
                         </div>
                       );
                     })()}
