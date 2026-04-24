@@ -365,17 +365,21 @@ export const ManageStudents = () => {
 
   const refresh = () => setStudents(getUsersByRole("student"));
 
+  const batchYearOf = (b?: Batch) => {
+    if (!b) return "";
+    if (b.monthYear) return b.monthYear.slice(0, 4);
+    return b.createdAt ? new Date(b.createdAt).getFullYear().toString() : "";
+  };
+
   const availableYears = Array.from(new Set(
-    batches
-      .map(b => (b.createdAt ? new Date(b.createdAt).getFullYear().toString() : ""))
-      .filter(Boolean)
+    batches.map(b => batchYearOf(b)).filter(Boolean)
   )).sort((a, b) => Number(b) - Number(a));
 
   const filtered = students.filter(s => {
     const q = search.toLowerCase();
     const batch = s.batchId ? batches.find(b => b.id === s.batchId) : undefined;
     const batchName = batch?.name.toLowerCase() || "";
-    const batchYear = batch?.createdAt ? new Date(batch.createdAt).getFullYear().toString() : "";
+    const batchYear = batchYearOf(batch);
     const matchesSearch = !q || (
       s.name.toLowerCase().includes(q) ||
       s.email.toLowerCase().includes(q) ||
