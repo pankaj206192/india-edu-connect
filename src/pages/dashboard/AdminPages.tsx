@@ -826,6 +826,11 @@ export const AdminResults = () => {
 
   const openGrading = (attempt: Attempt) => {
     setGradeAttempt(attempt);
+    // Auto-mark as read when admin opens the result detail
+    if (!reviewedIds.has(attempt.id)) {
+      markResultReviewed(attempt.id);
+      setReviewedIds(getReviewedResultIds());
+    }
     // Pre-fill with existing manual scores or 0
     const test = tests.find(t => t.id === attempt.testId);
     if (test) {
