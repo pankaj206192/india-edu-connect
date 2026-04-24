@@ -1744,24 +1744,37 @@ export const AdminBatches = () => {
   const [editBatch, setEditBatch] = useState<Batch | null>(null);
   const [name, setName] = useState("");
   const [timings, setTimings] = useState("");
+  const [monthYear, setMonthYear] = useState("");
   const [assignBatch, setAssignBatch] = useState<Batch | null>(null);
   const allStudents = getUsersByRole("student");
 
   const refresh = () => setBatches(getBatches());
 
   const handleSave = () => {
-    if (!name.trim() || !timings.trim()) {
-      toast({ title: "Error", description: "Please fill batch name and timings.", variant: "destructive" });
+    if (!name.trim() || !timings.trim() || !monthYear) {
+      toast({ title: "Error", description: "Please fill name, timings, and month/year.", variant: "destructive" });
+      return;
+    }
+    const nameN = name.trim().toLowerCase();
+    const timingsN = timings.trim().toLowerCase();
+    const duplicate = batches.find(b =>
+      (!editBatch || b.id !== editBatch.id) &&
+      b.name.trim().toLowerCase() === nameN &&
+      b.timings.trim().toLowerCase() === timingsN &&
+      (b.monthYear || "") === monthYear
+    );
+    if (duplicate) {
+      toast({ title: "Duplicate batch", description: "This batch already exists with the same name, timings, and month/year.", variant: "destructive" });
       return;
     }
     if (editBatch) {
-      saveBatch({ ...editBatch, name: name.trim(), timings: timings.trim() });
+      saveBatch({ ...editBatch, name: name.trim(), timings: timings.trim(), monthYear });
       toast({ title: "Updated", description: "Batch updated successfully." });
     } else {
-      saveBatch({ id: `batch-${Date.now()}`, name: name.trim(), timings: timings.trim(), createdAt: new Date().toISOString().split("T")[0] });
+      saveBatch({ id: `batch-${Date.now()}`, name: name.trim(), timings: timings.trim(), monthYear, createdAt: new Date().toISOString().split("T")[0] });
       toast({ title: "Created", description: "Batch created successfully." });
     }
-    setName(""); setTimings(""); setOpen(false); setEditBatch(null);
+    setName(""); setTimings(""); setMonthYear(""); setOpen(false); setEditBatch(null);
     refresh();
   };
 
@@ -1798,6 +1811,7 @@ export const AdminBatches = () => {
     setEditBatch(batch);
     setName(batch.name);
     setTimings(batch.timings);
+    setMonthYear(batch.monthYear || (batch.createdAt ? batch.createdAt.slice(0, 7) : ""));
     setOpen(true);
   };
 
@@ -1805,6 +1819,7 @@ export const AdminBatches = () => {
     setEditBatch(null);
     setName("");
     setTimings("");
+    setMonthYear("");
     setOpen(true);
   };
 
