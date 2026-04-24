@@ -955,7 +955,7 @@ export const AdminResults = () => {
           </div>
         </div>
         <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm min-w-[820px]">
             <thead>
               <tr className="border-b border-border bg-muted">
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Student</th>
