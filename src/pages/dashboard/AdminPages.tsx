@@ -1893,6 +1893,11 @@ export const AdminBatches = () => {
               <Label className="text-sm font-medium">Timings *</Label>
               <Input className="mt-1" placeholder="e.g. Mon-Fri 9:00 AM - 12:00 PM" value={timings} onChange={e => setTimings(e.target.value)} />
             </div>
+            <div>
+              <Label className="text-sm font-medium">Month & Year *</Label>
+              <Input type="month" className="mt-1" value={monthYear} onChange={e => setMonthYear(e.target.value)} />
+              <p className="mt-1 text-xs text-muted-foreground">Used to identify the batch year (e.g. April 2026).</p>
+            </div>
             <Button className="w-full" onClick={handleSave}>{editBatch ? "Update Batch" : "Create Batch"}</Button>
           </div>
         </DialogContent>
