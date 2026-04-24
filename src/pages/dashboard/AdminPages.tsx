@@ -779,9 +779,15 @@ export const AdminResults = () => {
   const [filterYear, setFilterYear] = useState<string>("");
   const [gradeAttempt, setGradeAttempt] = useState<Attempt | null>(null);
   const [manualScores, setManualScores] = useState<Record<string, number>>({});
+  const [reviewedIds, setReviewedIds] = useState(() => getReviewedResultIds());
   const tabSwitchLogs = getTabSwitchLogs();
 
   const refresh = () => setAttempts(getAttempts());
+
+  const handleMarkRead = (attemptId: string) => {
+    markResultReviewed(attemptId);
+    setReviewedIds(getReviewedResultIds());
+  };
 
   const enriched = attempts.map(a => {
     const test = tests.find(t => t.id === a.testId);
@@ -820,6 +826,11 @@ export const AdminResults = () => {
 
   const openGrading = (attempt: Attempt) => {
     setGradeAttempt(attempt);
+    // Auto-mark as read when admin opens the result detail
+    if (!reviewedIds.has(attempt.id)) {
+      markResultReviewed(attempt.id);
+      setReviewedIds(getReviewedResultIds());
+    }
     // Pre-fill with existing manual scores or 0
     const test = tests.find(t => t.id === attempt.testId);
     if (test) {
@@ -927,6 +938,7 @@ export const AdminResults = () => {
           <div className="flex flex-wrap gap-2 shrink-0">
             <Button variant="outline" size="sm" onClick={() => {
               markAllResultsReviewed();
+              setReviewedIds(getReviewedResultIds());
               toast({ title: "Done", description: "All results marked as reviewed." });
             }}>
               <CheckCheck className="mr-1 h-4 w-4" /> Mark All Reviewed
@@ -974,8 +986,15 @@ export const AdminResults = () => {
                 <tr><td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">No results match the filters.</td></tr>
               )}
               {filtered.map((r) => (
-                <tr key={r.id} className="border-b border-border last:border-0">
-                  <td className="px-4 py-3 font-medium text-foreground">{r.studentName}</td>
+                <tr key={r.id} className={`border-b border-border last:border-0 ${!reviewedIds.has(r.id) && r.gradingStatus !== "pending_review" ? "bg-primary/5" : ""}`}>
+                  <td className="px-4 py-3 font-medium text-foreground">
+                    <span className="inline-flex items-center gap-2">
+                      {!reviewedIds.has(r.id) && r.gradingStatus !== "pending_review" && (
+                        <span className="h-2 w-2 rounded-full bg-primary" title="Unread" />
+                      )}
+                      {r.studentName}
+                    </span>
+                  </td>
                   <td className="px-4 py-3 hidden md:table-cell">
                     {r.batchName ? (
                       <div className="flex flex-col">
@@ -1016,16 +1035,22 @@ export const AdminResults = () => {
                     {new Date(r.submittedAt).toLocaleDateString()}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    {r.gradingStatus === "pending_review" && (
-                      <Button size="sm" variant="outline" onClick={() => openGrading(r)}>
-                        <Pencil className="mr-1 h-3 w-3" /> Grade
-                      </Button>
-                    )}
-                    {r.gradingStatus !== "pending_review" && (
-                      <Button size="sm" variant="ghost" onClick={() => openGrading(r)}>
-                        <Eye className="mr-1 h-3 w-3" /> View Analysis
-                      </Button>
-                    )}
+                    <div className="flex items-center justify-end gap-1">
+                      {r.gradingStatus !== "pending_review" && !reviewedIds.has(r.id) && (
+                        <Button size="sm" variant="ghost" onClick={() => handleMarkRead(r.id)} title="Mark as read">
+                          <Check className="mr-1 h-3 w-3" /> Mark Read
+                        </Button>
+                      )}
+                      {r.gradingStatus === "pending_review" ? (
+                        <Button size="sm" variant="outline" onClick={() => openGrading(r)}>
+                          <Pencil className="mr-1 h-3 w-3" /> Grade
+                        </Button>
+                      ) : (
+                        <Button size="sm" variant="ghost" onClick={() => openGrading(r)}>
+                          <Eye className="mr-1 h-3 w-3" /> View Analysis
+                        </Button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
