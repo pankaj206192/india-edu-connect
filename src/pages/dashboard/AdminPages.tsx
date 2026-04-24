@@ -938,6 +938,7 @@ export const AdminResults = () => {
           <div className="flex flex-wrap gap-2 shrink-0">
             <Button variant="outline" size="sm" onClick={() => {
               markAllResultsReviewed();
+              setReviewedIds(getReviewedResultIds());
               toast({ title: "Done", description: "All results marked as reviewed." });
             }}>
               <CheckCheck className="mr-1 h-4 w-4" /> Mark All Reviewed
