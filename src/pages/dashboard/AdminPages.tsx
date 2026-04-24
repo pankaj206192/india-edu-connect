@@ -884,8 +884,8 @@ export const AdminResults = () => {
   return (
     <DashboardLayout role="admin" navItems={getAdminNavItems()} title="Results">
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:flex-wrap">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:flex-wrap min-w-0">
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Search</Label>
               <Input placeholder="Student or test..." className="w-full sm:w-56" value={search} onChange={e => setSearch(e.target.value)} />
@@ -924,7 +924,7 @@ export const AdminResults = () => {
               </Button>
             )}
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 shrink-0">
             <Button variant="outline" size="sm" onClick={() => {
               markAllResultsReviewed();
               toast({ title: "Done", description: "All results marked as reviewed." });
