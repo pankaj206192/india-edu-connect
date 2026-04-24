@@ -2123,7 +2123,7 @@ export const AdminFeedback = () => {
     <DashboardLayout role="admin" navItems={getAdminNavItems()} title="Student Feedback">
       <div className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
-          <Input placeholder="Search by student or test name..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
+          <Input placeholder="Search by student or test name..." className="w-full sm:w-64" value={search} onChange={e => setSearch(e.target.value)} />
           <Select value={filterBatch} onValueChange={v => setFilterBatch(v === "all" ? "" : v)}>
             <SelectTrigger className="w-48">
               <SelectValue placeholder="All Batches" />
@@ -2160,7 +2160,7 @@ export const AdminFeedback = () => {
               {availableYears.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
             </SelectContent>
           </Select>
-          <div className="flex gap-2 ml-auto">
+          <div className="flex flex-wrap gap-2 sm:ml-auto">
             <Button variant="outline" size="sm" onClick={handleMarkAllRead}>
               <CheckCheck className="mr-1 h-4 w-4" /> Mark All Read
             </Button>
