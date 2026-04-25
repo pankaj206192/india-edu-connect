@@ -401,11 +401,11 @@ export const ManageStudents = () => {
   return (
     <DashboardLayout role="admin" navItems={getAdminNavItems()} title="Manage Students">
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap">
-            <Input placeholder="Search by name, email, or batch..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap min-w-0">
+            <Input placeholder="Search by name, email, or batch..." className="w-full sm:max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
             <Select value={filterYear || "all"} onValueChange={v => setFilterYear(v === "all" ? "" : v)}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-full sm:w-40">
                 <SelectValue placeholder="Batch year" />
               </SelectTrigger>
               <SelectContent>
@@ -419,7 +419,7 @@ export const ManageStudents = () => {
               <Button variant="ghost" size="sm" onClick={() => { setSearch(""); setFilterYear(""); }}>Clear</Button>
             )}
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 shrink-0">
             <Button variant="outline" onClick={() => {
               const rows = filtered.map(s => {
                 const b = s.batchId ? batches.find(x => x.id === s.batchId) : undefined;
