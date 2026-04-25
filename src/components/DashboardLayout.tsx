@@ -180,6 +180,9 @@ const DashboardLayout = ({ children, role, navItems, title }: DashboardLayoutPro
         <main className="flex-1 overflow-y-auto p-4 lg:p-6">
           {children}
         </main>
+        <footer className="border-t border-border bg-card px-4 py-3 text-center text-xs text-muted-foreground lg:px-6">
+          © 2026 Ethical India. All rights reserved.
+        </footer>
       </div>
 
       <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>
