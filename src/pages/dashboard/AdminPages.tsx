@@ -2271,7 +2271,7 @@ export const AdminLiveTest = () => {
       <div className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <Select value={selectedTest} onValueChange={v => setSelectedTest(v === "all" ? "" : v)}>
-            <SelectTrigger className="w-64">
+            <SelectTrigger className="w-full sm:w-64">
               <SelectValue placeholder="All Proctored Tests" />
             </SelectTrigger>
             <SelectContent>
