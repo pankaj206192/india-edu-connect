@@ -487,11 +487,13 @@ export const ManageStudents = () => {
                       );
                     })()}
                   </td>
-                  <td className="px-4 py-3 text-right flex items-center justify-end gap-1">
-                    <EditUserDialog student={s} onUpdated={refresh} />
-                    <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(s)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-1">
+                      <EditUserDialog student={s} onUpdated={refresh} />
+                      <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(s)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}
