@@ -47,7 +47,8 @@ const Login = () => {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen flex-col">
+     <div className="flex flex-1">
       {/* Left Panel */}
       <div className="hidden w-1/2 bg-gradient-hero lg:flex lg:flex-col lg:items-center lg:justify-center lg:p-12">
         <div className="max-w-md text-center">
@@ -171,6 +172,10 @@ const Login = () => {
           </button>
         </div>
       </div>
+     </div>
+     <footer className="border-t border-border bg-card px-4 py-3 text-center text-xs text-muted-foreground">
+       © 2026 Ethical India. All rights reserved.
+     </footer>
     </div>
   );
 };
