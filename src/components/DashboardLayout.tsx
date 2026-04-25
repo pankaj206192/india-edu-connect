@@ -181,7 +181,7 @@ const DashboardLayout = ({ children, role, navItems, title }: DashboardLayoutPro
           {children}
         </main>
         <footer className="border-t border-border bg-card px-4 py-3 text-center text-xs text-muted-foreground lg:px-6">
-          © 2026 Ethical India. All rights reserved.
+          © 2026 <span className="font-bold text-foreground">Ethical India</span>. All rights reserved.
         </footer>
       </div>
 
