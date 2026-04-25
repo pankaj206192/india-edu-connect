@@ -401,11 +401,11 @@ export const ManageStudents = () => {
   return (
     <DashboardLayout role="admin" navItems={getAdminNavItems()} title="Manage Students">
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap">
-            <Input placeholder="Search by name, email, or batch..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap min-w-0">
+            <Input placeholder="Search by name, email, or batch..." className="w-full sm:max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
             <Select value={filterYear || "all"} onValueChange={v => setFilterYear(v === "all" ? "" : v)}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-full sm:w-40">
                 <SelectValue placeholder="Batch year" />
               </SelectTrigger>
               <SelectContent>
@@ -419,7 +419,7 @@ export const ManageStudents = () => {
               <Button variant="ghost" size="sm" onClick={() => { setSearch(""); setFilterYear(""); }}>Clear</Button>
             )}
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 shrink-0">
             <Button variant="outline" onClick={() => {
               const rows = filtered.map(s => {
                 const b = s.batchId ? batches.find(x => x.id === s.batchId) : undefined;
@@ -487,11 +487,13 @@ export const ManageStudents = () => {
                       );
                     })()}
                   </td>
-                  <td className="px-4 py-3 text-right flex items-center justify-end gap-1">
-                    <EditUserDialog student={s} onUpdated={refresh} />
-                    <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(s)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-1">
+                      <EditUserDialog student={s} onUpdated={refresh} />
+                      <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(s)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -578,8 +580,8 @@ export const AdminTests = () => {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <Input placeholder="Search tests..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
         </div>
-        <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="rounded-xl border border-border bg-card shadow-card overflow-x-auto">
+          <table className="w-full text-sm min-w-[640px]">
             <thead>
               <tr className="border-b border-border bg-muted">
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Test Name</th>
@@ -607,16 +609,18 @@ export const AdminTests = () => {
                       "bg-warning/10 text-warning"
                     }`}>{t.status}</span>
                   </td>
-                  <td className="px-4 py-3 text-right flex items-center justify-end gap-1">
-                    <Button variant="ghost" size="sm" onClick={() => navigate(`/dashboard/admin/edit-test?id=${t.id}`)} title="Edit Test">
-                      <Pencil className="h-4 w-4 text-foreground" />
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => setAssignTest(t)} title="Assign Students">
-                      <GraduationCap className="h-4 w-4 text-primary" />
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(t)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-1">
+                      <Button variant="ghost" size="sm" onClick={() => navigate(`/dashboard/admin/edit-test?id=${t.id}`)} title="Edit Test">
+                        <Pencil className="h-4 w-4 text-foreground" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => setAssignTest(t)} title="Assign Students">
+                        <GraduationCap className="h-4 w-4 text-primary" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(t)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -1859,8 +1863,8 @@ export const AdminBatches = () => {
           </Button>
         </div>
 
-        <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="rounded-xl border border-border bg-card shadow-card overflow-x-auto">
+          <table className="w-full text-sm min-w-[640px]">
             <thead>
               <tr className="border-b border-border bg-muted">
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Batch Name</th>
@@ -1890,16 +1894,18 @@ export const AdminBatches = () => {
                     <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{myLabel}</td>
                     <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{studentCount} students</td>
                     <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{b.createdAt}</td>
-                    <td className="px-4 py-3 text-right flex items-center justify-end gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => setAssignBatch(b)} title="Assign Students">
-                        <GraduationCap className="h-4 w-4 text-primary" />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => openEdit(b)} title="Edit Batch">
-                        <Pencil className="h-4 w-4 text-foreground" />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(b)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => setAssignBatch(b)} title="Assign Students">
+                          <GraduationCap className="h-4 w-4 text-primary" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => openEdit(b)} title="Edit Batch">
+                          <Pencil className="h-4 w-4 text-foreground" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(b)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -2142,10 +2148,10 @@ export const AdminFeedback = () => {
   return (
     <DashboardLayout role="admin" navItems={getAdminNavItems()} title="Student Feedback">
       <div className="space-y-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
-          <Input placeholder="Search by student or test name..." className="w-full sm:w-64" value={search} onChange={e => setSearch(e.target.value)} />
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:flex-wrap">
+          <Input placeholder="Search by student or test name..." className="w-full lg:w-64" value={search} onChange={e => setSearch(e.target.value)} />
           <Select value={filterBatch} onValueChange={v => setFilterBatch(v === "all" ? "" : v)}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-full sm:w-48">
               <SelectValue placeholder="All Batches" />
             </SelectTrigger>
             <SelectContent>
@@ -2154,7 +2160,7 @@ export const AdminFeedback = () => {
             </SelectContent>
           </Select>
           <Select value={filterTest} onValueChange={v => setFilterTest(v === "all" ? "" : v)}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-full sm:w-48">
               <SelectValue placeholder="All Tests" />
             </SelectTrigger>
             <SelectContent>
@@ -2163,7 +2169,7 @@ export const AdminFeedback = () => {
             </SelectContent>
           </Select>
           <Select value={filterMonth} onValueChange={v => setFilterMonth(v === "all" ? "" : v)}>
-            <SelectTrigger className="w-36">
+            <SelectTrigger className="w-full sm:w-36">
               <SelectValue placeholder="All Months" />
             </SelectTrigger>
             <SelectContent>
@@ -2172,7 +2178,7 @@ export const AdminFeedback = () => {
             </SelectContent>
           </Select>
           <Select value={filterYear} onValueChange={v => setFilterYear(v === "all" ? "" : v)}>
-            <SelectTrigger className="w-32">
+            <SelectTrigger className="w-full sm:w-32">
               <SelectValue placeholder="All Years" />
             </SelectTrigger>
             <SelectContent>
@@ -2180,7 +2186,7 @@ export const AdminFeedback = () => {
               {availableYears.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
             </SelectContent>
           </Select>
-          <div className="flex flex-wrap gap-2 sm:ml-auto">
+          <div className="flex flex-wrap gap-2 lg:ml-auto">
             <Button variant="outline" size="sm" onClick={handleMarkAllRead}>
               <CheckCheck className="mr-1 h-4 w-4" /> Mark All Read
             </Button>
@@ -2265,7 +2271,7 @@ export const AdminLiveTest = () => {
       <div className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <Select value={selectedTest} onValueChange={v => setSelectedTest(v === "all" ? "" : v)}>
-            <SelectTrigger className="w-64">
+            <SelectTrigger className="w-full sm:w-64">
               <SelectValue placeholder="All Proctored Tests" />
             </SelectTrigger>
             <SelectContent>

@@ -45,17 +45,17 @@ export const StudentTests = () => {
           </div>
         )}
         {pendingTests.map(test => (
-          <div key={test.id} className="flex items-center justify-between rounded-xl border border-border bg-card p-5 shadow-card">
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted">
+          <div key={test.id} className="flex flex-col gap-3 rounded-xl border border-border bg-card p-5 shadow-card sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-muted">
                 <BookOpen className="h-6 w-6 text-secondary" />
               </div>
-              <div>
-                <h3 className="font-medium text-foreground">{test.name}</h3>
+              <div className="min-w-0">
+                <h3 className="font-medium text-foreground truncate">{test.name}</h3>
                 <p className="text-sm text-muted-foreground">{test.timeLimitMinutes} min · {test.questions.length} questions</p>
               </div>
             </div>
-            <Button variant="hero" onClick={() => navigate(`/dashboard/student/test-attempt?testId=${test.id}`)}>
+            <Button variant="hero" className="w-full sm:w-auto shrink-0" onClick={() => navigate(`/dashboard/student/test-attempt?testId=${test.id}`)}>
               Start Test
             </Button>
           </div>
@@ -113,8 +113,8 @@ export const TestHistory = () => {
         {attempts.length === 0 ? (
           <p className="text-muted-foreground">No tests attempted yet.</p>
         ) : (
-          <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="rounded-xl border border-border bg-card shadow-card overflow-x-auto">
+            <table className="w-full text-sm min-w-[560px]">
               <thead>
                 <tr className="border-b border-border bg-muted">
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">Test Name</th>
@@ -688,9 +688,9 @@ export const TestAttempt = () => {
     <div className="min-h-screen bg-background">
       {/* Minimal header */}
       <div className="border-b border-border bg-card px-4 py-3">
-        <div className="mx-auto flex max-w-3xl items-center justify-between">
-          <h1 className="font-display text-lg font-bold text-foreground truncate">{test.name}</h1>
-          <div className="flex items-center gap-3">
+        <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 flex-wrap">
+          <h1 className="font-display text-base sm:text-lg font-bold text-foreground truncate min-w-0 flex-1">{test.name}</h1>
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
             {/* Camera indicator */}
             {test.liveCameraEnabled && (
               <div className={`flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs ${cameraActive ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
@@ -782,11 +782,11 @@ export const TestAttempt = () => {
         </div>
 
         {/* Navigation */}
-        <div className="flex items-center justify-between">
-          <Button variant="outline" disabled={currentQ === 0} onClick={() => setCurrentQ(currentQ - 1)}>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <Button variant="outline" className="w-full sm:w-auto" disabled={currentQ === 0} onClick={() => setCurrentQ(currentQ - 1)}>
             Previous
           </Button>
-          <div className="flex gap-1 flex-wrap justify-center">
+          <div className="flex gap-1 flex-wrap justify-center order-last sm:order-none">
             {test.questions.map((_, i) => (
               <button
                 key={i}
@@ -802,9 +802,9 @@ export const TestAttempt = () => {
             ))}
           </div>
           {currentQ < test.questions.length - 1 ? (
-            <Button onClick={() => setCurrentQ(currentQ + 1)}>Next</Button>
+            <Button className="w-full sm:w-auto" onClick={() => setCurrentQ(currentQ + 1)}>Next</Button>
           ) : (
-            <Button variant="hero" onClick={submitTest} disabled={submitted}>
+            <Button variant="hero" className="w-full sm:w-auto" onClick={submitTest} disabled={submitted}>
               Submit Test
             </Button>
           )}
