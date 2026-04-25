@@ -782,11 +782,11 @@ export const TestAttempt = () => {
         </div>
 
         {/* Navigation */}
-        <div className="flex items-center justify-between">
-          <Button variant="outline" disabled={currentQ === 0} onClick={() => setCurrentQ(currentQ - 1)}>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <Button variant="outline" className="w-full sm:w-auto" disabled={currentQ === 0} onClick={() => setCurrentQ(currentQ - 1)}>
             Previous
           </Button>
-          <div className="flex gap-1 flex-wrap justify-center">
+          <div className="flex gap-1 flex-wrap justify-center order-last sm:order-none">
             {test.questions.map((_, i) => (
               <button
                 key={i}
@@ -802,9 +802,9 @@ export const TestAttempt = () => {
             ))}
           </div>
           {currentQ < test.questions.length - 1 ? (
-            <Button onClick={() => setCurrentQ(currentQ + 1)}>Next</Button>
+            <Button className="w-full sm:w-auto" onClick={() => setCurrentQ(currentQ + 1)}>Next</Button>
           ) : (
-            <Button variant="hero" onClick={submitTest} disabled={submitted}>
+            <Button variant="hero" className="w-full sm:w-auto" onClick={submitTest} disabled={submitted}>
               Submit Test
             </Button>
           )}
