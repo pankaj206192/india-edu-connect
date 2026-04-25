@@ -119,7 +119,7 @@ const Landing = () => {
             <BookOpen className="h-4 w-4 text-secondary" />
             <span className="font-display font-bold text-foreground">Ethical India</span>
           </div>
-          <p>© 2026 Ethical India. All rights reserved.</p>
+          <p>© 2026 <span className="font-bold text-foreground">Ethical India</span>. All rights reserved.</p>
         </div>
       </footer>
     </div>

@@ -174,7 +174,7 @@ const Login = () => {
       </div>
      </div>
      <footer className="border-t border-border bg-card px-4 py-3 text-center text-xs text-muted-foreground">
-       © 2026 Ethical India. All rights reserved.
+       © 2026 <span className="font-bold text-foreground">Ethical India</span>. All rights reserved.
      </footer>
     </div>
   );
