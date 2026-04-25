@@ -2148,10 +2148,10 @@ export const AdminFeedback = () => {
   return (
     <DashboardLayout role="admin" navItems={getAdminNavItems()} title="Student Feedback">
       <div className="space-y-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
-          <Input placeholder="Search by student or test name..." className="w-full sm:w-64" value={search} onChange={e => setSearch(e.target.value)} />
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:flex-wrap">
+          <Input placeholder="Search by student or test name..." className="w-full lg:w-64" value={search} onChange={e => setSearch(e.target.value)} />
           <Select value={filterBatch} onValueChange={v => setFilterBatch(v === "all" ? "" : v)}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-full sm:w-48">
               <SelectValue placeholder="All Batches" />
             </SelectTrigger>
             <SelectContent>
@@ -2160,7 +2160,7 @@ export const AdminFeedback = () => {
             </SelectContent>
           </Select>
           <Select value={filterTest} onValueChange={v => setFilterTest(v === "all" ? "" : v)}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-full sm:w-48">
               <SelectValue placeholder="All Tests" />
             </SelectTrigger>
             <SelectContent>
@@ -2169,7 +2169,7 @@ export const AdminFeedback = () => {
             </SelectContent>
           </Select>
           <Select value={filterMonth} onValueChange={v => setFilterMonth(v === "all" ? "" : v)}>
-            <SelectTrigger className="w-36">
+            <SelectTrigger className="w-full sm:w-36">
               <SelectValue placeholder="All Months" />
             </SelectTrigger>
             <SelectContent>
@@ -2178,7 +2178,7 @@ export const AdminFeedback = () => {
             </SelectContent>
           </Select>
           <Select value={filterYear} onValueChange={v => setFilterYear(v === "all" ? "" : v)}>
-            <SelectTrigger className="w-32">
+            <SelectTrigger className="w-full sm:w-32">
               <SelectValue placeholder="All Years" />
             </SelectTrigger>
             <SelectContent>
@@ -2186,7 +2186,7 @@ export const AdminFeedback = () => {
               {availableYears.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
             </SelectContent>
           </Select>
-          <div className="flex flex-wrap gap-2 sm:ml-auto">
+          <div className="flex flex-wrap gap-2 lg:ml-auto">
             <Button variant="outline" size="sm" onClick={handleMarkAllRead}>
               <CheckCheck className="mr-1 h-4 w-4" /> Mark All Read
             </Button>
