@@ -1892,16 +1892,18 @@ export const AdminBatches = () => {
                     <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{myLabel}</td>
                     <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{studentCount} students</td>
                     <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{b.createdAt}</td>
-                    <td className="px-4 py-3 text-right flex items-center justify-end gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => setAssignBatch(b)} title="Assign Students">
-                        <GraduationCap className="h-4 w-4 text-primary" />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => openEdit(b)} title="Edit Batch">
-                        <Pencil className="h-4 w-4 text-foreground" />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(b)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => setAssignBatch(b)} title="Assign Students">
+                          <GraduationCap className="h-4 w-4 text-primary" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => openEdit(b)} title="Edit Batch">
+                          <Pencil className="h-4 w-4 text-foreground" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(b)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 );
