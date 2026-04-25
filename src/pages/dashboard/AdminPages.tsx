@@ -578,8 +578,8 @@ export const AdminTests = () => {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <Input placeholder="Search tests..." className="max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
         </div>
-        <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="rounded-xl border border-border bg-card shadow-card overflow-x-auto">
+          <table className="w-full text-sm min-w-[640px]">
             <thead>
               <tr className="border-b border-border bg-muted">
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Test Name</th>
