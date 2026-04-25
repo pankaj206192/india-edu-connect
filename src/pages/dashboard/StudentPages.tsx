@@ -45,17 +45,17 @@ export const StudentTests = () => {
           </div>
         )}
         {pendingTests.map(test => (
-          <div key={test.id} className="flex items-center justify-between rounded-xl border border-border bg-card p-5 shadow-card">
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted">
+          <div key={test.id} className="flex flex-col gap-3 rounded-xl border border-border bg-card p-5 shadow-card sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-muted">
                 <BookOpen className="h-6 w-6 text-secondary" />
               </div>
-              <div>
-                <h3 className="font-medium text-foreground">{test.name}</h3>
+              <div className="min-w-0">
+                <h3 className="font-medium text-foreground truncate">{test.name}</h3>
                 <p className="text-sm text-muted-foreground">{test.timeLimitMinutes} min · {test.questions.length} questions</p>
               </div>
             </div>
-            <Button variant="hero" onClick={() => navigate(`/dashboard/student/test-attempt?testId=${test.id}`)}>
+            <Button variant="hero" className="w-full sm:w-auto shrink-0" onClick={() => navigate(`/dashboard/student/test-attempt?testId=${test.id}`)}>
               Start Test
             </Button>
           </div>
