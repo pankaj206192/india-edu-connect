@@ -1036,11 +1036,6 @@ export const AdminResults = () => {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      {r.gradingStatus !== "pending_review" && !reviewedIds.has(r.id) && (
-                        <Button size="sm" variant="ghost" onClick={() => handleMarkRead(r.id)} title="Mark as read">
-                          <Check className="mr-1 h-3 w-3" /> Mark Read
-                        </Button>
-                      )}
                       {r.gradingStatus === "pending_review" ? (
                         <Button size="sm" variant="outline" onClick={() => openGrading(r)}>
                           <Pencil className="mr-1 h-3 w-3" /> Grade
