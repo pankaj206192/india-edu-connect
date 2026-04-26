@@ -1,18 +1,18 @@
 import DashboardLayout from "@/components/DashboardLayout";
-import { LayoutDashboard, FileText, History, Award, BookOpen, Download, Clock, CheckCircle, RotateCcw, User as UserIcon, KeyRound, AlertTriangle, Camera, EyeOff } from "lucide-react";
+import { LayoutDashboard, FileText, History, Award, BookOpen, Download, Clock, CheckCircle, RotateCcw, User as UserIcon, KeyRound, AlertTriangle, Camera, EyeOff, HelpCircle, Mail, Phone, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useCopyProtection } from "@/hooks/use-copy-protection";
-import { useAuth, getUsers, updateUser, type User } from "@/lib/auth";
+import { useAuth, getUsers, updateUser, getUsersByRole, type User } from "@/lib/auth";
 import { useNavigate } from "react-router-dom";
 import {
   getTestsForStudent, hasAttempted, getAttemptsForStudent,
   getCertificatesForStudent, gradeTest, saveAttempt, saveCertificate,
   generateCertificateId, getTests, type Test,
   hasRetakeRequest, saveRetakeRequest, getRetakeRequestsForStudent,
-  saveFeedback, saveTabSwitchLog, saveCameraSnapshot,
+  saveFeedback, saveTabSwitchLog, saveCameraSnapshot, getSettings,
 } from "@/lib/store";
 import { generateCertificatePDF } from "@/lib/pdf";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -23,6 +23,7 @@ const navItems = [
   { label: "My Tests", path: "/dashboard/student/tests", icon: <FileText className="h-4 w-4" /> },
   { label: "Test History", path: "/dashboard/student/history", icon: <History className="h-4 w-4" /> },
   { label: "Certificates", path: "/dashboard/student/certificates", icon: <Award className="h-4 w-4" /> },
+  { label: "Help", path: "/dashboard/student/help", icon: <HelpCircle className="h-4 w-4" /> },
 ];
 
 export const StudentTests = () => {
