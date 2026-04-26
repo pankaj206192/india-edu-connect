@@ -909,3 +909,88 @@ export const StudentProfile = () => {
     </DashboardLayout>
   );
 };
+
+export const StudentHelp = () => {
+  const settings = getSettings();
+  const admins = getUsersByRole("admin");
+  const primaryAdmin = admins[0];
+
+  const email = primaryAdmin?.email || settings.contactEmail;
+  const phone = primaryAdmin?.mobile || "";
+  const adminName = primaryAdmin?.name || "Admin";
+  const instituteName = settings.instituteName;
+
+  return (
+    <DashboardLayout role="student" navItems={navItems} title="Help & Support">
+      <div className="max-w-2xl space-y-6">
+        <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
+              <HelpCircle className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="font-display text-lg font-bold text-foreground">Need help?</h2>
+              <p className="text-sm text-muted-foreground">
+                Reach out to your administrator for any questions about tests, certificates, or your account.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-3">
+              <Building2 className="h-5 w-5 text-muted-foreground shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">Institute</p>
+                <p className="font-medium text-foreground truncate">{instituteName}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-3">
+              <UserIcon className="h-5 w-5 text-muted-foreground shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">Administrator</p>
+                <p className="font-medium text-foreground truncate">{adminName}</p>
+              </div>
+            </div>
+
+            <a
+              href={`mailto:${email}`}
+              className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-3 hover:bg-muted/60 transition-colors"
+            >
+              <Mail className="h-5 w-5 text-muted-foreground shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">Email</p>
+                <p className="font-medium text-primary break-all">{email}</p>
+              </div>
+            </a>
+
+            {phone ? (
+              <a
+                href={`tel:${phone}`}
+                className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-3 hover:bg-muted/60 transition-colors"
+              >
+                <Phone className="h-5 w-5 text-muted-foreground shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground">Phone</p>
+                  <p className="font-medium text-primary">{phone}</p>
+                </div>
+              </a>
+            ) : (
+              <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-3">
+                <Phone className="h-5 w-5 text-muted-foreground shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground">Phone</p>
+                  <p className="text-sm text-muted-foreground italic">Not available</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <p className="mt-4 text-xs text-muted-foreground italic">
+            Working hours: Monday – Saturday, 9:00 AM – 6:00 PM
+          </p>
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+};
