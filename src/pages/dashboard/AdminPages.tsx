@@ -1787,6 +1787,26 @@ export const CreateTest = () => {
           <Button variant="outline" onClick={() => addQuestion("mcq")}>+ MCQ</Button>
           <Button variant="outline" onClick={() => addQuestion("short")}>+ Short Answer</Button>
           <Button variant="outline" onClick={() => addQuestion("long")}>+ Long Answer</Button>
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            <Button variant="outline" onClick={downloadSampleTemplate} type="button">
+              <Download className="mr-1 h-4 w-4" /> Sample CSV
+            </Button>
+            <label className="inline-flex">
+              <input
+                type="file"
+                accept=".csv,.xlsx,.xls,.txt"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) importQuestionsFromFile(f);
+                  e.target.value = "";
+                }}
+              />
+              <span className="inline-flex items-center justify-center gap-1 h-10 px-4 py-2 rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors">
+                <Upload className="mr-1 h-4 w-4" /> Import MCQs
+              </span>
+            </label>
+          </div>
         </div>
 
         <Button variant="hero" size="lg" className="w-full" onClick={handleSave}>
