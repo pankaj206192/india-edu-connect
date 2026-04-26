@@ -1,6 +1,6 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import StatCard from "@/components/StatCard";
-import { FileText, Award, Clock, LayoutDashboard, BookOpen, History, User } from "lucide-react";
+import { FileText, Award, Clock, LayoutDashboard, BookOpen, History, User, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
 import { getTestsForStudent, hasAttempted, getAttemptsForStudent, getCertificatesForStudent } from "@/lib/store";
@@ -12,6 +12,7 @@ const navItems = [
   { label: "My Tests", path: "/dashboard/student/tests", icon: <FileText className="h-4 w-4" /> },
   { label: "Test History", path: "/dashboard/student/history", icon: <History className="h-4 w-4" /> },
   { label: "Certificates", path: "/dashboard/student/certificates", icon: <Award className="h-4 w-4" /> },
+  { label: "Help", path: "/dashboard/student/help", icon: <HelpCircle className="h-4 w-4" /> },
 ];
 
 const StudentDashboard = () => {
