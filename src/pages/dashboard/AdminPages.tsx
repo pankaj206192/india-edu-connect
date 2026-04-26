@@ -2213,7 +2213,11 @@ export const AdminFeedback = () => {
               const batch = batches.find(b => b.id === fb.batchId);
               const isRead = reviewedIds.has(fb.id);
               return (
-                <div key={fb.id} className={`rounded-xl border bg-card p-5 shadow-card transition-colors ${isRead ? "border-border opacity-75" : "border-primary/30 bg-primary/5"}`}>
+                <div
+                  key={fb.id}
+                  onClick={() => { if (!isRead) handleMarkRead(fb.id); }}
+                  className={`rounded-xl border bg-card p-5 shadow-card transition-colors ${isRead ? "border-border opacity-75" : "border-primary/30 bg-primary/5 cursor-pointer hover:bg-primary/10"}`}
+                >
                   <div className="flex items-start justify-between gap-4 mb-2">
                     <div>
                       <div className="flex items-center gap-2">
