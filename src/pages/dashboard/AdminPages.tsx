@@ -1479,6 +1479,124 @@ export const CreateTest = () => {
     }]);
   };
 
+  const importQuestionsFromFile = async (file: File) => {
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase();
+      let rows: string[][] = [];
+
+      if (ext === "csv" || ext === "txt") {
+        const text = await file.text();
+        // Simple CSV parser supporting quoted fields
+        const parseCsv = (input: string): string[][] => {
+          const result: string[][] = [];
+          let row: string[] = [];
+          let cur = "";
+          let inQuotes = false;
+          for (let i = 0; i < input.length; i++) {
+            const ch = input[i];
+            if (inQuotes) {
+              if (ch === '"' && input[i + 1] === '"') { cur += '"'; i++; }
+              else if (ch === '"') { inQuotes = false; }
+              else { cur += ch; }
+            } else {
+              if (ch === '"') inQuotes = true;
+              else if (ch === ",") { row.push(cur); cur = ""; }
+              else if (ch === "\n") { row.push(cur); result.push(row); row = []; cur = ""; }
+              else if (ch === "\r") { /* skip */ }
+              else if (ch === "\t" && ext === "txt") { row.push(cur); cur = ""; }
+              else { cur += ch; }
+            }
+          }
+          if (cur.length > 0 || row.length > 0) { row.push(cur); result.push(row); }
+          return result.filter(r => r.some(c => c && c.trim().length > 0));
+        };
+        rows = parseCsv(text);
+      } else if (ext === "xlsx" || ext === "xls") {
+        const buf = await file.arrayBuffer();
+        const wb = XLSX.read(buf, { type: "array" });
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+        rows = XLSX.utils.sheet_to_json(sheet, { header: 1, blankrows: false, defval: "" }) as string[][];
+        rows = rows.map(r => r.map(c => (c == null ? "" : String(c)))).filter(r => r.some(c => c && c.trim().length > 0));
+      } else {
+        toast({ title: "Unsupported file", description: "Please upload a .csv, .xlsx, .xls, or .txt file.", variant: "destructive" });
+        return;
+      }
+
+      if (rows.length === 0) {
+        toast({ title: "Empty file", description: "No rows were found in the file.", variant: "destructive" });
+        return;
+      }
+
+      // Detect header row by checking if first row contains "question" keyword
+      const first = rows[0].map(c => (c || "").toString().trim().toLowerCase());
+      const hasHeader = first.some(c => c.includes("question")) && first.some(c => c.includes("option") || c.includes("answer"));
+      const dataRows = hasHeader ? rows.slice(1) : rows;
+
+      const imported: Question[] = [];
+      let skipped = 0;
+      dataRows.forEach((r, idx) => {
+        // Expected: Question, OptionA, OptionB, OptionC, OptionD, CorrectAnswer, Marks(optional)
+        const text = (r[0] || "").toString().trim();
+        const opts = [r[1], r[2], r[3], r[4]].map(o => (o || "").toString().trim());
+        const correctRaw = (r[5] || "").toString().trim();
+        const marksRaw = (r[6] || "").toString().trim();
+        if (!text || opts.filter(o => o).length < 2 || !correctRaw) { skipped++; return; }
+
+        // Normalize correct answer to a letter A/B/C/D
+        let correctLetter = "";
+        const upper = correctRaw.toUpperCase();
+        if (["A", "B", "C", "D"].includes(upper)) {
+          correctLetter = upper;
+        } else {
+          const matchIdx = opts.findIndex(o => o.toLowerCase() === correctRaw.toLowerCase());
+          if (matchIdx >= 0) correctLetter = String.fromCharCode(65 + matchIdx);
+        }
+        if (!correctLetter) { skipped++; return; }
+
+        const marks = Math.max(1, parseInt(marksRaw) || 1);
+        imported.push({
+          id: Date.now() + idx,
+          type: "mcq",
+          text,
+          marks,
+          options: [opts[0] || "", opts[1] || "", opts[2] || "", opts[3] || ""],
+          correctAnswer: correctLetter,
+        });
+      });
+
+      if (imported.length === 0) {
+        toast({ title: "No valid questions found", description: "Check the file format. Required columns: Question, Option A, Option B, Option C, Option D, Correct Answer (A/B/C/D), Marks (optional).", variant: "destructive" });
+        return;
+      }
+
+      // If existing questions are all empty placeholders, replace them; else append
+      const onlyEmpty = questions.every(q => !q.text.trim());
+      setQuestions(onlyEmpty ? imported : [...questions, ...imported]);
+      toast({
+        title: "Questions imported",
+        description: `${imported.length} MCQ${imported.length === 1 ? "" : "s"} added${skipped > 0 ? `, ${skipped} row(s) skipped` : ""}.`,
+      });
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Import failed", description: "Could not read the file. Please check the format.", variant: "destructive" });
+    }
+  };
+
+  const downloadSampleTemplate = () => {
+    const csv = [
+      "Question,Option A,Option B,Option C,Option D,Correct Answer,Marks",
+      '"What is 2 + 2?","3","4","5","6","B",1',
+      '"Capital of France?","London","Berlin","Paris","Rome","C",2',
+    ].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "mcq-sample-template.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const removeQuestion = (id: number) => {
     if (questions.length > 1) setQuestions(questions.filter(q => q.id !== id));
   };
