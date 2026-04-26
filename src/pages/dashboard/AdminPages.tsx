@@ -1864,7 +1864,10 @@ export const CreateTest = () => {
           <Button variant="outline" onClick={() => addQuestion("long")}>+ Long Answer</Button>
           <div className="ml-auto flex flex-wrap items-center gap-2">
             <Button variant="outline" onClick={downloadSampleTemplate} type="button">
-              <Download className="mr-1 h-4 w-4" /> Sample CSV
+              <Download className="mr-1 h-4 w-4" /> Sample MCQ
+            </Button>
+            <Button variant="outline" onClick={downloadShortLongTemplate} type="button">
+              <Download className="mr-1 h-4 w-4" /> Sample Short/Long
             </Button>
             <label className="inline-flex">
               <input
@@ -1878,7 +1881,7 @@ export const CreateTest = () => {
                 }}
               />
               <span className="inline-flex items-center justify-center gap-1 h-10 px-4 py-2 rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors">
-                <Upload className="mr-1 h-4 w-4" /> Import MCQs
+                <Upload className="mr-1 h-4 w-4" /> Import Questions
               </span>
             </label>
           </div>
