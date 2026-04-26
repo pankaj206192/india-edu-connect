@@ -13,7 +13,6 @@ import { generateCertificatePDF } from "@/lib/pdf";
 import { exportCSV } from "@/lib/csv";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import * as XLSX from "xlsx";
 
 function getAdminNavItems() {
   const pendingRetakes = getRetakeRequests().filter(r => r.status === "pending").length;
