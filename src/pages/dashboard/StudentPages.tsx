@@ -1,18 +1,18 @@
 import DashboardLayout from "@/components/DashboardLayout";
-import { LayoutDashboard, FileText, History, Award, BookOpen, Download, Clock, CheckCircle, RotateCcw, User as UserIcon, KeyRound, AlertTriangle, Camera, EyeOff } from "lucide-react";
+import { LayoutDashboard, FileText, History, Award, BookOpen, Download, Clock, CheckCircle, RotateCcw, User as UserIcon, KeyRound, AlertTriangle, Camera, EyeOff, HelpCircle, Mail, Phone, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useCopyProtection } from "@/hooks/use-copy-protection";
-import { useAuth, getUsers, updateUser, type User } from "@/lib/auth";
+import { useAuth, getUsers, updateUser, getUsersByRole, type User } from "@/lib/auth";
 import { useNavigate } from "react-router-dom";
 import {
   getTestsForStudent, hasAttempted, getAttemptsForStudent,
   getCertificatesForStudent, gradeTest, saveAttempt, saveCertificate,
   generateCertificateId, getTests, type Test,
   hasRetakeRequest, saveRetakeRequest, getRetakeRequestsForStudent,
-  saveFeedback, saveTabSwitchLog, saveCameraSnapshot,
+  saveFeedback, saveTabSwitchLog, saveCameraSnapshot, getSettings,
 } from "@/lib/store";
 import { generateCertificatePDF } from "@/lib/pdf";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -23,6 +23,7 @@ const navItems = [
   { label: "My Tests", path: "/dashboard/student/tests", icon: <FileText className="h-4 w-4" /> },
   { label: "Test History", path: "/dashboard/student/history", icon: <History className="h-4 w-4" /> },
   { label: "Certificates", path: "/dashboard/student/certificates", icon: <Award className="h-4 w-4" /> },
+  { label: "Help", path: "/dashboard/student/help", icon: <HelpCircle className="h-4 w-4" /> },
 ];
 
 export const StudentTests = () => {
@@ -903,6 +904,91 @@ export const StudentProfile = () => {
           )}
 
           <p className="text-xs text-muted-foreground italic">Other profile details are managed by the admin.</p>
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+};
+
+export const StudentHelp = () => {
+  const settings = getSettings();
+  const admins = getUsersByRole("admin");
+  const primaryAdmin = admins[0];
+
+  const email = primaryAdmin?.email || settings.contactEmail;
+  const phone = primaryAdmin?.mobile || "";
+  const adminName = primaryAdmin?.name || "Admin";
+  const instituteName = settings.instituteName;
+
+  return (
+    <DashboardLayout role="student" navItems={navItems} title="Help & Support">
+      <div className="max-w-2xl space-y-6">
+        <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
+              <HelpCircle className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="font-display text-lg font-bold text-foreground">Need help?</h2>
+              <p className="text-sm text-muted-foreground">
+                Reach out to your administrator for any questions about tests, certificates, or your account.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-3">
+              <Building2 className="h-5 w-5 text-muted-foreground shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">Institute</p>
+                <p className="font-medium text-foreground truncate">{instituteName}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-3">
+              <UserIcon className="h-5 w-5 text-muted-foreground shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">Administrator</p>
+                <p className="font-medium text-foreground truncate">{adminName}</p>
+              </div>
+            </div>
+
+            <a
+              href={`mailto:${email}`}
+              className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-3 hover:bg-muted/60 transition-colors"
+            >
+              <Mail className="h-5 w-5 text-muted-foreground shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">Email</p>
+                <p className="font-medium text-primary break-all">{email}</p>
+              </div>
+            </a>
+
+            {phone ? (
+              <a
+                href={`tel:${phone}`}
+                className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-3 hover:bg-muted/60 transition-colors"
+              >
+                <Phone className="h-5 w-5 text-muted-foreground shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground">Phone</p>
+                  <p className="font-medium text-primary">{phone}</p>
+                </div>
+              </a>
+            ) : (
+              <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-3">
+                <Phone className="h-5 w-5 text-muted-foreground shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground">Phone</p>
+                  <p className="text-sm text-muted-foreground italic">Not available</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <p className="mt-4 text-xs text-muted-foreground italic">
+            Working hours: Monday – Saturday, 9:00 AM – 6:00 PM
+          </p>
         </div>
       </div>
     </DashboardLayout>

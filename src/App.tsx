@@ -9,7 +9,7 @@ import Login from "./pages/Login";
 import AdminDashboard from "./pages/dashboard/AdminDashboard";
 import StudentDashboard from "./pages/dashboard/StudentDashboard";
 import { ManageStudents, AdminTests, AdminResults, AdminCertificates, AdminSettings, CreateTest, AdminRetakeRequests, AdminBatches, AdminFeedback, AdminLiveTest } from "./pages/dashboard/AdminPages";
-import { StudentTests, TestHistory, StudentCertificates, TestAttempt, StudentProfile } from "./pages/dashboard/StudentPages";
+import { StudentTests, TestHistory, StudentCertificates, TestAttempt, StudentProfile, StudentHelp } from "./pages/dashboard/StudentPages";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -45,6 +45,7 @@ const App = () => (
           <Route path="/dashboard/student/history" element={<ProtectedRoute allowedRoles={["student"]}><TestHistory /></ProtectedRoute>} />
           <Route path="/dashboard/student/certificates" element={<ProtectedRoute allowedRoles={["student"]}><StudentCertificates /></ProtectedRoute>} />
           <Route path="/dashboard/student/test-attempt" element={<ProtectedRoute allowedRoles={["student"]}><TestAttempt /></ProtectedRoute>} />
+          <Route path="/dashboard/student/help" element={<ProtectedRoute allowedRoles={["student"]}><StudentHelp /></ProtectedRoute>} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>
