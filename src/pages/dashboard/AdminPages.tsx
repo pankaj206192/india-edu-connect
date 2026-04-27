@@ -1285,6 +1285,14 @@ export const AdminSettings = () => {
   const [adminMobile, setAdminMobile] = useState(user?.mobile || "");
   const [editingProfile, setEditingProfile] = useState(false);
 
+  // Student Help page contact (separate from admin login / personal details)
+  const [helpEmail, setHelpEmail] = useState<string>(settings.helpEmail || "");
+  const [helpPhone, setHelpPhone] = useState<string>(settings.helpPhone || "");
+
+  // Institute details
+  const [instituteName, setInstituteName] = useState<string>(settings.instituteName || "");
+  const [contactEmail, setContactEmail] = useState<string>(settings.contactEmail || "");
+
   const handleSaveProfile = () => {
     if (!adminName || !adminEmail || !adminMobile) {
       toast({ title: "Error", description: "Please fill all fields.", variant: "destructive" });
@@ -1344,6 +1352,41 @@ export const AdminSettings = () => {
     saveSettings(updated);
     setConfirmRemoveLogo(false);
     toast({ title: "Removed", description: "Logo has been removed." });
+  };
+
+  const handleSaveInstitute = () => {
+    const updated = { ...getSettings(), instituteName, contactEmail };
+    saveSettings(updated);
+    setSettings(updated);
+    toast({ title: "Saved", description: "Institute details updated." });
+  };
+
+  const handleSaveHelpContact = () => {
+    if (helpEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(helpEmail)) {
+      toast({ title: "Error", description: "Please enter a valid email address.", variant: "destructive" });
+      return;
+    }
+    if (helpPhone && !/^\d{10}$/.test(helpPhone)) {
+      toast({ title: "Error", description: "Phone number must be 10 digits.", variant: "destructive" });
+      return;
+    }
+    const updated = {
+      ...getSettings(),
+      helpEmail: helpEmail || undefined,
+      helpPhone: helpPhone || undefined,
+    };
+    saveSettings(updated);
+    setSettings(updated);
+    toast({ title: "Saved", description: "Student Help contact updated." });
+  };
+
+  const handleClearHelpContact = () => {
+    setHelpEmail("");
+    setHelpPhone("");
+    const updated = { ...getSettings(), helpEmail: undefined, helpPhone: undefined };
+    saveSettings(updated);
+    setSettings(updated);
+    toast({ title: "Cleared", description: "Help page will fall back to your admin profile contact." });
   };
 
   return (
