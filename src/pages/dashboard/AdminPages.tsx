@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getUsersByRole, addUser, getUsers, updateUser, useAuth, type User } from "@/lib/auth";
-import { getTests, saveTest, getAttempts, getCertificates, saveCertificate, getRetakeRequests, approveRetake, rejectRetake, getSettings, saveSettings, getBatches, saveBatch, deleteBatch, getFeedbacks, updateAttempt, getTabSwitchLogs, getCameraSnapshots, generateCertificateId, getPendingReviewAttempts, markFeedbackReviewed, markAllFeedbackReviewed, getReviewedFeedbackIds, markResultReviewed, markAllResultsReviewed, getReviewedResultIds, getUnreviewedFeedbackCount, getUnreviewedResultCount, type Test, type Question as StoreQuestion, type Certificate, type Batch, type Attempt } from "@/lib/store";
+import { getTests, saveTest, getAttempts, getCertificates, saveCertificate, getRetakeRequests, approveRetake, rejectRetake, getSettings, saveSettings, getBatches, saveBatch, deleteBatch, getFeedbacks, updateAttempt, getTabSwitchLogs, getCameraSnapshots, getActiveCameraSnapshots, generateCertificateId, getPendingReviewAttempts, markFeedbackReviewed, markAllFeedbackReviewed, getReviewedFeedbackIds, markResultReviewed, markAllResultsReviewed, getReviewedResultIds, getUnreviewedFeedbackCount, getUnreviewedResultCount, type Test, type Question as StoreQuestion, type Certificate, type Batch, type Attempt } from "@/lib/store";
 import { generateCertificatePDF } from "@/lib/pdf";
 import { exportCSV } from "@/lib/csv";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -2430,15 +2430,15 @@ export const AdminFeedback = () => {
 };
 
 export const AdminLiveTest = () => {
-  const [snapshots, setSnapshots] = useState(() => getCameraSnapshots());
+  const [snapshots, setSnapshots] = useState(() => getActiveCameraSnapshots());
   const tests = getTests();
   const [selectedTest, setSelectedTest] = useState<string>("");
 
-  // Auto-refresh every 5 seconds
+  // Auto-refresh every 1 second so feeds appear truly live and disappear quickly
   useEffect(() => {
     const interval = setInterval(() => {
-      setSnapshots(getCameraSnapshots());
-    }, 5000);
+      setSnapshots(getActiveCameraSnapshots());
+    }, 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -2461,14 +2461,14 @@ export const AdminLiveTest = () => {
               {activeTests.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
             </SelectContent>
           </Select>
-          <p className="text-sm text-muted-foreground">Auto-refreshes every 5 seconds · {filteredSnapshots.length} active feeds</p>
+          <p className="text-sm text-muted-foreground">Live · refreshing every second · {filteredSnapshots.length} active feed{filteredSnapshots.length === 1 ? "" : "s"}</p>
         </div>
 
         {filteredSnapshots.length === 0 ? (
           <div className="rounded-xl border border-border bg-card p-12 text-center shadow-card">
             <Camera className="mx-auto mb-3 h-16 w-16 text-muted-foreground" />
             <h3 className="font-display text-lg font-bold text-foreground mb-1">No Active Camera Feeds</h3>
-            <p className="text-sm text-muted-foreground">Camera feeds will appear here when students start proctored exams.</p>
+            <p className="text-sm text-muted-foreground">Live camera feeds appear only while students are actively taking a proctored exam.</p>
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
