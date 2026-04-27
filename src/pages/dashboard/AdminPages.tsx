@@ -1403,13 +1403,63 @@ export const AdminSettings = () => {
                 <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
               </label>
               {logo && (
-                <Button variant="ghost" size="sm" onClick={handleRemoveLogo} className="text-destructive justify-start">
+                <Button variant="ghost" size="sm" onClick={() => setConfirmRemoveLogo(true)} className="text-destructive justify-start">
                   <Trash2 className="mr-1 h-3 w-3" /> Remove
                 </Button>
               )}
             </div>
           </div>
         </div>
+
+        {/* Confirm change logo */}
+        <AlertDialog open={!!pendingLogo} onOpenChange={(o) => { if (!o) setPendingLogo(null); }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Change institute logo?</AlertDialogTitle>
+              <AlertDialogDescription>
+                The current logo will be replaced with the new one. This will update branding everywhere it appears.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            {pendingLogo && (
+              <div className="flex items-center justify-center gap-4 py-2">
+                <div className="text-center">
+                  <p className="mb-1 text-xs text-muted-foreground">Current</p>
+                  <div className="h-20 w-20 rounded-lg border border-border bg-muted flex items-center justify-center overflow-hidden">
+                    <img src={logo} alt="Current logo" className="h-full w-full object-contain" />
+                  </div>
+                </div>
+                <div className="text-center">
+                  <p className="mb-1 text-xs text-muted-foreground">New</p>
+                  <div className="h-20 w-20 rounded-lg border border-border bg-muted flex items-center justify-center overflow-hidden">
+                    <img src={pendingLogo} alt="New logo" className="h-full w-full object-contain" />
+                  </div>
+                </div>
+              </div>
+            )}
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmLogoChange}>Replace logo</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Confirm remove logo */}
+        <AlertDialog open={confirmRemoveLogo} onOpenChange={setConfirmRemoveLogo}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Remove institute logo?</AlertDialogTitle>
+              <AlertDialogDescription>
+                The logo will be removed from certificates, the student Help page, and other branding. You can upload a new one anytime.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={performRemoveLogo} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Remove logo
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         <div className="rounded-xl border border-border bg-card p-6 shadow-card">
           <h2 className="mb-4 font-display text-lg font-bold text-foreground">Pass Percentage</h2>
