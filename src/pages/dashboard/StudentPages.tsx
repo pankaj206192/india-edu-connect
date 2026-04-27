@@ -421,6 +421,13 @@ export const TestAttempt = () => {
     const handleVisibility = () => {
       document.body.style.filter = document.hidden ? "blur(30px)" : "none";
     };
+    const handleBlur = () => {
+      // Window lost focus (e.g. user opened a screen-capture app / snipping tool)
+      document.body.style.filter = "blur(30px)";
+    };
+    const handleFocus = () => {
+      document.body.style.filter = "none";
+    };
     const style = document.createElement("style");
     style.textContent = `
       @media print { body { display: none !important; } }
@@ -428,20 +435,50 @@ export const TestAttempt = () => {
     `;
     document.head.appendChild(style);
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "PrintScreen") {
+      const k = e.key;
+      const isScreenshot =
+        k === "PrintScreen" ||
+        // Windows snipping tool: Win+Shift+S
+        (e.shiftKey && (e.metaKey || e.getModifierState("OS") || e.getModifierState("Meta")) && k.toLowerCase() === "s") ||
+        // macOS screenshots: Cmd+Shift+3 / 4 / 5
+        (e.metaKey && e.shiftKey && ["3", "4", "5"].includes(k));
+      if (isScreenshot) {
         e.preventDefault();
         document.body.style.filter = "blur(30px)";
-        setTimeout(() => { document.body.style.filter = "none"; }, 2000);
-        toast({ title: "⚠️ Screenshot Blocked", description: "Screenshots are not allowed during the exam.", variant: "destructive" });
+        try { navigator.clipboard.writeText(""); } catch {}
+        setTimeout(() => { document.body.style.filter = "none"; }, 2500);
+        toast({ title: "⚠️ Screenshot Blocked", description: "Screenshots are not allowed during the exam. This attempt has been logged.", variant: "destructive" });
       }
     };
+
+    // Block in-page screen sharing / screen casting requests (getDisplayMedia)
+    const md: any = navigator.mediaDevices as any;
+    const originalGetDisplayMedia = md && md.getDisplayMedia ? md.getDisplayMedia.bind(md) : null;
+    if (md && originalGetDisplayMedia) {
+      md.getDisplayMedia = () => {
+        toast({ title: "⚠️ Screen Sharing Blocked", description: "Screen sharing or casting is not allowed during the exam.", variant: "destructive" });
+        document.body.style.filter = "blur(30px)";
+        setTimeout(() => { document.body.style.filter = "none"; }, 2500);
+        return Promise.reject(new DOMException("Screen capture is disabled during the exam.", "NotAllowedError"));
+      };
+    }
+
     document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("blur", handleBlur);
+    window.addEventListener("focus", handleFocus);
     document.addEventListener("keyup", handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
     return () => {
       document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("blur", handleBlur);
+      window.removeEventListener("focus", handleFocus);
       document.removeEventListener("keyup", handleKeyDown);
+      document.removeEventListener("keydown", handleKeyDown);
       document.body.style.filter = "none";
       style.remove();
+      if (md && originalGetDisplayMedia) {
+        md.getDisplayMedia = originalGetDisplayMedia;
+      }
     };
   }, [test, submitted, toast]);
 
