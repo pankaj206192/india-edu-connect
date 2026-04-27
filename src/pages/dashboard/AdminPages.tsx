@@ -1278,6 +1278,8 @@ export const AdminSettings = () => {
   const { user } = useAuth();
   const [settings, setSettings] = useState(() => getSettings());
   const [logo, setLogo] = useState<string>(settings.logo || "");
+  const [pendingLogo, setPendingLogo] = useState<string | null>(null);
+  const [confirmRemoveLogo, setConfirmRemoveLogo] = useState(false);
   const [adminName, setAdminName] = useState(user?.name || "");
   const [adminEmail, setAdminEmail] = useState(user?.email || "");
   const [adminMobile, setAdminMobile] = useState(user?.mobile || "");
@@ -1312,18 +1314,35 @@ export const AdminSettings = () => {
     const reader = new FileReader();
     reader.onload = () => {
       const dataUrl = reader.result as string;
-      setLogo(dataUrl);
-      const updated = { ...getSettings(), logo: dataUrl };
-      saveSettings(updated);
-      toast({ title: "Saved", description: "Logo updated successfully." });
+      if (logo) {
+        // Existing logo — confirm replacement
+        setPendingLogo(dataUrl);
+      } else {
+        setLogo(dataUrl);
+        const updated = { ...getSettings(), logo: dataUrl };
+        saveSettings(updated);
+        toast({ title: "Saved", description: "Logo uploaded successfully." });
+      }
     };
     reader.readAsDataURL(file);
+    // Reset input so selecting same file again still triggers change
+    e.target.value = "";
   };
 
-  const handleRemoveLogo = () => {
+  const confirmLogoChange = () => {
+    if (!pendingLogo) return;
+    setLogo(pendingLogo);
+    const updated = { ...getSettings(), logo: pendingLogo };
+    saveSettings(updated);
+    setPendingLogo(null);
+    toast({ title: "Updated", description: "Logo changed successfully." });
+  };
+
+  const performRemoveLogo = () => {
     setLogo("");
     const updated = { ...getSettings(), logo: undefined };
     saveSettings(updated);
+    setConfirmRemoveLogo(false);
     toast({ title: "Removed", description: "Logo has been removed." });
   };
 
