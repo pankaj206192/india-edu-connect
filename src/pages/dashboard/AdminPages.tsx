@@ -1518,13 +1518,53 @@ export const AdminSettings = () => {
           <div className="space-y-3">
             <div>
               <label className="text-sm font-medium text-foreground">Institute Name</label>
-              <Input defaultValue="Ethical India Institute" className="mt-1" />
+              <Input value={instituteName} onChange={(e) => setInstituteName(e.target.value)} className="mt-1" />
             </div>
             <div>
               <label className="text-sm font-medium text-foreground">Contact Email</label>
-              <Input defaultValue="admin@ethicalindia.edu" className="mt-1" />
+              <Input type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} className="mt-1" />
             </div>
-            <Button onClick={() => toast({ title: "Saved", description: "Settings updated." })}>Save Changes</Button>
+            <Button onClick={handleSaveInstitute}>Save Changes</Button>
+          </div>
+        </div>
+
+        {/* Student Help Page Contact */}
+        <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+          <div className="mb-1 flex items-center gap-2">
+            <h2 className="font-display text-lg font-bold text-foreground">Student Help Page Contact</h2>
+          </div>
+          <p className="mb-4 text-sm text-muted-foreground">
+            These details are shown to students on the <span className="font-medium text-foreground">Help</span> page.
+            They are independent from your admin login and personal profile — leave fields blank to fall back to your admin profile.
+          </p>
+          <div className="space-y-3">
+            <div>
+              <label className="text-sm font-medium text-foreground">Support Email (visible to students)</label>
+              <Input
+                type="email"
+                placeholder="support@yourinstitute.com"
+                value={helpEmail}
+                onChange={(e) => setHelpEmail(e.target.value)}
+                className="mt-1"
+              />
+              <p className="mt-1 text-xs text-muted-foreground">Optional. If empty, your admin profile email will be shown.</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground">Support Phone (visible to students)</label>
+              <Input
+                placeholder="10-digit phone number"
+                value={helpPhone}
+                onChange={(e) => setHelpPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                className="mt-1"
+              />
+              <p className="mt-1 text-xs text-muted-foreground">Optional. If empty, your admin profile mobile will be shown.</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={handleSaveHelpContact}>Save Help Contact</Button>
+              {(settings.helpEmail || settings.helpPhone) && (
+                <Button variant="outline" onClick={handleClearHelpContact}>Clear & Use Admin Profile</Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
