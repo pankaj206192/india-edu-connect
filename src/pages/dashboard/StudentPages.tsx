@@ -369,6 +369,18 @@ export const TestAttempt = () => {
     };
   }, [test, user, submitted, toast]);
 
+  // Clean up live snapshot if the student closes/refreshes the tab mid-exam
+  useEffect(() => {
+    if (!test || !user || test.liveCameraEnabled !== true) return;
+    const handler = () => removeCameraSnapshot(user.id, test.id);
+    window.addEventListener("beforeunload", handler);
+    window.addEventListener("pagehide", handler);
+    return () => {
+      window.removeEventListener("beforeunload", handler);
+      window.removeEventListener("pagehide", handler);
+    };
+  }, [test, user]);
+
   // Block navigation during active test
   useEffect(() => {
     if (!test || submitted) return;
