@@ -959,11 +959,11 @@ export const AdminResults = () => {
                 r.gradingStatus === "pending_review" ? "" : `${r.percentage}%`,
                 r.gradingStatus === "pending_review" ? "Needs Grading" : r.passed ? "Passed" : "Failed",
                 r.tabSwitches,
-                new Date(r.submittedAt).toLocaleDateString(),
+                `${new Date(r.submittedAt).toLocaleDateString()} ${new Date(r.submittedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
               ]);
               exportCSV(
                 "results.csv",
-                ["Student", "Batch", "Batch Timing", "Batch Year", "Test", "Score", "Percentage", "Status", "Tab Switches", "Date"],
+                ["Student", "Batch", "Batch Timing", "Batch Year", "Test", "Score", "Percentage", "Status", "Tab Switches", "Submitted"],
                 rows,
               );
             }}>
@@ -1037,7 +1037,12 @@ export const AdminResults = () => {
                     )}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground hidden lg:table-cell whitespace-nowrap">
-                    {new Date(r.submittedAt).toLocaleDateString()}
+                    <div className="flex flex-col leading-tight">
+                      <span>{new Date(r.submittedAt).toLocaleDateString()}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(r.submittedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-1">
