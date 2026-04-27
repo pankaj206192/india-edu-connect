@@ -919,11 +919,21 @@ export const StudentHelp = () => {
   const phone = primaryAdmin?.mobile || "";
   const adminName = primaryAdmin?.name || "Admin";
   const instituteName = settings.instituteName;
+  const logo = settings.logo;
 
   return (
     <DashboardLayout role="student" navItems={navItems} title="Help & Support">
       <div className="max-w-2xl space-y-6">
         <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+          {logo && (
+            <div className="mb-4 flex justify-center">
+              <img
+                src={logo}
+                alt={`${instituteName} logo`}
+                className="h-24 w-24 rounded-lg object-contain border border-border bg-background p-2"
+              />
+            </div>
+          )}
           <div className="flex items-start gap-3 mb-4">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
               <HelpCircle className="h-5 w-5" />
