@@ -1288,6 +1288,7 @@ export const AdminSettings = () => {
   // Student Help page contact (separate from admin login / personal details)
   const [helpEmail, setHelpEmail] = useState<string>(settings.helpEmail || "");
   const [helpPhone, setHelpPhone] = useState<string>(settings.helpPhone || "");
+  const [confirmClearHelp, setConfirmClearHelp] = useState(false);
 
   // Institute details
   const [instituteName, setInstituteName] = useState<string>(settings.instituteName || "");
@@ -1386,6 +1387,7 @@ export const AdminSettings = () => {
     const updated = { ...getSettings(), helpEmail: undefined, helpPhone: undefined };
     saveSettings(updated);
     setSettings(updated);
+    setConfirmClearHelp(false);
     toast({ title: "Cleared", description: "Help page will fall back to your admin profile contact." });
   };
 
@@ -1562,11 +1564,29 @@ export const AdminSettings = () => {
             <div className="flex flex-wrap gap-2">
               <Button onClick={handleSaveHelpContact}>Save Help Contact</Button>
               {(settings.helpEmail || settings.helpPhone) && (
-                <Button variant="outline" onClick={handleClearHelpContact}>Clear & Use Admin Profile</Button>
+                <Button variant="outline" onClick={() => setConfirmClearHelp(true)}>Clear & Use Admin Profile</Button>
               )}
             </div>
           </div>
         </div>
+
+        {/* Confirm clear help contact */}
+        <AlertDialog open={confirmClearHelp} onOpenChange={setConfirmClearHelp}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Clear Student Help contact?</AlertDialogTitle>
+              <AlertDialogDescription>
+                The custom support email and phone will be removed. Students will instead see your
+                admin profile email{user?.mobile ? " and mobile" : ""} on the Help page. You can set
+                a dedicated support contact again anytime.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleClearHelpContact}>Clear & Use Admin Profile</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DashboardLayout>
   );
