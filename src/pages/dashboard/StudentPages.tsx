@@ -440,8 +440,11 @@ export const TestAttempt = () => {
     // Stop camera
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(t => t.stop());
+      streamRef.current = null;
     }
     if (cameraIntervalRef.current) clearInterval(cameraIntervalRef.current);
+    // Immediately remove from admin live view
+    removeCameraSnapshot(user.id, test.id);
 
     const hasManualQuestions = test.questions.some(q => q.type === "short" || q.type === "long");
 
