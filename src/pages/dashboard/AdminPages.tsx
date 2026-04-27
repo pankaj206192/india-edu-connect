@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getUsersByRole, addUser, getUsers, updateUser, useAuth, type User } from "@/lib/auth";
 import { getTests, saveTest, getAttempts, getCertificates, saveCertificate, getRetakeRequests, approveRetake, rejectRetake, getSettings, saveSettings, getBatches, saveBatch, deleteBatch, getFeedbacks, updateAttempt, getTabSwitchLogs, getCameraSnapshots, generateCertificateId, getPendingReviewAttempts, markFeedbackReviewed, markAllFeedbackReviewed, getReviewedFeedbackIds, markResultReviewed, markAllResultsReviewed, getReviewedResultIds, getUnreviewedFeedbackCount, getUnreviewedResultCount, type Test, type Question as StoreQuestion, type Certificate, type Batch, type Attempt } from "@/lib/store";
@@ -1277,6 +1278,8 @@ export const AdminSettings = () => {
   const { user } = useAuth();
   const [settings, setSettings] = useState(() => getSettings());
   const [logo, setLogo] = useState<string>(settings.logo || "");
+  const [pendingLogo, setPendingLogo] = useState<string | null>(null);
+  const [confirmRemoveLogo, setConfirmRemoveLogo] = useState(false);
   const [adminName, setAdminName] = useState(user?.name || "");
   const [adminEmail, setAdminEmail] = useState(user?.email || "");
   const [adminMobile, setAdminMobile] = useState(user?.mobile || "");
@@ -1311,18 +1314,35 @@ export const AdminSettings = () => {
     const reader = new FileReader();
     reader.onload = () => {
       const dataUrl = reader.result as string;
-      setLogo(dataUrl);
-      const updated = { ...getSettings(), logo: dataUrl };
-      saveSettings(updated);
-      toast({ title: "Saved", description: "Logo updated successfully." });
+      if (logo) {
+        // Existing logo — confirm replacement
+        setPendingLogo(dataUrl);
+      } else {
+        setLogo(dataUrl);
+        const updated = { ...getSettings(), logo: dataUrl };
+        saveSettings(updated);
+        toast({ title: "Saved", description: "Logo uploaded successfully." });
+      }
     };
     reader.readAsDataURL(file);
+    // Reset input so selecting same file again still triggers change
+    e.target.value = "";
   };
 
-  const handleRemoveLogo = () => {
+  const confirmLogoChange = () => {
+    if (!pendingLogo) return;
+    setLogo(pendingLogo);
+    const updated = { ...getSettings(), logo: pendingLogo };
+    saveSettings(updated);
+    setPendingLogo(null);
+    toast({ title: "Updated", description: "Logo changed successfully." });
+  };
+
+  const performRemoveLogo = () => {
     setLogo("");
     const updated = { ...getSettings(), logo: undefined };
     saveSettings(updated);
+    setConfirmRemoveLogo(false);
     toast({ title: "Removed", description: "Logo has been removed." });
   };
 
@@ -1383,13 +1403,63 @@ export const AdminSettings = () => {
                 <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
               </label>
               {logo && (
-                <Button variant="ghost" size="sm" onClick={handleRemoveLogo} className="text-destructive justify-start">
+                <Button variant="ghost" size="sm" onClick={() => setConfirmRemoveLogo(true)} className="text-destructive justify-start">
                   <Trash2 className="mr-1 h-3 w-3" /> Remove
                 </Button>
               )}
             </div>
           </div>
         </div>
+
+        {/* Confirm change logo */}
+        <AlertDialog open={!!pendingLogo} onOpenChange={(o) => { if (!o) setPendingLogo(null); }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Change institute logo?</AlertDialogTitle>
+              <AlertDialogDescription>
+                The current logo will be replaced with the new one. This will update branding everywhere it appears.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            {pendingLogo && (
+              <div className="flex items-center justify-center gap-4 py-2">
+                <div className="text-center">
+                  <p className="mb-1 text-xs text-muted-foreground">Current</p>
+                  <div className="h-20 w-20 rounded-lg border border-border bg-muted flex items-center justify-center overflow-hidden">
+                    <img src={logo} alt="Current logo" className="h-full w-full object-contain" />
+                  </div>
+                </div>
+                <div className="text-center">
+                  <p className="mb-1 text-xs text-muted-foreground">New</p>
+                  <div className="h-20 w-20 rounded-lg border border-border bg-muted flex items-center justify-center overflow-hidden">
+                    <img src={pendingLogo} alt="New logo" className="h-full w-full object-contain" />
+                  </div>
+                </div>
+              </div>
+            )}
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmLogoChange}>Replace logo</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Confirm remove logo */}
+        <AlertDialog open={confirmRemoveLogo} onOpenChange={setConfirmRemoveLogo}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Remove institute logo?</AlertDialogTitle>
+              <AlertDialogDescription>
+                The logo will be removed from certificates, the student Help page, and other branding. You can upload a new one anytime.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={performRemoveLogo} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Remove logo
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         <div className="rounded-xl border border-border bg-card p-6 shadow-card">
           <h2 className="mb-4 font-display text-lg font-bold text-foreground">Pass Percentage</h2>
