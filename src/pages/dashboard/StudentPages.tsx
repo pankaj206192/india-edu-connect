@@ -12,7 +12,7 @@ import {
   getCertificatesForStudent, gradeTest, saveAttempt, saveCertificate,
   generateCertificateId, getTests, type Test,
   hasRetakeRequest, saveRetakeRequest, getRetakeRequestsForStudent,
-  saveFeedback, saveTabSwitchLog, saveCameraSnapshot, getSettings,
+  saveFeedback, saveTabSwitchLog, saveCameraSnapshot, removeCameraSnapshot, getSettings,
 } from "@/lib/store";
 import { generateCertificatePDF } from "@/lib/pdf";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -328,8 +328,8 @@ export const TestAttempt = () => {
           videoRef.current.srcObject = stream;
         }
         setCameraActive(true);
-        // Capture snapshots every 15 seconds
-        cameraIntervalRef.current = setInterval(() => {
+        // Capture snapshots every 2 seconds for near-live admin view
+        const capture = () => {
           if (videoRef.current && !submitted) {
             const canvas = document.createElement("canvas");
             canvas.width = 160;
@@ -348,7 +348,10 @@ export const TestAttempt = () => {
               });
             }
           }
-        }, 15000);
+        };
+        // First snapshot immediately, then every 2s
+        setTimeout(capture, 800);
+        cameraIntervalRef.current = setInterval(capture, 2000);
       } catch {
         setCameraError(true);
         toast({ title: "Camera Required", description: "Please allow camera access for this proctored exam.", variant: "destructive" });
@@ -358,8 +361,11 @@ export const TestAttempt = () => {
     return () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(t => t.stop());
+        streamRef.current = null;
       }
       if (cameraIntervalRef.current) clearInterval(cameraIntervalRef.current);
+      // Remove the student's snapshot so they disappear from the admin live view
+      if (user && test) removeCameraSnapshot(user.id, test.id);
     };
   }, [test, user, submitted, toast]);
 
