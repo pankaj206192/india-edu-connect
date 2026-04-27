@@ -447,8 +447,16 @@ export function saveCameraSnapshot(snapshot: CameraSnapshot) {
   localStorage.setItem(CAMERA_KEY, JSON.stringify(filtered));
 }
 
-export function getActiveCameraSnapshots(): CameraSnapshot[] {
-  return getCameraSnapshots();
+export function removeCameraSnapshot(studentId: string, testId: string) {
+  const snapshots = getCameraSnapshots().filter(s => !(s.studentId === studentId && s.testId === testId));
+  localStorage.setItem(CAMERA_KEY, JSON.stringify(snapshots));
+}
+
+// Returns only snapshots updated within the last `maxAgeMs` ms (default 8s).
+// Used by admin Live Test view so feeds disappear as soon as a student stops streaming.
+export function getActiveCameraSnapshots(maxAgeMs: number = 8000): CameraSnapshot[] {
+  const now = Date.now();
+  return getCameraSnapshots().filter(s => now - new Date(s.timestamp).getTime() <= maxAgeMs);
 }
 
 // ---- Reviewed Tracking ----
