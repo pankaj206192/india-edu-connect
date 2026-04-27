@@ -915,8 +915,8 @@ export const StudentHelp = () => {
   const admins = getUsersByRole("admin");
   const primaryAdmin = admins[0];
 
-  const email = primaryAdmin?.email || settings.contactEmail;
-  const phone = primaryAdmin?.mobile || "";
+  const email = settings.helpEmail || primaryAdmin?.email || settings.contactEmail;
+  const phone = settings.helpPhone || primaryAdmin?.mobile || "";
   const adminName = primaryAdmin?.name || "Admin";
   const instituteName = settings.instituteName;
   const logo = settings.logo;
