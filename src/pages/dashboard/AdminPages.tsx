@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getUsersByRole, addUser, getUsers, updateUser, useAuth, type User } from "@/lib/auth";
-import { getTests, saveTest, getAttempts, getCertificates, saveCertificate, getRetakeRequests, approveRetake, rejectRetake, getSettings, saveSettings, getBatches, saveBatch, deleteBatch, getFeedbacks, updateAttempt, getTabSwitchLogs, getCameraSnapshots, getActiveCameraSnapshots, generateCertificateId, getPendingReviewAttempts, markFeedbackReviewed, markAllFeedbackReviewed, getReviewedFeedbackIds, markResultReviewed, markAllResultsReviewed, getReviewedResultIds, getUnreviewedFeedbackCount, getUnreviewedResultCount, type Test, type Question as StoreQuestion, type Certificate, type Batch, type Attempt } from "@/lib/store";
+import { getTests, saveTest, getAttempts, getCertificates, saveCertificate, getRetakeRequests, approveRetake, rejectRetake, getSettings, saveSettings, getBatches, saveBatch, deleteBatch, getFeedbacks, updateAttempt, getTabSwitchLogs, getCameraSnapshots, getActiveCameraSnapshots, generateCertificateId, getPendingReviewAttempts, markFeedbackReviewed, markAllFeedbackReviewed, getReviewedFeedbackIds, markResultReviewed, markAllResultsReviewed, getReviewedResultIds, getUnreviewedFeedbackCount, getUnreviewedResultCount, getGuestAttempts, type Test, type Question as StoreQuestion, type Certificate, type Batch, type Attempt, type GuestAttempt } from "@/lib/store";
 import { generateCertificatePDF } from "@/lib/pdf";
 import { exportCSV } from "@/lib/csv";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -29,6 +29,7 @@ function getAdminNavItems() {
     { label: "Tests", path: "/dashboard/admin/tests", icon: <FileText className="h-4 w-4" /> },
     { label: "Create Test", path: "/dashboard/admin/create-test", icon: <BookOpen className="h-4 w-4" /> },
     { label: "Results", path: "/dashboard/admin/results", icon: <BarChart3 className="h-4 w-4" />, badge: (pendingGrading || unreviewedResults) || undefined },
+    { label: "Guest Results", path: "/dashboard/admin/guest-results", icon: <Users className="h-4 w-4" /> },
     { label: "Live Test", path: "/dashboard/admin/live-test", icon: <Camera className="h-4 w-4" /> },
     { label: "Retake Requests", path: "/dashboard/admin/retake-requests", icon: <RotateCcw className="h-4 w-4" />, badge: pendingRetakes || undefined },
     { label: "Certificates", path: "/dashboard/admin/certificates", icon: <Award className="h-4 w-4" />, badge: pendingCerts || undefined },
