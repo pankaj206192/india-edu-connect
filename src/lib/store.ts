@@ -468,6 +468,48 @@ export function getActiveCameraSnapshots(maxAgeMs: number = 8000): CameraSnapsho
   return getCameraSnapshots().filter(s => now - new Date(s.timestamp).getTime() <= maxAgeMs);
 }
 
+// ---- Guest Attempts ----
+// Anonymous attempts on guest-tests. Each entry stores the visitor's self-entered details.
+export interface GuestAttempt {
+  id: string;
+  guestSessionId: string; // unique per browser-tab session
+  testId: string;
+  testName: string;
+  guestName: string;
+  guestMobile: string;
+  guestEmail: string;
+  guestGender: "male" | "female" | "other";
+  answers: Record<string, string>;
+  score: number;
+  totalMarks: number;
+  percentage: number;
+  passed: boolean;
+  submittedAt: string;
+  timeTakenSeconds: number;
+  tabSwitchCount?: number;
+}
+
+const GUEST_ATTEMPTS_KEY = "ei_guest_attempts";
+
+export function getGuestAttempts(): GuestAttempt[] {
+  const raw = localStorage.getItem(GUEST_ATTEMPTS_KEY);
+  if (!raw) return [];
+  const validTests = getValidTestIds();
+  return (JSON.parse(raw) as GuestAttempt[]).filter(a => validTests.has(a.testId));
+}
+
+export function saveGuestAttempt(attempt: GuestAttempt) {
+  const attempts = getGuestAttempts();
+  attempts.push(attempt);
+  localStorage.setItem(GUEST_ATTEMPTS_KEY, JSON.stringify(attempts));
+}
+
+// Has a particular guest session already attempted a particular test?
+export function hasGuestAttempted(guestSessionId: string, testId: string): boolean {
+  return getGuestAttempts().some(a => a.guestSessionId === guestSessionId && a.testId === testId);
+}
+
+
 // ---- Reviewed Tracking ----
 const REVIEWED_FEEDBACK_KEY = "ei_reviewed_feedbacks";
 const REVIEWED_RESULTS_KEY = "ei_reviewed_results";
