@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
-import { BookOpen, Eye, EyeOff } from "lucide-react";
+import { BookOpen, Eye, EyeOff, UserRound } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, Role } from "@/lib/auth";
+import { startGuestSession } from "@/pages/GuestPages";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -21,8 +22,19 @@ const Login = () => {
     student: { email: "amit@student.edu", password: "student123" },
   };
 
+  // Shared guest credentials — multiple visitors can sign in concurrently.
+  const GUEST_EMAIL = "guest@ethicalindia.edu";
+  const GUEST_PASSWORD = "guest123";
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
+    // Detect guest credential entered into the regular form
+    if (email.trim().toLowerCase() === GUEST_EMAIL && password === GUEST_PASSWORD) {
+      startGuestSession();
+      toast({ title: "Welcome, Guest!", description: "Pick a test to begin." });
+      navigate("/guest/tests");
+      return;
+    }
     const result = login(email, password);
     if (result.success) {
       toast({ title: "Welcome!", description: `Logged in successfully` });
@@ -30,6 +42,17 @@ const Login = () => {
     } else {
       toast({ title: "Login Failed", description: result.error, variant: "destructive" });
     }
+  };
+
+  const continueAsGuest = () => {
+    startGuestSession();
+    toast({ title: "Welcome, Guest!", description: "Pick a test to begin." });
+    navigate("/guest/tests");
+  };
+
+  const fillGuest = () => {
+    setEmail(GUEST_EMAIL);
+    setPassword(GUEST_PASSWORD);
   };
 
   const fillDemo = (role: Role) => {
@@ -80,7 +103,7 @@ const Login = () => {
           </div>
 
           {/* Role Quick-Fill */}
-          <div className="mb-6 grid grid-cols-2 gap-2 rounded-xl border border-border bg-muted p-1">
+          <div className="mb-6 grid grid-cols-3 gap-2 rounded-xl border border-border bg-muted p-1">
             {(["admin", "student"] as Role[]).map((role) => (
               <button
                 key={role}
@@ -94,6 +117,13 @@ const Login = () => {
                 {role}
               </button>
             ))}
+            <button
+              onClick={fillGuest}
+              className="rounded-lg py-2 text-sm font-medium capitalize text-muted-foreground hover:text-foreground transition-all"
+              title="Fill shared guest credentials"
+            >
+              guest
+            </button>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
@@ -157,11 +187,27 @@ const Login = () => {
             Continue with Google
           </Button>
 
+          {/* Guest one-click */}
+          <Button
+            type="button"
+            variant="ghost"
+            size="lg"
+            className="mt-3 w-full gap-2 border border-dashed border-border hover:bg-muted"
+            onClick={continueAsGuest}
+          >
+            <UserRound className="h-4 w-4" />
+            Continue as Guest
+          </Button>
+          <p className="mt-1 text-center text-xs text-muted-foreground">
+            Take admin-published guest tests without creating an account.
+          </p>
+
           {/* Mobile demo credentials */}
           <div className="mt-6 rounded-lg border border-border bg-muted p-3 text-xs text-muted-foreground lg:hidden">
             <p className="mb-1 font-semibold text-foreground">Demo Credentials:</p>
             <p>Admin: admin@ethicalindia.edu / admin123</p>
             <p>Student: amit@student.edu / student123</p>
+            <p>Guest: {GUEST_EMAIL} / {GUEST_PASSWORD}</p>
           </div>
 
           <button
