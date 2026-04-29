@@ -66,6 +66,8 @@ export interface Test {
   passPercentage: number;
   certificateEnabled?: boolean;
   liveCameraEnabled?: boolean;
+  // When true, this test is open to anonymous guest accounts (no per-student assignment)
+  isGuestTest?: boolean;
 }
 
 // ---- Feedback ----
@@ -226,7 +228,14 @@ export function saveTest(test: Test) {
 }
 
 export function getTestsForStudent(studentId: string): Test[] {
-  return getTests().filter(t => t.status === "active" && t.assignedStudentIds.includes(studentId));
+  return getTests().filter(
+    t => t.status === "active" && !t.isGuestTest && t.assignedStudentIds.includes(studentId),
+  );
+}
+
+// All active tests open to guest accounts
+export function getGuestTests(): Test[] {
+  return getTests().filter(t => t.status === "active" && t.isGuestTest);
 }
 
 
