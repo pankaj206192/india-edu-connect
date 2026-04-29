@@ -66,6 +66,8 @@ export interface Test {
   passPercentage: number;
   certificateEnabled?: boolean;
   liveCameraEnabled?: boolean;
+  // When true, this test is open to anonymous guest accounts (no per-student assignment)
+  isGuestTest?: boolean;
 }
 
 // ---- Feedback ----
@@ -226,7 +228,14 @@ export function saveTest(test: Test) {
 }
 
 export function getTestsForStudent(studentId: string): Test[] {
-  return getTests().filter(t => t.status === "active" && t.assignedStudentIds.includes(studentId));
+  return getTests().filter(
+    t => t.status === "active" && !t.isGuestTest && t.assignedStudentIds.includes(studentId),
+  );
+}
+
+// All active tests open to guest accounts
+export function getGuestTests(): Test[] {
+  return getTests().filter(t => t.status === "active" && t.isGuestTest);
 }
 
 
@@ -458,6 +467,48 @@ export function getActiveCameraSnapshots(maxAgeMs: number = 8000): CameraSnapsho
   const now = Date.now();
   return getCameraSnapshots().filter(s => now - new Date(s.timestamp).getTime() <= maxAgeMs);
 }
+
+// ---- Guest Attempts ----
+// Anonymous attempts on guest-tests. Each entry stores the visitor's self-entered details.
+export interface GuestAttempt {
+  id: string;
+  guestSessionId: string; // unique per browser-tab session
+  testId: string;
+  testName: string;
+  guestName: string;
+  guestMobile: string;
+  guestEmail: string;
+  guestGender: "male" | "female" | "other";
+  answers: Record<string, string>;
+  score: number;
+  totalMarks: number;
+  percentage: number;
+  passed: boolean;
+  submittedAt: string;
+  timeTakenSeconds: number;
+  tabSwitchCount?: number;
+}
+
+const GUEST_ATTEMPTS_KEY = "ei_guest_attempts";
+
+export function getGuestAttempts(): GuestAttempt[] {
+  const raw = localStorage.getItem(GUEST_ATTEMPTS_KEY);
+  if (!raw) return [];
+  const validTests = getValidTestIds();
+  return (JSON.parse(raw) as GuestAttempt[]).filter(a => validTests.has(a.testId));
+}
+
+export function saveGuestAttempt(attempt: GuestAttempt) {
+  const attempts = getGuestAttempts();
+  attempts.push(attempt);
+  localStorage.setItem(GUEST_ATTEMPTS_KEY, JSON.stringify(attempts));
+}
+
+// Has a particular guest session already attempted a particular test?
+export function hasGuestAttempted(guestSessionId: string, testId: string): boolean {
+  return getGuestAttempts().some(a => a.guestSessionId === guestSessionId && a.testId === testId);
+}
+
 
 // ---- Reviewed Tracking ----
 const REVIEWED_FEEDBACK_KEY = "ei_reviewed_feedbacks";

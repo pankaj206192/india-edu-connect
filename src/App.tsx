@@ -8,8 +8,9 @@ import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import AdminDashboard from "./pages/dashboard/AdminDashboard";
 import StudentDashboard from "./pages/dashboard/StudentDashboard";
-import { ManageStudents, AdminTests, AdminResults, AdminCertificates, AdminSettings, CreateTest, AdminRetakeRequests, AdminBatches, AdminFeedback, AdminLiveTest } from "./pages/dashboard/AdminPages";
+import { ManageStudents, AdminTests, AdminResults, AdminCertificates, AdminSettings, CreateTest, AdminRetakeRequests, AdminBatches, AdminFeedback, AdminLiveTest, AdminGuestResults } from "./pages/dashboard/AdminPages";
 import { StudentTests, TestHistory, StudentCertificates, TestAttempt, StudentProfile, StudentHelp } from "./pages/dashboard/StudentPages";
+import { GuestTests, GuestStart, GuestTestAttempt } from "./pages/GuestPages";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,6 +38,7 @@ const App = () => (
           <Route path="/dashboard/admin/settings" element={<ProtectedRoute allowedRoles={["admin"]}><AdminSettings /></ProtectedRoute>} />
           <Route path="/dashboard/admin/feedback" element={<ProtectedRoute allowedRoles={["admin"]}><AdminFeedback /></ProtectedRoute>} />
           <Route path="/dashboard/admin/live-test" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLiveTest /></ProtectedRoute>} />
+          <Route path="/dashboard/admin/guest-results" element={<ProtectedRoute allowedRoles={["admin"]}><AdminGuestResults /></ProtectedRoute>} />
 
           {/* Student Routes */}
           <Route path="/dashboard/student" element={<ProtectedRoute allowedRoles={["student"]}><StudentDashboard /></ProtectedRoute>} />
@@ -46,6 +48,11 @@ const App = () => (
           <Route path="/dashboard/student/certificates" element={<ProtectedRoute allowedRoles={["student"]}><StudentCertificates /></ProtectedRoute>} />
           <Route path="/dashboard/student/test-attempt" element={<ProtectedRoute allowedRoles={["student"]}><TestAttempt /></ProtectedRoute>} />
           <Route path="/dashboard/student/help" element={<ProtectedRoute allowedRoles={["student"]}><StudentHelp /></ProtectedRoute>} />
+
+          {/* Guest Routes (public — no role required) */}
+          <Route path="/guest/tests" element={<GuestTests />} />
+          <Route path="/guest/start" element={<GuestStart />} />
+          <Route path="/guest/test-attempt" element={<GuestTestAttempt />} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>

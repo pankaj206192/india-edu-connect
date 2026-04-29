@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getUsersByRole, addUser, getUsers, updateUser, useAuth, type User } from "@/lib/auth";
-import { getTests, saveTest, getAttempts, getCertificates, saveCertificate, getRetakeRequests, approveRetake, rejectRetake, getSettings, saveSettings, getBatches, saveBatch, deleteBatch, getFeedbacks, updateAttempt, getTabSwitchLogs, getCameraSnapshots, getActiveCameraSnapshots, generateCertificateId, getPendingReviewAttempts, markFeedbackReviewed, markAllFeedbackReviewed, getReviewedFeedbackIds, markResultReviewed, markAllResultsReviewed, getReviewedResultIds, getUnreviewedFeedbackCount, getUnreviewedResultCount, type Test, type Question as StoreQuestion, type Certificate, type Batch, type Attempt } from "@/lib/store";
+import { getTests, saveTest, getAttempts, getCertificates, saveCertificate, getRetakeRequests, approveRetake, rejectRetake, getSettings, saveSettings, getBatches, saveBatch, deleteBatch, getFeedbacks, updateAttempt, getTabSwitchLogs, getCameraSnapshots, getActiveCameraSnapshots, generateCertificateId, getPendingReviewAttempts, markFeedbackReviewed, markAllFeedbackReviewed, getReviewedFeedbackIds, markResultReviewed, markAllResultsReviewed, getReviewedResultIds, getUnreviewedFeedbackCount, getUnreviewedResultCount, getGuestAttempts, type Test, type Question as StoreQuestion, type Certificate, type Batch, type Attempt, type GuestAttempt } from "@/lib/store";
 import { generateCertificatePDF } from "@/lib/pdf";
 import { exportCSV } from "@/lib/csv";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -29,6 +29,7 @@ function getAdminNavItems() {
     { label: "Tests", path: "/dashboard/admin/tests", icon: <FileText className="h-4 w-4" /> },
     { label: "Create Test", path: "/dashboard/admin/create-test", icon: <BookOpen className="h-4 w-4" /> },
     { label: "Results", path: "/dashboard/admin/results", icon: <BarChart3 className="h-4 w-4" />, badge: (pendingGrading || unreviewedResults) || undefined },
+    { label: "Guest Results", path: "/dashboard/admin/guest-results", icon: <Users className="h-4 w-4" /> },
     { label: "Live Test", path: "/dashboard/admin/live-test", icon: <Camera className="h-4 w-4" /> },
     { label: "Retake Requests", path: "/dashboard/admin/retake-requests", icon: <RotateCcw className="h-4 w-4" />, badge: pendingRetakes || undefined },
     { label: "Certificates", path: "/dashboard/admin/certificates", icon: <Award className="h-4 w-4" />, badge: pendingCerts || undefined },
@@ -1641,6 +1642,7 @@ export const CreateTest = () => {
   const [passPercentage, setPassPercentage] = useState(existingTest?.passPercentage || 50);
   const [certificateEnabled, setCertificateEnabled] = useState(existingTest?.certificateEnabled !== false);
   const [liveCameraEnabled, setLiveCameraEnabled] = useState(existingTest?.liveCameraEnabled || false);
+  const [isGuestTest, setIsGuestTest] = useState(existingTest?.isGuestTest || false);
   const [selectedStudents, setSelectedStudents] = useState<string[]>(existingTest?.assignedStudentIds || []);
   const students = getUsersByRole("student");
   const [questions, setQuestions] = useState<Question[]>(loadQuestions);
@@ -1696,7 +1698,7 @@ export const CreateTest = () => {
       toast({ title: "Error", description: "All MCQ questions must have a correct answer (A, B, C, or D).", variant: "destructive" });
       return;
     }
-    if (selectedStudents.length === 0) {
+    if (!isGuestTest && selectedStudents.length === 0) {
       toast({ title: "Error", description: "Please assign at least one student.", variant: "destructive" });
       return;
     }
@@ -1717,12 +1719,13 @@ export const CreateTest = () => {
       creatorName: existingTest?.creatorName || user?.name || "Admin",
       timeLimitMinutes: timeLimit,
       questions: storeQuestions,
-      assignedStudentIds: selectedStudents,
+      assignedStudentIds: isGuestTest ? [] : selectedStudents,
       status: existingTest?.status || "active",
       createdAt: existingTest?.createdAt || new Date().toISOString().split("T")[0],
       passPercentage,
       certificateEnabled,
       liveCameraEnabled,
+      isGuestTest,
     };
 
     saveTest(test);
@@ -1783,18 +1786,34 @@ export const CreateTest = () => {
                 <span className="text-xs text-muted-foreground">(Students must allow camera access to take this test)</span>
               )}
             </div>
+            <div className="flex items-center gap-3 sm:col-span-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isGuestTest}
+                  onChange={e => setIsGuestTest(e.target.checked)}
+                  className="h-4 w-4 rounded border-input accent-primary"
+                />
+                <span className="text-sm font-medium text-foreground">Open to guest accounts (no student assignment)</span>
+              </label>
+              {isGuestTest && (
+                <span className="text-xs text-muted-foreground">(Anyone signed in via the Guest Account can take this test)</span>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="rounded-xl border border-border bg-card p-6 shadow-card">
-          <h2 className="mb-4 font-display text-lg font-bold text-foreground">Assign Students</h2>
-          <CreateTestAssignStudents
-            students={students}
-            selectedStudents={selectedStudents}
-            setSelectedStudents={setSelectedStudents}
-            toggleStudent={toggleStudent}
-          />
-        </div>
+        {!isGuestTest && (
+          <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+            <h2 className="mb-4 font-display text-lg font-bold text-foreground">Assign Students</h2>
+            <CreateTestAssignStudents
+              students={students}
+              selectedStudents={selectedStudents}
+              setSelectedStudents={setSelectedStudents}
+              toggleStudent={toggleStudent}
+            />
+          </div>
+        )}
 
         {questions.map((q, idx) => (
           <div key={q.id} className="rounded-xl border border-border bg-card p-6 shadow-card">
@@ -2492,4 +2511,152 @@ export const AdminLiveTest = () => {
       </div>
     </DashboardLayout>
   );
+};
+
+export const AdminGuestResults = () => {
+  const { toast } = useToast();
+  const [attempts, setAttempts] = useState<GuestAttempt[]>(() => getGuestAttempts());
+  const [search, setSearch] = useState("");
+  const [filterTest, setFilterTest] = useState<string>("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const tests = getTests().filter(t => t.isGuestTest);
+
+  // Auto-refresh so new guest submissions appear without a manual reload
+  useEffect(() => {
+    const interval = setInterval(() => setAttempts(getGuestAttempts()), 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const filtered = attempts.filter(a => {
+    const q = search.toLowerCase();
+    const matchesSearch = !q ||
+      a.guestName.toLowerCase().includes(q) ||
+      a.guestEmail.toLowerCase().includes(q) ||
+      a.guestMobile.includes(q) ||
+      a.testName.toLowerCase().includes(q);
+    if (!matchesSearch) return false;
+    if (filterTest && a.testId !== filterTest) return false;
+    const t = new Date(a.submittedAt).getTime();
+    if (fromDate && t < new Date(fromDate).getTime()) return false;
+    if (toDate && t > new Date(toDate).getTime() + 86400000 - 1) return false;
+    return true;
+  });
+
+  return (
+    <DashboardLayout role="admin" navItems={getAdminNavItems()} title="Guest Results">
+      <div className="space-y-6">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:flex-wrap">
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Search</Label>
+            <Input placeholder="Name, email, mobile, test..." className="w-full sm:w-64" value={search} onChange={e => setSearch(e.target.value)} />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Test</Label>
+            <Select value={filterTest || "all"} onValueChange={v => setFilterTest(v === "all" ? "" : v)}>
+              <SelectTrigger className="w-full sm:w-56"><SelectValue placeholder="All Tests" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Tests</SelectItem>
+                {tests.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">From</Label>
+            <Input type="date" className="w-full sm:w-40" value={fromDate} onChange={e => setFromDate(e.target.value)} />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">To</Label>
+            <Input type="date" className="w-full sm:w-40" value={toDate} onChange={e => setToDate(e.target.value)} />
+          </div>
+          {(search || filterTest || fromDate || toDate) && (
+            <Button variant="ghost" size="sm" onClick={() => { setSearch(""); setFilterTest(""); setFromDate(""); setToDate(""); }}>
+              <X className="mr-1 h-3 w-3" /> Clear
+            </Button>
+          )}
+          <div className="lg:ml-auto">
+            <Button variant="outline" size="sm" onClick={() => {
+              const rows = filtered.map(r => [
+                r.guestName, r.guestMobile, r.guestEmail, r.guestGender,
+                r.testName,
+                `${r.score}/${r.totalMarks}`,
+                `${r.percentage}%`,
+                r.passed ? "Passed" : "Failed",
+                String(r.tabSwitchCount || 0),
+                `${new Date(r.submittedAt).toLocaleDateString()} ${new Date(r.submittedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+              ]);
+              exportCSV(
+                "guest-results.csv",
+                ["Name", "Mobile", "Email", "Gender", "Test", "Score", "Percentage", "Status", "Tab Switches", "Submitted"],
+                rows,
+              );
+            }}>
+              <Download className="mr-1 h-4 w-4" /> Export CSV
+            </Button>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-border bg-card shadow-card overflow-x-auto">
+          <table className="w-full text-sm min-w-[820px]">
+            <thead>
+              <tr className="border-b border-border bg-muted">
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Guest</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden md:table-cell">Contact</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">Test</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Score</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">%</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden md:table-cell">Tab Switches</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden lg:table-cell">Submitted</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length === 0 && (
+                <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">No guest results yet.</td></tr>
+              )}
+              {filtered.map(r => (
+                <tr key={r.id} className="border-b border-border last:border-0">
+                  <td className="px-4 py-3">
+                    <div className="flex flex-col">
+                      <span className="font-medium text-foreground">{r.guestName}</span>
+                      <span className="text-xs text-muted-foreground capitalize">{r.guestGender}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">
+                    <div className="flex flex-col leading-tight">
+                      <span className="text-foreground">{r.guestMobile}</span>
+                      <span className="text-xs">{r.guestEmail}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{r.testName}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{r.score}/{r.totalMarks}</td>
+                  <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{r.percentage}%</td>
+                  <td className="px-4 py-3">
+                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${r.passed ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
+                      {r.passed ? "Passed" : "Failed"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 hidden md:table-cell">
+                    {(r.tabSwitchCount || 0) > 0 ? (
+                      <span className="rounded-full bg-destructive/10 px-2.5 py-0.5 text-xs font-medium text-destructive flex items-center gap-1 w-fit">
+                        <AlertTriangle className="h-3 w-3" /> {r.tabSwitchCount}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">0</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground hidden lg:table-cell whitespace-nowrap">
+                    <div className="flex flex-col leading-tight">
+                      <span>{new Date(r.submittedAt).toLocaleDateString()}</span>
+                      <span className="text-xs">{new Date(r.submittedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </DashboardLayout>
+   );
 };
