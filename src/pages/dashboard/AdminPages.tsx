@@ -1641,6 +1641,7 @@ export const CreateTest = () => {
   const [passPercentage, setPassPercentage] = useState(existingTest?.passPercentage || 50);
   const [certificateEnabled, setCertificateEnabled] = useState(existingTest?.certificateEnabled !== false);
   const [liveCameraEnabled, setLiveCameraEnabled] = useState(existingTest?.liveCameraEnabled || false);
+  const [isGuestTest, setIsGuestTest] = useState(existingTest?.isGuestTest || false);
   const [selectedStudents, setSelectedStudents] = useState<string[]>(existingTest?.assignedStudentIds || []);
   const students = getUsersByRole("student");
   const [questions, setQuestions] = useState<Question[]>(loadQuestions);
@@ -1696,7 +1697,7 @@ export const CreateTest = () => {
       toast({ title: "Error", description: "All MCQ questions must have a correct answer (A, B, C, or D).", variant: "destructive" });
       return;
     }
-    if (selectedStudents.length === 0) {
+    if (!isGuestTest && selectedStudents.length === 0) {
       toast({ title: "Error", description: "Please assign at least one student.", variant: "destructive" });
       return;
     }
@@ -1717,12 +1718,13 @@ export const CreateTest = () => {
       creatorName: existingTest?.creatorName || user?.name || "Admin",
       timeLimitMinutes: timeLimit,
       questions: storeQuestions,
-      assignedStudentIds: selectedStudents,
+      assignedStudentIds: isGuestTest ? [] : selectedStudents,
       status: existingTest?.status || "active",
       createdAt: existingTest?.createdAt || new Date().toISOString().split("T")[0],
       passPercentage,
       certificateEnabled,
       liveCameraEnabled,
+      isGuestTest,
     };
 
     saveTest(test);
@@ -1783,18 +1785,34 @@ export const CreateTest = () => {
                 <span className="text-xs text-muted-foreground">(Students must allow camera access to take this test)</span>
               )}
             </div>
+            <div className="flex items-center gap-3 sm:col-span-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isGuestTest}
+                  onChange={e => setIsGuestTest(e.target.checked)}
+                  className="h-4 w-4 rounded border-input accent-primary"
+                />
+                <span className="text-sm font-medium text-foreground">Open to guest accounts (no student assignment)</span>
+              </label>
+              {isGuestTest && (
+                <span className="text-xs text-muted-foreground">(Anyone signed in via the Guest Account can take this test)</span>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="rounded-xl border border-border bg-card p-6 shadow-card">
-          <h2 className="mb-4 font-display text-lg font-bold text-foreground">Assign Students</h2>
-          <CreateTestAssignStudents
-            students={students}
-            selectedStudents={selectedStudents}
-            setSelectedStudents={setSelectedStudents}
-            toggleStudent={toggleStudent}
-          />
-        </div>
+        {!isGuestTest && (
+          <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+            <h2 className="mb-4 font-display text-lg font-bold text-foreground">Assign Students</h2>
+            <CreateTestAssignStudents
+              students={students}
+              selectedStudents={selectedStudents}
+              setSelectedStudents={setSelectedStudents}
+              toggleStudent={toggleStudent}
+            />
+          </div>
+        )}
 
         {questions.map((q, idx) => (
           <div key={q.id} className="rounded-xl border border-border bg-card p-6 shadow-card">
